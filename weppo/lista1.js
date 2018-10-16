@@ -17,7 +17,7 @@ var magicList = Array.from({length: 100001}, (x,i) => i).filter(checkMagic1);
 
 function prime(a){
     if(a<2) return false;
-    for(i = 2; i*i<=a; i++)
+    for(var i = 2; i*i<=a; i++)
         if(a%i == 0) return false;
     return true;
 }
@@ -35,7 +35,7 @@ function fibit(n){
     var p = 1;
     var pp = 1;
     if(n<2) return 1;
-    for(i = 2; i<=n; i++){
+    for(var i = 2; i<=n; i++){
         cur = p + pp;
         pp = p;
         p = cur;
@@ -44,7 +44,7 @@ function fibit(n){
 }
 
 function timeBrow(n){
-    for(i = 0; i<n; i++){
+    for(var i = 0; i<n; i++){
         var dateStart1 = Date.now()
         fibrek(i + 10);
         var dateEnd1 = Date.now()
@@ -55,15 +55,15 @@ function timeBrow(n){
     }
 }
 function timeNode(n){
-    for(i = 0; i<n; i++){
+    for(var i = 0; i<n; i+=1){
         var j = i
+        console.log(j);
         console.time(`timerRek${j}`)
-        fibrek(i + 10);
+        fibrek(j);
         console.timeEnd(`timerRek${j}`)
         console.time(`timerIt${j}`)
-        fibit(i + 10);
+        fibit(j);
         console.timeEnd(`timerIt${j}`)
     }
 }
-timeNode(20);
-timeBrow(20);
+timeNode(40);

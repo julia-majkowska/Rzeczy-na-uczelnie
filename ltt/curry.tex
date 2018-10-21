@@ -13,6 +13,7 @@
 \documentclass{beamer}
 \usepackage{polski}
 \usepackage[utf8]{inputenc}
+\usepackage{eucal}
 
 % There are many different themes available for Beamer. A comprehensive
 % list with examples is given here:
@@ -172,86 +173,373 @@
  \includegraphics[scale=0.25]{dedukcja.png}
 \end{frame}
 
-\subsection{Second Subsection}
+\begin{frame}{Przykłady dowodów}
+ \includegraphics[scale=0.25]{dowoddedukcja.png}
+\end{frame}
 
-% You can reveal the parts of a slide one at a time
-% with the \pause command:
-\begin{frame}{Second Slide Title}
-  \begin{itemize}
-  \item {
-    First item.
-    \pause % The slide will pause after showing the first item
-  }
-  \item {   
-    Second item.
-  }
-  % You can also specify when the content should appear
-  % by using <n->:
-  \item<3-> {
-    Third item.
-  }
-  \item<4-> {
-    Fourth item.
-  }
-  % or you can use the \uncover command to reveal general
-  % content (not just \items):
-  \item<5-> {
-    Fifth item. \uncover<6->{Extra text in the fifth item.}
-  }
-  \end{itemize}
+\begin{frame}{Własności dedukcji}
+ \begin{block}{Lemat}
+ 	Logika intuicjonistyczna jest zamknięta na osłabienie i podstawienie. To znaczy : \\
+ 	\( \Gamma \vdash p \Rightarrow \Gamma, \psi \vdash p\)\\
+ 	\( \Gamma \vdash p  \Rightarrow \Gamma [ q := \psi ] \vdash p[ q:= \psi ]\)\\
+ 	Dowód - indukcja
+ \end{block}
+\end{frame}
+
+\subsection{Algebraiczna Semantyka}
+
+\begin{frame}{Logika klasyczna}
+ \begin{block}{Wartościowanie dla logiki klasycznej}
+ Niech \( v : \Phi \rightarrow \{0,1\}\)\\
+ Zdefinujemy funkcję mapującą  \( [ \cdot ]_v : \Phi \rightarrow \{ 0, 1 \}\), spełniającą :
+ \begin{equation*}
+ 	[p]_v = v ( p)
+ \end{equation*} 
+ \begin{equation*}
+ 	[\bot]_v = 0
+ \end{equation*} 
+  \begin{equation*}
+ 	[\phi \vee \psi]_v = max\{[\phi]_v, [\psi]_v\}
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \wedge \psi]_v = min\{[\phi]_v, [\psi]_v\}
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \rightarrow \psi]_v = max\{1-[\phi]_v, [\psi]_v\}
+ \end{equation*}
+ 	
+ \end{block}
+\end{frame}
+
+
+\begin{frame}{Ciało zbiorów}
+ \begin{block}{Definicja}
+ \textbf{Ciało zbiorów} nad X to niepusta rodzina pozdbiorów X zamknięta na sumę, przecięcie i dopełnienie zbiorów
+ \end{block}
+ \begin{example}
+ \begin{enumerate}
+ \item P(X)
+ \item \( \{\} \cup X\)
+ \end{enumerate}
+ \end{example}
+\end{frame}
+
+\begin{frame}{Algebra zbiorów}
+ \begin{block}{Wartościowanie na zbiorach}
+ 
+ Niech \( \mathcal{R} \) ciało zbiorów nad zbiorem X.\\  	Wartosciowaniem v w \( \mathcal{R} \) nazywamy \( v : PV \rightarrow \mathcal{R}\)\\
+ Zdefinujemy funkcję mapującą  \( [ \cdot ]_v : \Phi \rightarrow X\), spełniającą :
+ \begin{equation*}
+ 	[p]_v = v ( p)
+ \end{equation*} 
+ \begin{equation*}
+ 	[\bot]_v = \{\}
+ \end{equation*} 
+  \begin{equation*}
+ 	[\phi \vee \psi]_v = [\phi]_v \cup [\psi]_v
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \wedge \psi]_v = [\phi]_v \cap [\psi]_v 
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \rightarrow \psi]_v = X-[\phi]_v \cup [\psi]_v
+ \end{equation*}
+ 	
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}
+
+\begin{block}{Twierdzenie}
+ 	Powyższe dwie semantyki są równoważne.\\ \( \phi\) jest tautologią \( \Leftrightarrow \) \(v(\phi) = X \) dla każdego v w \(\mathcal{R}\).
+ \end{block}
+ \begin{block}{Dowód}
+ 
+	\( \Rightarrow \)\\
+	Załóżmy nie wprost, że istnieje a takie, że \( a \notin v(\phi)\). Więc tworzymy wartościowanie zmiennych w PV takie, że w(p) = 1 wtw. gdy \( a \in v(p)\). Indukcyjnie można udowodnić że \(w(\phi) \neq 1\).\\
+	\( \Leftarrow \) \\
+	Wartościowanie 0/1 kowe to interpretacja \( v (\phi) \in \{\{\}, X\} \).
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}{Algebra boolowska}
+ \begin{block}{Definicja}
+ \textbf{Algebrą boolowską} nazywamy \( \mathcal{B}  = < B, \cup, \cap, -, 0, 1 >\), gdzie: 
+ \begin{enumerate}
+ \item \(\cup, \cap\) są łączne, przemienne i rozdzielne jedno względem drugiego.
+ \item \( a \cup 0 = a \) i \( a \cap 1 = a \) 
+ \item \( -a \cup a = 1 \) i \( -a \cap a  =  0 \)
+ \end{enumerate}
+ Relacja \(a \leq b  \Leftrightarrow  a \cup b = b \) jest częściowym porządkiem dla wszyskich algebr boolowskich. \( \cup \) \( \cap \) są odpowiednio kresami dolnym (glb) i górnym (lub) na tym porządku.
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}{Algebra Lindenbauma}
+ \begin{block}{Definicja}
+ Niech \( \Phi \) - zbiór wszystkich formuł i \( \Gamma \in \Phi \) 
+ 
+ Zdefiniujmy relację  \( \phi \sim \psi \Leftrightarrow (\Gamma, \phi  \vdash \psi) \wedge (\Gamma, \psi \vdash \phi) \).
+ Relacja jest relacją równoważności ponieważ następujące formuły są dowodliwe: 
+ \begin{enumerate}
+ \item \(\phi \rightarrow \phi\)
+ \item \((\phi \rightarrow \psi) \rightarrow (( \psi \rightarrow  \gamma ) \rightarrow ( \phi \rightarrow \gamma ))  \) 
+ \end{enumerate}
+ \end{block}
+ 
+ \begin{block}{Zbiór Lindenbauma}
+ 
+ Niech \( \mathcal{L}_{\Gamma} = \Phi / \sim  = \{ [\phi]_{\sim} :  \phi \in \Phi \}\). \\
+ Zdefiniujmy częściowy porządek \( [\phi]_{\sim} \leq [\psi]_{\sim} \Leftrightarrow \Gamma, \phi \vdash \psi \)
+
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}{Algebra Lindenbauma }
+ \begin{block}{Operatory}
+ Możemy zdefiniować dodatkowe operatory nad \( \mathcal{L}_{\Gamma} \)
+ \begin{enumerate}
+ \item \([\alpha]_{\sim} \cup [\beta]_{\sim} = [ \alpha \vee \beta ]_{\sim}\)
+ \item \([\alpha]_{\sim} \cap [\beta]_{\sim} = [ \alpha \wedge \beta ]_{\sim}\)
+  \item \(-[\alpha]_{\sim} = [\neg \alpha ]_{\sim}\)
+ \end{enumerate}
+ \end{block}
+ 
+  \begin{block}{Dowód}
+ Operatory są dobrze zdefiniowane ponieważ następujące fomuły są dowodliwe
+ \begin{enumerate}
+ \item \((\alpha \rightarrow \alpha') \rightarrow 
+ (
+ 	(\beta \rightarrow \beta') \rightarrow
+ 	(( \alpha \vee \beta) \rightarrow (\alpha' \vee \beta')))\)
+  \item \((\alpha \rightarrow \alpha') \rightarrow 
+ (
+ 	(\beta \rightarrow \beta') \rightarrow
+ 	(( \alpha \wedge \beta) \rightarrow (\alpha' \wedge \beta')))\)
+  \item \((\alpha \rightarrow \alpha') \rightarrow 
+(\neg \alpha' \rightarrow \neg \alpha)\)
+ \end{enumerate}
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}{Algebra Lindenbauma }
+ \begin{block}{Twierdzenie}
+ \( \cup \) i \(\cap \) są łączne , przemienne i rozdzielne oraz są operatorami lub i glb na porządku \( \leq \).
+ \end{block}
+ 
+\end{frame}
+
+\begin{frame}{Algebra Heytinga}
+ \begin{block}{Definicja}
+\textbf{Algebrą Heytlinga} nazywamy system algebraiczny w postaci \( \mathcal(H) = < H, \cup, \cap, \Rightarrow, - , 0 ,1 > \) spełniający 
+\begin{enumerate}
+	\item \(\cup, \cap\) są łączne, przemienne i rozdzielne jedno względem drugiego.
+ \item \( a \cup 0 = a \) i \( a \cap 1 = a \) 
+ \item \( a \cup a  = a \) 
+ \item \( a \cap c \leq b \) jest równoważne \( c \leq a \Rightarrow b \) ( gdzie \( a \leq b \) to \( a \cup b  = b\) )
+ \item \( -a  = a \Rightarrow 0 \)
+\end{enumerate}
+ \end{block}
+\end{frame}
+ 
+\begin{frame}{Algebra Heytinga}
+ \begin{block}{Definicja}
+ Niech \( \mathcal{H} = < H, \cup, \cap, \Rightarrow, - , 0 ,1 >  \) będzie algebrą Heytinga.\\
+  Wartosciowaniem v w \( \mathcal{H} \) nazywamy \( v : PV \rightarrow H\)\\
+ Zdefinujmy funkcję mapującą  \( [ \cdot ]_v : \Phi \rightarrow H\), spełniającą :
+ \begin{equation*}
+ 	[p]_v = v ( p)
+ \end{equation*} 
+ \begin{equation*}
+ 	[\bot]_v = 0
+ \end{equation*} 
+  \begin{equation*}
+ 	[\phi \vee \psi]_v = [\phi]_v \cup [\psi]_v
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \wedge \psi]_v = [\phi]_v \cap [\psi]_v 
+ \end{equation*}
+  \begin{equation*}
+ 	[\phi \rightarrow \psi]_v = [\phi]_v \Rightarrow [\psi]_v
+ \end{equation*}
+ \end{block}
+\end{frame}
+
+\begin{frame}{Dowodliwość a algebra Heytinga}
+ \begin{block}{Twierdzenie}
+Następujące zdania sa równoważne
+	\begin{enumerate}
+	\item \(\Gamma \vdash \phi\)
+ 	\item \(\Gamma \models \phi\) 
+
+	\end{enumerate}
+ \end{block}
+ 
+ \begin{block}{Twierdzenie}
+	\begin{enumerate}
+	\item Formuła \(\phi\) o długości n jest prawdziwa jeśli jest prawdziwa we wszekich algebrach Heytinga o liczności zbioru wartości  nie większej niż \( 2 ^ {2 ^ n}\)
+ 	\item Niech \(\mathcal{H}\) będzie algebrą wszystkich podzbiorów gestej przestrzeni metrycznej. \( \mathcal{H} \models \phi\) wtw. gdy \(\phi\) jest prawdziwe.
+
+	\end{enumerate}
+ \end{block}
+\end{frame}
+
+\begin{frame}{Model Kripkego}
+ \begin{block}{Definicja}
+Jeśli \( \mathcal{C} = < C, \leq, \Vdash> \) jest \textbf{modelem Kripkego} wtedy : 
+\begin{enumerate}
+	\item \(c \Vdash \phi \vee \psi \Leftrightarrow c \Vdash  \phi \) lub \( c \Vdash \psi \) 
+ \item \(c \Vdash \phi \wedge \psi \Leftrightarrow c \Vdash  \phi \) i \( c \Vdash \psi \) 
+ \item \(c \Vdash \phi \rightarrow \psi \Leftrightarrow c \Vdash  \psi \) dla każdego c', takiego że \( c \leq c'  c' \Vdash \phi \) 
+ \item \( c \Vdash \bot \) nie jest prawdą
+ 
+\end{enumerate}
+ \end{block}
+ 
+  \begin{block}{Wnioski}
+
+\begin{enumerate}
+
+ \item \(c \Vdash \neg \phi \Leftrightarrow  c'\nVdash \phi\) dla każdego \( c' \geq c\).
+
+ \item \(c \leq c' \wedge  c \Vdash \phi \Rightarrow c' \Vdash \phi \)
+\end{enumerate}
+ \end{block}
+\end{frame}
+
+
+\begin{frame}{Zupełność}
+ \begin{block}{Twierdzenie}
+Poniższe zdanie są równoważne
+\begin{enumerate}
+\item \( \Gamma \vdash \phi \)
+\item \( \mathcal{C} \Vdash \Gamma \Rightarrow \mathcal{C} \Vdash \phi \)
+\end{enumerate}
+ \end{block}
+ 
+\end{frame}
+
+\subsection{Fragment implikacyjny}
+
+\begin{frame}{Logika inuicjonistyczna z samą impllikacją}
+ \begin{block}{Twierdzenie}
+Rachunek zdań z samą implikacją jest zupełny w kontekscie modelu Kripkego. : 
+\begin{enumerate}
+\item \( \Gamma \vdash \phi \)
+\item \( \mathcal{C} \Vdash \Gamma \Rightarrow \mathcal{C} \Vdash \phi \)
+\end{enumerate}
+są równoważne.
+	
+ \end{block}
+ 
+  \begin{block}{Twierdzenie}
+  Niech \(\phi\) zdanie implikacyjne, a \(\Gamma\) zbiór formuł implikacyjnych. Jeśli \( \Gamma \vdash \phi \) jest prawdą w rachunku intuicjonistycznym to jest też prawdą w rachunku z samymim implikacjami. 
+
+ \end{block}
 \end{frame}
 
 \section{Izomorfizm Curry'ego Howarda}
 
-\subsection{Another Subsection}
+\subsection{Bezkontekstowa dedukcja naturalna}
+\begin{frame}{Dedukcja bez kontekstu}
+Założenia są umieszczane w liściu drzewa i uwalniane w momencie kiedy stosujemy w dowodzie wprowadzenie implikacji.
+\includegraphics[scale=0.25]{bezkontdedukcja.png}
+\end{frame}
 
-\begin{frame}{Blocks}
-\begin{block}{Block Title}
-You can also highlight sections of your presentation in a block, with it's own title
-\end{block}
-\begin{theorem}
-There are separate environments for theorems, examples, definitions and proofs.
-\end{theorem}
+\begin{frame}{Normalizacja dowodów}
+Niektóre dowody wprowadzają nowe spójniki, tylko po to, żeby je wyeliminować później
 \begin{example}
-Here is an example of an example block.
+\includegraphics[scale=0.25]{duzy_dowod.png}
+\includegraphics[scale=0.25]{maly_dowod.png}
 \end{example}
 \end{frame}
 
-% Placing a * after \section means it will not show in the
-% outline or table of contents.
-\section*{Summary}
+\begin{frame}{Normalizacja dowodów}
 
-\begin{frame}{Summary}
-  \begin{itemize}
-  \item
-    The \alert{first main message} of your talk in one or two lines.
-  \item
-    The \alert{second main message} of your talk in one or two lines.
-  \item
-    Perhaps a \alert{third message}, but not more than that.
-  \end{itemize}
-  
-  \begin{itemize}
-  \item
-    Outlook
-    \begin{itemize}
-    \item
-      Something you haven't solved.
-    \item
-      Something else you haven't solved.
-    \end{itemize}
-  \end{itemize}
+\includegraphics[scale=0.25]{elim_ded.png}
+
 \end{frame}
 
+\subsection{Izomorfizm Curry'ego Howarda}
+\begin{frame}{Izomorfizm Currego Howarda}
+\begin{block}{Definicja}
 
+Będziemy rozpatrywać część implikacyjną logiki inuicjonistycznej. 
+\begin{enumerate}
+	\item Jeśli \( \Gamma \vdash M : \phi \) to \( | \Gamma | \vdash \phi \) gdzie \(|\cdot|\) oznacza zbiór typów zbioru zmiennych.
+	\item Jeśli \( \Gamma \vdash \phi \) to istnieje \( M \in \Lambda_{\pi}\) takie, że \( \Delta \vdash M : \phi \) gdzie \( \Delta = \{ (X_{\phi} : \phi) | \phi \in \Gamma \} \)
+\end{enumerate}
+Dowód - indukcja po konstrukcji formuły / dowodu.
+\end{block}
+\end{frame}
+
+\begin{frame}{Izomorfizm Currego Howarda a logika intuicjonistyczna}
+Aby rozszerzyć izomorfizm do pełnego rachunku zdań logiki intuicjonistycznej należy dołożyć następujące typy do prostego typowango rachunku lambda.
+\includegraphics[scale=0.25]{types_curry.png}
+\end{frame}
+
+\begin{frame}{Izomorfizm Currego Howarda a logika intuicjonistyczna}
+Należy dołożyć także dodatkowe zasady typowanie i redukcji
+\includegraphics[scale=0.25]{int_curry.png}\\
+\includegraphics[scale=0.25]{red_curry.png}
+\end{frame}
+
+\begin{frame}{Przedstawienie dowodu jako \(\lambda\) termu}
+Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -termu.
+
+\includegraphics[scale=0.25]{odpowiedniki_curry.png}
+\end{frame}
+
+\begin{frame}{Przedstawienie dowodu jako \(\lambda\) termu - redukcja}
+\includegraphics[scale=0.25]{redex_curry.png}
+\end{frame}
+
+\begin{frame}{Własność silnej redukcji}
+\begin{block}{Twierdzenie}
+	Każda redukcja  termu typowanego rachunku lambda ma skończoną długość.
+
+\end{block}
+\end{frame}
+
+\subsection{Ćwiczenia}
+
+\begin{frame}{Własność silnej redukcji}
+\begin{enumerate}
+
+	\item Udowodnij w systemie dedukcji naturalnej używając termów logiki inuicjonistycznej. Staraj się aby powstały dowód był znormalizowany.
+	\begin{enumerate}
+ \item \( \bot \rightarrow p\)
+ \item \( p \rightarrow \neg \neg p \)
+ \item \( \neg \neg \neg p \rightarrow \neg p\)
+ \item \( (p \rightarrow q) \rightarrow (\neg q \rightarrow \neg p ) \)
+ \item \( (\neg p \vee \neg q) \rightarrow \neg ( q \wedge p ) \)
+ \item \( (( p \wedge q) \rightarrow r) \rightarrow ( p \rightarrow ( q \rightarrow r )) \)
+\end{enumerate}
+	\item Znajdź lambda termy odpowiadające tym dowodom. 
+	\item Udowodnij,  że \( a \leq b \Leftrightarrow a \cup b = b\) zdefiniowana na algebrze boolowskiej jest porządkiem częściowym oraz: 
+	\begin{enumerate}
+	\item \( a \cap b  \leq a\)
+	\item \( a \leq b\) wtw \( a \cap b = a\)
+	\item \( \cap , \cup\) to odpowiednio infimum i supremum względem porządku \( \leq\) 
+	\item  0 i 1 to odpowiednio najmiejszy i największy element w tym porządku.
+	\end{enumerate}
+
+\end{enumerate}
+
+
+\end{frame}
 
 % All of the following is optional and typically not needed. 
 \appendix
 \section<presentation>*{\appendixname}
-\subsection<presentation>*{For Further Reading}
+\subsection<presentation>*{Sources}
 
 \begin{frame}[allowframebreaks]
-  \frametitle<presentation>{For Further Reading}
+  \frametitle<presentation>{Sources}
     
   \begin{thebibliography}{10}
     
@@ -259,19 +547,15 @@ Here is an example of an example block.
   % Start with overview books.
 
   \bibitem{Author1990}
-    A.~Author.
-    \newblock {\em Handbook of Everything}.
-    \newblock Some Press, 1990.
- 
-    
-  \beamertemplatearticlebibitems
-  % Followed by interesting articles. Keep the list short. 
+    Morten Heine B. Sørensen, Paweł Urzyczyn
+    \newblock {\em Lectures on the
+Curry-Howard Isomorphism}.
 
-  \bibitem{Someone2000}
-    S.~Someone.
-    \newblock On this and that.
-    \newblock {\em Journal of This and That}, 2(1):50--100,
-    2000.
+   \bibitem{Author1990}
+   Paweł Urzyczyn
+    \newblock {\em Materiały do wykładu Rachunek Lambda}.
+ 
+ 
   \end{thebibliography}
 \end{frame}
 

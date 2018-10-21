@@ -305,6 +305,7 @@
  \item \([\alpha]_{\sim} \cup [\beta]_{\sim} = [ \alpha \vee \beta ]_{\sim}\)
  \item \([\alpha]_{\sim} \cap [\beta]_{\sim} = [ \alpha \wedge \beta ]_{\sim}\)
   \item \(-[\alpha]_{\sim} = [\neg \alpha ]_{\sim}\)
+  \item \( 1 = [\bot \rightarrow \phi ]_{\sim} \) , \( 0 = [\bot]_{\sim} \)
  \end{enumerate}
  \end{block}
  
@@ -381,7 +382,7 @@ Następujące zdania sa równoważne
  
  \begin{block}{Twierdzenie}
 	\begin{enumerate}
-	\item Formuła \(\phi\) o długości n jest prawdziwa jeśli jest prawdziwa we wszekich algebrach Heytinga o liczności zbioru wartości  nie większej niż \( 2 ^ {2 ^ n}\)
+	\item Formuła \(\phi\) o długości n jest dowodliwa jeśli jest prawdziwa we wszystkich algebrach Heytinga o liczności nie większej niż \( 2 ^ {2 ^ n}\)
  	\item Niech \(\mathcal{H}\) będzie algebrą wszystkich podzbiorów gestej przestrzeni metrycznej. \( \mathcal{H} \models \phi\) wtw. gdy \(\phi\) jest prawdziwe.
 
 	\end{enumerate}
@@ -507,7 +508,7 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
 
 \subsection{Ćwiczenia}
 
-\begin{frame}{Własność silnej redukcji}
+\begin{frame}{Ćwiczenia}
 \begin{enumerate}
 
 	\item Udowodnij w systemie dedukcji naturalnej używając termów logiki inuicjonistycznej. Staraj się aby powstały dowód był znormalizowany.
@@ -520,6 +521,12 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
  \item \( (( p \wedge q) \rightarrow r) \rightarrow ( p \rightarrow ( q \rightarrow r )) \)
 \end{enumerate}
 	\item Znajdź lambda termy odpowiadające tym dowodom. 
+	\end{enumerate}
+\end{frame}
+
+
+\begin{frame}{Ćwiczenia}
+\begin{enumerate}
 	\item Udowodnij,  że \( a \leq b \Leftrightarrow a \cup b = b\) zdefiniowana na algebrze boolowskiej jest porządkiem częściowym oraz: 
 	\begin{enumerate}
 	\item \( a \cap b  \leq a\)
@@ -527,7 +534,7 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
 	\item \( \cap , \cup\) to odpowiednio infimum i supremum względem porządku \( \leq\) 
 	\item  0 i 1 to odpowiednio najmiejszy i największy element w tym porządku.
 	\end{enumerate}
-
+	\item Udowodnij izomorfizm Currego Howarda dla cześci implikacyjnej logiki intuicjonistycznej i typowanego rachunku lambda.
 \end{enumerate}
 
 

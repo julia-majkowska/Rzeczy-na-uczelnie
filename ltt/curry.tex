@@ -272,7 +272,7 @@
  \item \( a \cup 0 = a \) i \( a \cap 1 = a \) 
  \item \( -a \cup a = 1 \) i \( -a \cap a  =  0 \)
  \end{enumerate}
- Relacja \(a \leq b  \Leftrightarrow  a \cup b = b \) jest częściowym porządkiem dla wszyskich algebr boolowskich. \( \cup \) \( \cap \) są odpowiednio kresami dolnym (glb) i górnym (lub) na tym porządku.
+ Relacja \(a \leq b  \Leftrightarrow  a \cup b = b \) jest częściowym porządkiem dla wszyskich algebr boolowskich. \( \cup \) \( \cap \) są odpowiednio infimum (glb) i supremum (lub) na tym porządku.
  \end{block}
  
 \end{frame}
@@ -329,14 +329,14 @@
 
 \begin{frame}{Algebra Lindenbauma }
  \begin{block}{Twierdzenie}
- \( \cup \) i \(\cap \) są łączne , przemienne i rozdzielne oraz są operatorami lub i glb na porządku \( \leq \).
+ \( \cup \) i \(\cap \) są łączne, przemienne i rozdzielne oraz są operatorami lub i glb na porządku \( \leq \).
  \end{block}
  
 \end{frame}
 
 \begin{frame}{Algebra Heytinga}
  \begin{block}{Definicja}
-\textbf{Algebrą Heytlinga} nazywamy system algebraiczny w postaci \( \mathcal(H) = < H, \cup, \cap, \Rightarrow, - , 0 ,1 > \) spełniający 
+\textbf{Algebrą Heytlinga} nazywamy system algebraiczny w postaci \( \mathcal{H} = < H, \cup, \cap, \Rightarrow, - , 0 ,1 > \) spełniający 
 \begin{enumerate}
 	\item \(\cup, \cap\) są łączne, przemienne i rozdzielne jedno względem drugiego.
  \item \( a \cup 0 = a \) i \( a \cap 1 = a \) 
@@ -418,7 +418,7 @@ Jeśli \( \mathcal{C} = < C, \leq, \Vdash> \) jest \textbf{modelem Kripkego} wte
 Poniższe zdanie są równoważne
 \begin{enumerate}
 \item \( \Gamma \vdash \phi \)
-\item \( \mathcal{C} \Vdash \Gamma \Rightarrow \mathcal{C} \Vdash \phi \)
+\item \( c \Vdash \Gamma \Rightarrow c \Vdash \phi \)
 \end{enumerate}
  \end{block}
  
@@ -438,7 +438,7 @@ są równoważne.
  \end{block}
  
   \begin{block}{Twierdzenie}
-  Niech \(\phi\) zdanie implikacyjne, a \(\Gamma\) zbiór formuł implikacyjnych. Jeśli \( \Gamma \vdash \phi \) jest prawdą w rachunku intuicjonistycznym to jest też prawdą w rachunku z samymim implikacjami. 
+  Niech \(\phi\) zdanie implikacyjne, a \(\Gamma\) zbiór formuł implikacyjnych. Jeśli \( \Gamma \vdash \phi \) jest prawdą w rachunku intuicjonistycznym to jest też prawdą w rachunku z samymi implikacjami. 
 
  \end{block}
 \end{frame}
@@ -467,7 +467,7 @@ Niektóre dowody wprowadzają nowe spójniki, tylko po to, żeby je wyeliminowa�
 
 \subsection{Izomorfizm Curry'ego Howarda}
 \begin{frame}{Izomorfizm Currego Howarda}
-\begin{block}{Definicja}
+\begin{block}{Twierdzenie}
 
 Będziemy rozpatrywać część implikacyjną logiki inuicjonistycznej. 
 \begin{enumerate}

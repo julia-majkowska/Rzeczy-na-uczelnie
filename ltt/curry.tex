@@ -219,7 +219,7 @@
  \begin{example}
  \begin{enumerate}
  \item P(X)
- \item \( \{\} \cup X\)
+ \item \( \{\{\}\} \cup X\)
  \end{enumerate}
  \end{example}
 \end{frame}
@@ -336,7 +336,7 @@
 
 \begin{frame}{Algebra Heytinga}
  \begin{block}{Definicja}
-\textbf{Algebrą Heytlinga} nazywamy system algebraiczny w postaci \( \mathcal{H} = < H, \cup, \cap, \Rightarrow, - , 0 ,1 > \) spełniający 
+\textbf{Algebrą Heytinga} nazywamy system algebraiczny w postaci \( \mathcal{H} = < H, \cup, \cap, \Rightarrow, - , 0 ,1 > \) spełniający 
 \begin{enumerate}
 	\item \(\cup, \cap\) są łączne, przemienne i rozdzielne jedno względem drugiego.
  \item \( a \cup 0 = a \) i \( a \cap 1 = a \) 
@@ -375,7 +375,7 @@
 Następujące zdania sa równoważne
 	\begin{enumerate}
 	\item \(\Gamma \vdash \phi\)
- 	\item \(\Gamma \models \phi\) 
+ 	\item \(\Gamma \models \phi\) tzn. \( \forall_{\mathcal{C}, v} ( \forall_{\gamma \in \Gamma} v(\gamma) = 1 ) \Rightarrow v(\phi)  = 1\)
 
 	\end{enumerate}
  \end{block}
@@ -391,11 +391,12 @@ Następujące zdania sa równoważne
 
 \begin{frame}{Model Kripkego}
  \begin{block}{Definicja}
-Jeśli \( \mathcal{C} = < C, \leq, \Vdash> \) jest \textbf{modelem Kripkego} wtedy : 
+Jeśli \( \mathcal{C} = < C, \leq, \Vdash, f >\) jest \textbf{modelem Kripkego} wtedy : 
 \begin{enumerate}
+	\item \( f : PV \rightarrow C\)  \( f(p) = inf\{c \in C : c \Vdash p\}\) - wartościowanie ziennych
 	\item \(c \Vdash \phi \vee \psi \Leftrightarrow c \Vdash  \phi \) lub \( c \Vdash \psi \) 
  \item \(c \Vdash \phi \wedge \psi \Leftrightarrow c \Vdash  \phi \) i \( c \Vdash \psi \) 
- \item \(c \Vdash \phi \rightarrow \psi \Leftrightarrow c \Vdash  \psi \) dla każdego c', takiego że \( c \leq c'  c' \Vdash \phi \) 
+ \item \(c \Vdash \phi \rightarrow \psi \Leftrightarrow c' \Vdash  \psi \) dla każdego c', takiego że \( c \leq c'  c' \Vdash \phi \) 
  \item \( c \Vdash \bot \) nie jest prawdą
  
 \end{enumerate}
@@ -535,6 +536,7 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
 	\item  0 i 1 to odpowiednio najmiejszy i największy element w tym porządku.
 	\end{enumerate}
 	\item Udowodnij izomorfizm Currego Howarda dla cześci implikacyjnej logiki intuicjonistycznej i typowanego rachunku lambda.
+	\item Udowodnij (korzystając z odpowiednego modelu Kripkego), że \( p \vee \neg p \) nie jest tautologią logiki intuicjonistycznej. (Podpowiedź : istnieje model o \( |C| = 2\), dla którego ta formuła nie jest prawdziwa)
 \end{enumerate}
 
 
@@ -561,6 +563,10 @@ Curry-Howard Isomorphism}.
    \bibitem{Author1990}
    Paweł Urzyczyn
     \newblock {\em Materiały do wykładu Rachunek Lambda}.
+   
+   \bibitem{}
+   Stuart.A Kurz
+   \newblock{ \em https://www.classes.cs.uchicago.edu/archive/2003/spring/15300-1/intuitionism.pdf}
  
  
   \end{thebibliography}

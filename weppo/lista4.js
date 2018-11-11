@@ -20,10 +20,11 @@ var Tree = {
       }
     }
     yield this.val;
+
     if (this.right) {
       for (var e in this.right) {
-        yield e;
         console.log(e, "**");
+        yield e;
       }
     }
   }
@@ -41,6 +42,36 @@ t1.infixPrint();
 //zadanie2
 var root = t1;
 // enumeracja wartości z węzłów
+root.infixPrint();
 for (var e of root) {
   console.log(e);
 }
+
+//zadanie5
+var readline = require("readline");
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+rl.on("line", function(line) {
+  console.log(`Witaj ${line}$`);
+});
+
+//zadanie6
+
+var fs = require("fs");
+var content = fs.readFileSync('myfile.txt', 'utf8');
+console.log(content);
+
+//zadanie7 
+counters = {}
+const rl = readline.createInterface({
+    input: fs.createReadStream('sample.txt'),
+    crlfDelay: Infinity
+  });
+  
+  rl.on('line', (line) => {
+    console.log(`Line from file: ${line}`);
+  });

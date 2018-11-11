@@ -375,7 +375,7 @@
 Następujące zdania sa równoważne
 	\begin{enumerate}
 	\item \(\Gamma \vdash \phi\)
- 	\item \(\Gamma \models \phi\) tzn. \( \forall_{\mathcal{C}, v} ( \forall_{\gamma \in \Gamma} v(\gamma) = 1 ) \Rightarrow v(\phi)  = 1\)
+ 	\item \(\Gamma \models \phi\) tzn. \( \forall_{\mathcal{H}, v} ( \forall_{\gamma \in \Gamma} v(\gamma) = 1 ) \Rightarrow v(\phi)  = 1\)
 
 	\end{enumerate}
  \end{block}
@@ -383,7 +383,12 @@ Następujące zdania sa równoważne
  \begin{block}{Twierdzenie}
 	\begin{enumerate}
 	\item Formuła \(\phi\) o długości n jest dowodliwa jeśli jest prawdziwa we wszystkich algebrach Heytinga o liczności nie większej niż \( 2 ^ {2 ^ n}\)
- 	\item Niech \(\mathcal{H}\) będzie algebrą wszystkich podzbiorów gestej przestrzeni metrycznej. \( \mathcal{H} \models \phi\) wtw. gdy \(\phi\) jest prawdziwe.
+ 	\item Niech \(\mathcal{H}\) będzie algebrą wszystkich otwartych podzbiorów gestej przestrzeni metrycznej gdzie : \\
+ 	\begin{enumerate}
+ 	\item \( \cup, \cap\) to operacje na zbiorach
+ 	\item \( A \Rightarrow B  = Int ( (1 \backslash A) \cup B) \), gdzie Int oznacza wnętrze zbioru.
+ 	\end{enumerate}
+ 	\( \mathcal{H} \models \phi\) wtw. gdy \(\phi\) jest prawdziwe. 
 
 	\end{enumerate}
  \end{block}
@@ -512,7 +517,7 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
 \begin{frame}{Ćwiczenia}
 \begin{enumerate}
 
-	\item Udowodnij w systemie dedukcji naturalnej używając termów logiki inuicjonistycznej. Staraj się aby powstały dowód był znormalizowany.
+	\item Udowodnij w systemie dedukcji naturalnej używając termów logiki intuicjonistycznej. Potaraj się, aby powstały dowód był znormalizowany.
 	\begin{enumerate}
  \item \( \bot \rightarrow p\)
  \item \( p \rightarrow \neg \neg p \)
@@ -528,6 +533,7 @@ Można zauważyć podobieństwa pomiędzy cechami dowodu a cechami \(\lambda\) -
 
 \begin{frame}{Ćwiczenia}
 \begin{enumerate}
+	\setcounter{enumi}{2}
 	\item Udowodnij,  że \( a \leq b \Leftrightarrow a \cup b = b\) zdefiniowana na algebrze boolowskiej jest porządkiem częściowym oraz: 
 	\begin{enumerate}
 	\item \( a \cap b  \leq a\)

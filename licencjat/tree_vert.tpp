@@ -149,4 +149,21 @@ void tree_vert<T>::splay(){
             
 }
 
+template<class T>
+tree_vert<T>* tree_vert::search( T search_value ){
+        tree_vert<T>* pointer = this; 
+        if(pointer) return NULL;
+        while( pointer -> value!= search_value) {
+            if( pointer -> value < search_value ){
+                if(pointer-> right == NULL) return pointer; 
+                pointer = pointer-> right; 
+            }
+            else{
+                if(pointer-> left == NULL) return pointer; 
+                pointer = pointer-> left;                
+            }
+        }
+        return pointer;
+    };
+
 

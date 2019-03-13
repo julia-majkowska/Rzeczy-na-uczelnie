@@ -49,6 +49,8 @@ public:
     
     void splay();
     
+    tree_vert<T>* tree_vert::search( T search_value );
+    
 };
 
 #include"tree_vert.tpp"

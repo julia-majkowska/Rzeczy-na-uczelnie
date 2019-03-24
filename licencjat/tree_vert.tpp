@@ -29,7 +29,10 @@ void tree_vert<T>::disown_right(){
 
 template<class T>
 bool tree_vert<T>::hook_up_left(tree_vert<T>* l){
-    if(this -> left != NULL) return false; 
+    if(this -> left != NULL){
+        if(!this->left->is_null) return false; 
+        delete(this->left);
+    }
     this -> left = l;
     if(l != NULL ) l-> father = this; 
     return true; 
@@ -37,7 +40,10 @@ bool tree_vert<T>::hook_up_left(tree_vert<T>* l){
 
 template<class T>
 bool tree_vert<T>::hook_up_right(tree_vert<T>*r){
-    if(this -> right != NULL) return false; 
+    if(this -> right != NULL){
+        if(!this->right->is_null) return false; 
+        delete(this->right);
+    }
     this -> right = r;
     if(r != NULL ) r-> father = this; 
     return true; 
@@ -60,7 +66,7 @@ bool tree_vert<T>::get_disowned(){
     else this->father->disown_right();
     return true;
 }
-/*
+
 template<class T>
 bool tree_vert<T>::is_root(){
     return this->father == NULL;  
@@ -74,7 +80,7 @@ bool tree_vert<T>::is_left(){
 template<class T>
 bool tree_vert<T>::is_right(){
     return this->father!= NULL && this->father->right == this;
-}*/
+}
 
 template<class T>
 void tree_vert<T>::rotate_left(){
@@ -150,20 +156,55 @@ void tree_vert<T>::splay(){
 }
 
 template<class T>
-tree_vert<T>* tree_vert::search( T search_value ){
-        tree_vert<T>* pointer = this; 
-        if(pointer) return NULL;
+tree_vert<T>* tree_vert<T>::search( T search_value ){
+        tree_vert<T>* pointer = this;
         while( pointer -> value!= search_value) {
             if( pointer -> value < search_value ){
-                if(pointer-> right == NULL) return pointer; 
+                if(pointer-> right == NULL){
+                    return pointer;
+                }
+                if(pointer-> right -> is_null){
+                    return pointer; 
+                }
                 pointer = pointer-> right; 
             }
             else{
-                if(pointer-> left == NULL) return pointer; 
+                if(pointer-> left == NULL){
+                    return pointer;
+                }
+                if(pointer-> left -> is_null){
+                    return pointer; 
+                }
                 pointer = pointer-> left;                
             }
         }
         return pointer;
-    };
+};
 
+template<class T>
+tree_vert<T>* tree_vert<T>::next(){
+    tree_vert<T>* current = this;
+    if(current -> right != NULL && !current->right->is_null){
+        current = current -> right; 
+        while(current -> left != NULL && !current-> left->is_null) current = current -> left; 
+        return current; 
+    }
+    while(current-> is_right() && !current->is_root() ) current = current->father; 
+    if(current->is_root()) return NULL;//does not have next element
+    current = current->father;
+    return current;  
+}
 
+template<class T>
+tree_vert<T>* tree_vert<T>::prev(){
+    tree_vert<T>* current = this;
+    if(current -> left != NULL && !current->left->is_null){
+        current = current -> left; 
+        while(current -> right != NULL && !current->right->is_null) current = current -> right; 
+        return current; 
+    }
+    while(current-> is_left() && !current->is_root() ) current = current->father; 
+    if(current->is_root()) return NULL;//does not have next element
+    current = current->father;
+    return current;      
+}

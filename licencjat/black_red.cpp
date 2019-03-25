@@ -11,6 +11,7 @@ int main(){
         char op;
         int val;
         scanf("\n%c %d", &op, &val);
+        //printf("%c %d ", op, val);
         //printf("DEBUG %c %d\n", op, val);
 
         if(op == 'I'){
@@ -32,6 +33,7 @@ int main(){
             if(k == NULL ) printf("BRAK\n"); 
             else printf("%d\n", k-> value);
         }
+        //cout<<"Params :"<<drzewo.root->is_null<<" "<<drzewo.root->value<<endl;
         //drzewo.wypisz();
         //cout<<endl;
     }

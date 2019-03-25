@@ -49,16 +49,6 @@ bool tree_vert<T>::hook_up_right(tree_vert<T>*r){
     return true; 
 };
 
-
-template<class T>
-bool tree_vert<T>::hook_onto(tree_vert<T>* new_father){
-    this -> father = new_father;
-    if(new_father == NULL) return false;
-    if(new_father->value < this->value) new_father->hook_up_right(this);
-    else new_father->hook_up_left(this);
-    return true;
-}
-
 template<class T>
 bool tree_vert<T>::get_disowned(){
     if(this->father == NULL) return false; 
@@ -87,13 +77,20 @@ void tree_vert<T>::rotate_left(){
     tree_vert* f = this-> father; 
     tree_vert* b = this-> left;
     tree_vert* gf = this->father -> father;
+    bool turn = this->father->is_left();
     
     f-> get_disowned();
     f-> disown_right();//cutting x off
     this-> disown_left(); 
     this-> hook_up_left(f);
     f-> hook_up_right(b);
-    this-> hook_onto(gf);
+    if(gf == NULL || gf->is_null) return;
+    if(turn){
+        gf->hook_up_left(this);
+    }
+    else{
+        gf->hook_up_right(this);
+    }
     
 }
 
@@ -103,13 +100,21 @@ void tree_vert<T>::rotate_right(){
     tree_vert* f = this-> father; 
     tree_vert* b = this-> right;
     tree_vert* gf = this->father -> father;
+    bool turn = this->father->is_left();
     
     f-> get_disowned();
     f-> disown_left();//cutting x off
     this-> disown_right(); 
     this-> hook_up_right(f);
     f-> hook_up_left(b);
-    this-> hook_onto(gf);
+    if(gf == NULL || gf->is_null) return;
+    if(turn){
+        gf->hook_up_left(this);
+    }
+    else{
+        gf->hook_up_right(this);
+    }
+    
 }
 
 template<class T>

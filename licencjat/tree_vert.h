@@ -50,8 +50,6 @@ public:
     bool hook_up_left(tree_vert<T>* l);
     
     bool hook_up_right(tree_vert<T>*r);
-        
-    bool hook_onto(tree_vert<T>* new_father);
     
     bool get_disowned();
     bool is_root();

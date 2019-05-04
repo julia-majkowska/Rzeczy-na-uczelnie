@@ -12,7 +12,7 @@ public:
     splay_tree(tree_vert<T>* r){
         root = r;
     };
-    
+
 protected:
     
     tree_vert<T>* search( T splay_value ){

@@ -34,7 +34,11 @@ bool tree_vert<T>::hook_up_left(tree_vert<T>* l){
         delete(this->left);
     }
     this -> left = l;
-    if(l != NULL ) l-> father = this; 
+    if(l != NULL ){
+        if(l->is_left()) l->father->disown_left();
+        if(l->is_right()) l->father->disown_right();
+        l-> father = this; 
+    }
     return true; 
 }
 
@@ -45,7 +49,11 @@ bool tree_vert<T>::hook_up_right(tree_vert<T>*r){
         delete(this->right);
     }
     this -> right = r;
-    if(r != NULL ) r-> father = this; 
+    if(r != NULL ){
+        if(r->is_left()) r->father->disown_left();
+        if(r->is_right()) r->father->disown_right();
+        r-> father = this; 
+    }
     return true; 
 };
 

@@ -2,6 +2,42 @@
 #include <cassert>
 #include"br_tree.h"
 using namespace std;
+template<class T>
+void checkv(br_vert<T>* v){
+    int l_height = 0, r_height = 0;
+    if(v->right!=NULL){
+        checkv(v->right_son());
+        r_height = v->right_son()->black_h;
+    }
+    if(v->left!=NULL){
+        checkv(v->left_son());
+        l_height = v->left_son()->black_h;
+    }
+    if(l_height!= r_height){
+        v->wypisz();
+        cout<<endl<<l_height<<" "<<r_height<<endl;
+    }
+    assert(l_height == r_height);
+    
+    /*if(v->black_h  != r_height + v->color){
+        v->wypisz();
+        cout<<endl<<v->black_h<<" "<<r_height<<endl;
+    }
+    assert(v->black_h == r_height + v->color);*/
+    
+    bool good = true;
+    if(v->is_red() && (is_red(v->right_son()) || is_red(v->left_son()))){
+        v->wypisz();
+        cout<<endl;
+        good = false;
+    }
+    assert(good);
+}
+
+template<class T>
+void check_tree(br_tree<T> t){
+    if(t.root!=NULL) checkv(t.root);
+}
 
 int main(){
     int q;
@@ -33,9 +69,12 @@ int main(){
             if(k == NULL ) printf("BRAK\n"); 
             else printf("%d\n", k-> value);
         }
-        //cout<<"Params :"<<drzewo.root->is_null<<" "<<drzewo.root->value<<endl;
         //drzewo.wypisz();
         //cout<<endl;
+        check_tree(drzewo);
+        //cout<<"Params :"<<drzewo.root->is_null<<" "<<drzewo.root->value<<endl;
+        
+        
     }
     
 }

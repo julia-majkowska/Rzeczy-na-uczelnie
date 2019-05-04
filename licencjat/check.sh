@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for i in `seq 1 100`
+for i in `seq 1 1000`
 do
         ./Dgen $i > testy/test$i.in
         ./Dbrut < testy/test$i.in > brut.out

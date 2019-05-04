@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int q =1000000; 
+    int q =20000; 
     char syms[] = { 'I', 'D','L', 'U'};
     srand(atoi(argv[1]));
     printf("%d\n", q);

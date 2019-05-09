@@ -16,7 +16,7 @@
 % zlamaniu wierszy w temacie pracy, zwlaszcza tego w jezyku pracy. Uzyj do tego
 % polecenia \fmlinebreak.
 \polishtitle    {Analiza drzew samoorganizujących}
-\englishtitle   {English title}
+\englishtitle   {Analysis of self ordering binary search trees}
 \polishabstract {W  tej pracy porównuje wydajność drzewa Splay, drzewa Tango oraz drzewa czerwono - czarnego}
 \englishabstract{\ldots}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
@@ -26,20 +26,32 @@
 \advisor        {dr hab. Marcin Bieńkowski}
 %\date          {}                     % Data zlozenia pracy
 % Dane do oswiadczenia o autorskim wykonaniu
-%\transcriptnum {}                     % Numer indeksu
+\transcriptnum {290363}                     % Numer indeksu
 %\advisorgen    {dr. Jana Kowalskiego} % Nazwisko promotora w dopelniaczu
 %%%%%
 
 %%%%% WLASNE DODATKOWE PAKIETY
 %
 %\usepackage{graphicx,listings,amsmath,amssymb,amsthm,amsfonts,tikz}
+\usepackage{amsthm, amsmath}
 %
 %%%%% WĹASNE DEFINICJE I POLECENIA
 %
-%\theoremstyle{definition} \newtheorem{definition}{Definition}[chapter]
-%\theoremstyle{remark} \newtheorem{remark}[definition]{Observation}
-%\theoremstyle{plain} \newtheorem{theorem}[definition]{Theorem}
-%\theoremstyle{plain} \newtheorem{lemma}[definition]{Lemma}
+%\theoremstyle{definition} 
+\newtheorem{definition}{Definicja}[chapter]
+%\numberwithin{definition}{subsection}
+\theoremstyle{remark} 
+\newtheorem{remark}[definition]{Obserwacja}
+%\numberwithin{remark}{subsection}
+\theoremstyle{plain} 
+\newtheorem{theorem}[definition]{Twierdzenie}
+%\numberwithin{theorem}{subsection}
+\theoremstyle{plain} 
+\newtheorem{hypothesis}[definition]{Hipoteza}
+%\numberwithin{hypothesis}{subsection}
+\theoremstyle{plain} 
+\newtheorem{lemma}[definition]{Lemat}
+%\numberwithin{lemma}{subsection}
 %\renewcommand \qedsymbol {\ensuremath{\square}}
 % ...
 %%%%%
@@ -80,17 +92,20 @@ W dynamicznym wariancie problemu mamy na wejściu ciąg zapytań \(x_i\) o wyszu
 
 \item {Przesunąć wskaźnik na rodzica obecnie wskazanego wierzchołka}  
 
-\item {Wykonać pojedynczą rotację obecnie wskazywanego wierzchołka. Poniżej ilustracja pojedynczej rotacji punku x w prawo}   
+\item {Wykonać pojedynczą rotację obecnie wskazywanego wierzchołka. Poniżej ilustracja pojedynczej rotacji punku p w prawo}   
 
 \end{enumerate}   
+\begin{figure}
+  \centering
+    \includegraphics[scale = 0.5]{zig.png}
+  \caption{Pojedyncza rotacja w prawo w punkcie p}
+  \label{fig:1}
+\end{figure}
 
-\includegraphics[scale = 0.75]{Splay_tree_zig.png}
 
 W tym problemie wyszukujemy drzewo, które minimalizuje liczbę operacji koniecznych do obsłużenia ciągu zapytań \(x_i\).  
 
 Dla każdego ciągu zapytań istnieje minimalny ciąg operacji odpowiadający na te zapytania. Znalezienie takiego rozwiązania wymaga znajomości całego ciągu zapytań z góry, co w wielu sytuacjach nie jest możliwe. Niech OPT(\(x_i\)) będzie minimalną liczbą operacji konieczna do zrealizowania ciągu zapytań \(x_i\), będziemy mówić, że drzewo jest dynamicznie optymalne, jeśli dla każdego ciągu wejść \(y_i\) algorytm wykonuje O(OPT(\(y_i\)) operacji. Innymi słowy ma stały współczynnik konkurencyjności. Udowodnienie dynamicznej optymalności dowolnego drzewa jest problemem otwartym.  
-
- 
 
 \chapter{Drzewa Splay}  
 
@@ -103,59 +118,33 @@ Drzewo Splay jest drzewem samoorganizującym się. Podstawią działania tej str
 Operacja splay dla danego wierzchołka odbywa się w krokach, do momentu, kiedy wierzchołek nie stanie się korzeniem. Możemy wyróżnić 3 przypadki kroków operacji splay: 
 \begin{enumerate} 
 
-\item{ZIG - jeśli x jest synem korzenia wykonujemy pojedynczą rotację w stronę korzenia} 
+\item{ZIG - jeśli x jest synem korzenia wykonujemy pojedynczą rotację w stronę korzenia\\
 
-\includegraphics[scale = 0.75]{Splay_tree_zig.png}
+\begin{figure}
+  \centering
+    \includegraphics[scale = 0.4]{zig.png}
+  \caption{Krok ZIG operacji Splay}
+  \label{fig:zig}
+\end{figure}}
 
-\item{ZIGZIG - jeśli zarówno x i jego ojciec są lewymi synami wykonujemy u ojca rotację w prawo, a następnie rotujemy w prawo x. Analogicznie postępujemy kiedy x i jego ojciec są prawymi synami.} 
 
-\includegraphics[scale=0.75]{Zigzig.png}
-\item{ZIGZAG - jeśli x jest prawym synem, a jego ojciec jest lewym synem, rotujemy x w lewo a następnie w prawo. Analogicznie postępujemy kiedy x  jest lewym synem, a jego ojciec jest lewym synem.} 
+\item{ZIGZIG - jeśli zarówno x i jego ojciec są lewymi synami wykonujemy u ojca rotację w prawo, a następnie rotujemy w prawo x. Analogicznie postępujemy kiedy x i jego ojciec są prawymi synami.\\
 
-\includegraphics[scale=0.75]{Zigzag.png}
-\end{enumerate}  
+\begin{figure}
+  \centering
+    \includegraphics[scale = 0.4]{zigzig.png}
+  \caption{Krok ZIGZIG operacji Splay}
+  \label{fig:zigzig}
+\end{figure}}
 
-\begin{lstlisting} 
-
-template<class T> 
-
-void tree_vert<T>::splay(){ 
-
-    while(!this-> is_root()){  
-
-        if(this-> is_left()){ 
-            if(this-> father-> is_root()){ 
-                this->rotate_right(); 
-                continue;  
-            } 
-            if(this->father-> is_left()){
-                this->father->rotate_right(); 
-                this->rotate_right(); 
-            } 
-            else{
-                this->rotate_right(); 
-                this->rotate_left(); 
-            } 
-        } 
-        else{ 
-            if(this-> father-> is_root()){ 
-                this->rotate_left();     
-                continue;  
-            } 
-            if(this->father-> is_left()){ 
-                this->rotate_left(); 
-                this->rotate_right(); 
-            } 
-
-            else{
-                this->father->rotate_left(); 
-                this->rotate_left(); 
-            }  
-        } 
-    } 
-} 
-
-\end{lstlisting}  
+\item{ZIGZAG - jeśli x jest prawym synem, a jego ojciec jest lewym synem, rotujemy x w lewo a następnie w prawo. Analogicznie postępujemy kiedy x  jest lewym synem, a jego ojciec jest lewym synem.\\ 
+\begin{figure}
+  \centering
+    \includegraphics[scale = 0.4]{zigzag.png}
+  \caption{Krok ZIGZAG operacji Splay}
+  \label{fig:zigzag}
+\end{figure}}
+\end{enumerate}   
 
 \subsection{Wyszukiwanie}
 Drzewo splay spełnia zależność BST, więc można wyszukiwać w nim elementu jak w normalnym drzewnie BST. Po wykonaniu znalezieniu odpowiedniego wierzchołka wykonujemy na nim operację splay przenosząc go do korzenia. 
@@ -172,29 +161,241 @@ Aby wstawić element \(e\) do drzewa najpierw wyszukujemy go w drzewie, jeśli e
 \subsection{Usuwanie}
 Aby usunąć element, wyszukujemy go w drzewie i wykonujemy na odpowiadającym wierzchołku operację splay. Następnie łączymy lewę i prawe poddrzewo w jedno drzewo. 
 
-\section{Złożoność}
-\begin{tabular}{|c|c|c|}
-\hline
-Element algorytmu & Złożoność oczekiwana &  Złożoność pesymistyczna  \\
-\hline
-Pamięć & O(n) & O(n)  \\
-\hline
-Wstawianie & O(logn) & zamortyzowane O(logn)  \\
-\hline
-Usuwanie & O(logn) & zamortyzowane O(logn)  \\
-\hline
-Wyszukiwanie & O(logn) & zamortyzowane O(logn) \\
-\hline
+\section{Analiza złożoności}
 
-\end{tabular}
+\subsection{Złożoność pamięciowa}
+W każdym więźle trzymamy dwa wskaźniki na synów oraz wartość klucza. Nie ma dodatkowego narzutu pamięci. Cała struktura zajmuje pamięć $ O(n)$.
+
+\subsection{Analiza zamortyzowana złożoności czasowej}
+\begin{theorem}
+Dla ciągu zapytań $X = \{ x_1, x_2, ..., x_m\}$, gdzie \( \forall_{1\leq i \leq m} x_i \in \{1, 2,...,n\}\), drzewo splay działa w czasie \( O((m+n)logn)\).
+\end{theorem}
+\begin{proof}
+Zauważmy, że główną składową kosztu operacji słownikowych jest operacja splay. Pozostałe części operacji można wykonać w czasie stałym. Przeprowadzimy analizę zamortyzowaną kosztu wykonywania operacji splay. Wprowadźmy następujące oznaczenia : 
+\begin{itemize}
+\item{\(s(w)\) - liczba wierzchołków w poddrzewie wierzchołka \(w\)}
+\item{\(r(w) = \lfloor log(s(w)) \rfloor\)}
+\item{Funkcja potencjału \(\Phi = \sum_w r(w)\)}
+\end{itemize}
+
+Przeanalizujmy najpierw zmianę potencjału \(\Phi\) przy poszczególnych krokach operacji Splay. Będziemy korzystali z notacji na \ref{fig:zig}, \ref{fig:zigzig}, \ref{fig:zigzag} \\
+\begin{enumerate}
+\item{\textbf{ZIG} : Zmienia się tylko potencjał $x$ i $p$
+\begin{align*}
+Delta \Phi = \\
+& = 1 + \Delta r(x) + \Delta r(p) \\
+& = 1 + r'(x) - r(x) + r'(p) - r(p) \\
+& = 1 + r'(p) - r(x) \text{ ponieważ r'(x) = r(p)}\\
+\end{align*}}
+\item{\textbf{ZIGZIG} : Zmienia się potencjał $x$, $p$ i $g$
+\begin{align*}
+\Delta \Phi =  \\
+& = 2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g)\\
+& =2 - r(x) + r'(p) - r(p) + r(g)   && \text{ ponieważ r'(x) = r(g)}\\
+& \leq 2 + r'(g) + r'(x) - 2r(x) && \text{ ponieważ r(x) < r(p) i r'(x) > r(p)}\\
+& \leq 3(r'(x) - r(x)) && \text{z wypukłości funkcji logarytmicznej}\\
+\end{align*}}
+\item{\textbf{ZIGZAG} : Zmienia się potencjał $x$, $p$ i $g$
+\begin{align*}
+\Delta \Phi = \\
+& = 2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g)\\
+& = 2 - r(x) + r'(p) - r(p) + r(g)   && \text{ ponieważ r'(x) = r(g)}\\
+& \leq 2 + r'(g) + r'(p) - 2r(x) && \text{ ponieważ r(x) < r(p)}\\
+& \leq 2(r'(x) -2r(x)) && \text{ ponieważ 2r'(x) - r'(p) - r'(g) $\geq$ 2}\\
+\end{align*}}
+\end{enumerate}
+We wszystkich przypadkach mamy zatem koszt operacji nie większy niż \( 3(r'(x) - r(x)) + 1\), gdzie czynnik 1 występuje tylko przy operacji ZIG, a zatem tylko raz przy każdej operacji Splay. Dla całej operacji Splay(\(x_i\)) musimy zsumować zmianę potencjału wszytkich kroków. Otrzymujemy w ten sposób sumę teleskopową skracającą się do \(3(r(korzeń) - r(x_i)) + 1 \leq logn\). Aby otrzymać oszacowanie całego czasu działania na całej sekwencji $X$, musimy jeszcze uwzględnić zmianę potencjału pomiędzy stanem początkowym a końcowym : \( \sum_x r'(x) - r(x) \leq \sum_x logn = nlogn\). Zatem sumaryczny czas działania to \( O((m+n)logn)\). 
+
+\end{proof}
+
+\section{Konkurencyjność}
+\begin{hypothesis}
+Drzewo splay jest dynamicznie optymalne tzn. \(SPLAY(X) = O(OPT(X)\) gdzie \(SPLAY(X)\) to koszt obsłużenia ciągu zapytań \(X\) przez drzewo splay, a \(OPT(X)\) przez optymalne dynamiczne drzewo działające offline.
+\end{hypothesis}
+
+
 
 \chapter{ Drzewo Tango}
+\section{Opis struktury}
+Drzewo Tango jest strukturą samoorganizującą, symulującą działanie zbilansowanego drzewa BST, w której wyróżniamy ścieżkę od korzenia do ostatnio odwiedzonego elementu.  Wprowadźmy następujące pojęcia. 
+\begin{itemize}
+\item{Drzewo referencyjne - zbilansowane drzewo BST zawierające wszystkie te same elementy co nasza struktura. Jeśli liczba elementów nie jest potęgą dwójki, w ostatniej warstwie może brakować liści z prawej strony drzewa.}
+\item{Preferowana ścieżka wierzchołka– ścieżka prowadząca od wierzchołka (korzenia poddrzewa) do wyróżnionego elementu, w naszym wypadku będzie to najpóźniej  żądany element w poddrzewie}
+\item{Preferowany syn – syn wierzchołka leżący na preferowanej ścieżce wierzchołka. Jeżeli ostatnim odwiedzonym wierzchołkiem poddrzewa jest korzeń, wtedy korzeń nie ma preferowanego syna}
+\item{Krawędź preferowana – krawędź pomiędzy wierzchołkiem a preferowanym synem}
+\item{Drzewo pomocnicze -- drzewo czerowono-czarne zawierające wierzchołki ścieżki preferowanej}
+\item{Nie preferowany syn – syn wierzchołka nie leżący na preferowanej ścieżce}
+\item{Nie preferowana krawędź – krawędź prowadząca do nie preferowanego syna}
+\item{Głębokość wierzchołka \(\mathcal{D}(w)\)-- odległość wierzchołka w od korzenia drzewa}
+\item{Maksymalna głębokość wierzchołka \(\mathcal{G}(w)\)-- maksimum głębokości w poddrzewie wierzchołka w w drzewie pomocniczym}
+\end{itemize}
+\subsection{Konstrukcja struktury}
 
+Oznaczmy zbiór elementów w naszym drzewie jako \(\mathcal{E}\). Analogicznie niech \(\mathcal{E}(v)\) będzie zbiorem elementów 
+Rozpatrzmy drzewo BST \(\mathcal{B}\) zawierające elementy \(\mathcal{E}\). Niech \( \mathcal{S}\) będzie zbiorem wierzchołków preferowanej ścieżki w \(\mathcal{B}\). Wierzchołki \(\mathcal{S}\) umieszczamy na drzewie czerwono czarnym. Nie preferowanych synów podpinamy pod odpowiadających ojców z preferowanej ścieżki dodatkowymi krawędziami. Dodane krawędzie nie są częścią drzewa czerwono czarnego. Powtarzamy procedurę dla poddrzew, w którym korzeniami są nie preferowani synowie wierzchołków z \(\mathcal{S}\).
+
+\includegraphics[scale=0.5]{Tango_path2.png}
+
+\subsection{Operacje na drzewie pomocniczym}
+Do zdefiniowania operacji słownikowych na drzewie Tango będziemy korzystali z następujących operacji na drzewie czerwono-czarnym. 
+\begin{enumerate}
+\item{Split- Rozdzielenie drzewa czerwono-czarnego na dwa osobne zbilansowane drzewa, zawierające klucze mniejsze i większe od danego}
+\item{Join- Połączenie dwóch drzew czerwono-czarnych w jedno}
+\end{enumerate}
+\subsection{Łączenie i rozdzielanie drzew preferowanych ścieżek}
+Aby aktualizować preferowane ścieżki, potrzebujemy umieć połączyć dwa drzewa preferowanych ścieżek oraz rozdzielić drzewo preferowanej ścieżki. Do połączenia dwóch drzew wystarczy wykorzystać operację join. Aby rozdzielić ścieżkę w danym wierzchołku $w$, potrzebujemy znaleźć w drzewie pomocniczym wszystkie wierzchołki o głębokości większej niż \(\mathcal{D}(w)\) i zrobić z nich osobne drzewo pomocnicze. Zauważmy, że istnieje przedział kluczy, dla których wszystkie wierzchołki w drzewie pomocniczym są głębokośći większej niż \(\mathcal{D}(w)\). Korzystając z maksymalnej głębokości, możemy znaleźć minimalny i maksymalny klucz o głębokości większej niż \(\mathcal{D}(w)\). Następnie przy pomocy dwóch operacji Split wydzielamy dolną część ścieżki do osobnego drzewa pomocniczego i łączymy spowrotem pozostałe klucze przy pomocy operacji Join.\\
+\includegraphics[scale=0.5]{rozdzielanie.png} 
+\subsection{Aktualizacja preferowanych ścieżek}
+Mając wierzchołek v chcemy zaktualizować drzewo w taki sposób, aby ścieżka do wierzchołka v była ścieżką preferowaną całego drzewa. Niech wierzchołek v będzie częścią preferowanej ścieżki \(\mathcal{P}\), jakiegoś poddrzewa drzewa referencyjnego. \(\mathcal{P}\) może być pojedynczym wierzchołkiem.
+Zaczynamy od rozdzielenia \(\mathcal{P}\) w wierzchołku v. Preferowany syn wierzchołka, jeżeli istnieje, staje się nie preferowanym synem. Następnie wykonujemy poniższe kroki, tak długo, aż nie dotrzemy do korzenia całego drzewa. 
+\begin{enumerate}
+\item{Niech v będzie ostatnim elementem preferowanej ścieżki z wierzchołka r. Znajdujemy ojca o wierzchołka r}
+\item{Rozdzielamy ścieżkę preferowaną do której należy o w wierzchołku o. Preferowany syn wierzchołka staje się nie preferowanym.}
+\item{Do górnej części ścieżki preferowanej dołączamy ścieżkę z r do v}
+\end{enumerate}
+\subsection{Wyszukiwanie}
+Do wyszukiwania klucza k będziemy symulować wyszukiwanie na drzewie referencyjnym. Najpierw wyszukujemy k w drzewie pomocniczym. Jeśli nie znaleźliśmy klucza k w ścieżce preferowanej, wtedy kontynuujemy wyszukiwanie w poddrzewie niepreferowanego syna ostatniego wierzchołka, na którym zakończyliśmy wyszukiwanie. Na koniec aktualizujemy preferowane ścieżki.
+\section{Analiza złożoności}
+\subsection{Złożoność czasowa}
+Oszacujmy złożoność operacji na drzewach pomocniczych.
+\begin{lemma}
+\label{Pref_cost}
+Złożoność dowolnej operacji na drzewie pomocniczym to \( O(loglogn)\) gdzie $n$ to liczba elementów w strukturze.
+\end{lemma}
+\begin{proof}
+Preferowane ścieżki, są ścieżkami zbilansowanego drzewa binarnego, zatem ich długość jest nie większa niż \(\lceil log n \rceil\). Operacje na drzewach pomocniczych są implementowane przy pomocy drzewa czerwono-czarnego i są wykonywane w czasie logarytmicznym od rozmiaru drzewa. Zatem koszt operacji to \( O(loglogn)\).
+\end{proof}
+
+Następnie oszacujmy koszt pojedynczego dostępu do elementu w drzewie Tango. 
+\begin{lemma}
+\label{Tango_cost}
+Złożoność pojedynczego dostępu do elementu \(x_i\) w drzewie Tango to \(O((k+1)(1+loglogn))\), gdzie $n$ to liczba elementów w strukturze, a $k$ liczba nie preferowanych krawędzi na ścieżce z korzenia do \(x_i\).
+\end{lemma}
+\begin{proof}
+Koszt dostępu można rozdzielić na koszt wyszukiwania i koszt aktualizacji preferowanych ścieżek w drzewie. Przy wyszukiwaniu odwiedzimy nie więcej niż $k+1$ drzew pomocniczych. Z \ref{Pref_cost} wynika, że wyszukiwanie w drzewie pomocniczym ma złożoność \(O(loglogn)\). Zatem sumaryczny koszty wyszukania to \(O((k+1)(1+loglogn))\).
+Analogicznie przy aktualizacji dla każdego odwiedzonego drzewa pomocniczego wykonujemy jedna operację Split i dwie operacje Join, wiec sumaryczny koszt to również\(O((k+1)(1+loglogn))\).
+\end{proof}
+\begin{theorem}
+Pesymistyczny koszt pojedynczego dostępu to \(O(log(n)log(log(n)))\).
+\end{theorem}
+\subsection{Złożoność pamięciowa}
+Dla każdego wierzchołka będziemy pamiętać maksymalnie dwa wskaźniki na synów w drzewie pomocniczym, dwa wskaźniki na nie preferowanych synów w drzewie referencyjnym, jeden wskaźnik na ojca w drzewie pomocniczym, oraz klucz. Zatem złożoność pamięciowa to \( O (n)\).
+\section{Konkurencyjność}
+
+
+\subsection{Przeplotowe ograniczenie dolne}
+Zdefiniujemy sobie model do szacowania ograniczenia dolnego na liczbę operacji na optymalnym drzewie binarnym. Stwórzmy na kluczach $x_i \in \{1, ..., n\}$ idealne drzewo binarne \(B\). Jeśli \( n \neq 2^k -1\) wtedy nasze drzewo będzie pełne, a nie idealne. Struktura drzewa nie będzie się zmieniać w czasie.
+
+\begin{definition}[Lewy i prawy obszar]
+Dla danego wierzchołka \(y\) i drzewa \(B\) jego lewym obszarem \(L(y)\) będzie lewe poddrzewo \(y\) oraz \(y\), a prawy obszar \(P(y)\) to prawe poddrzewo \(y\).
+\end{definition}
+
+Przy każdym zapytaniu \(x_i\) dla wszystkich wierzchołków na ścieżce od korzenia do \(x_i\) odnotowujemy czy \(x_i\) znajduje się w jego prawym czy lewym poddrzewie. 
+
+\begin{definition}[Przeplot]
+Dla danego wierzchołka \(y\), drzewa \(B\) i ciągu zapytań \(X\), przeplotem nazwiemy parę zapytań \((x_i, x_j)\) spełniającą następujące warunki : \\
+\begin{enumerate}
+\item{\( ( x_i \in P(y) \wedge x_j \in L(y)) \vee ( x_i \in L(y) \wedge x_j \in P(y))\)}
+\item{\( \neg \exists_{k \in [i, j]}( x_k \in  L(y) \vee x_k \in P(y) \)}
+\end{enumerate}
+
+Zdefiniujmy, także funkcję \(IB(X, i)\) jako liczbę przeplotów wprowadzonych przez i-te zapytanie, w ciągu zapytań $X$, a \(IB(X) = \sum_i IB(X, i)\).
+\end{definition}
+
+Będziemy starali oszacować oszacować liczbę operacji w optymalnym algorytmie BST, korzystając z liczby przeplotów. Niech \(T_i\) będzie stanem drzewa binarnego po wykonaniu zapytań \( x_1, x_2, ..., x_i\), przez dowolny deterministyczny algorytm wyszukiwania i reorganizacji. 
+
+\begin{definition}
+Punkt przejściowy wierzchołka $y$ w momencie $i$ to wierzchołek $z$ , o najmniejszej  głębokości w \( T_i\), taki że ścieżka z korzenia $T_i$ przechodzi przez jakiś wierzchołek zarówno z $L(y)$ jaki i $P(y)$ w pełnym drzewie $B$.
+\end{definition}
+
+\begin{lemma}
+Dla każdego wierzchołka $y$ i momentu $i$ istnieje dokładnie jeden punkt przejściowy.
+\end{lemma}
+\begin{proof}
+Niech $l$ i $r$ będą najniższymi wspólnymi przodkami odpowiednio wierzchołków z $L(y)$ i  z $P(y)$ w $T_i$ . Ponieważ klucze w lewym obszarze stanowią spójny przedział posortowanego ciągu wszystkich kluczy, a w drzewie BST wspólny przodek dwóch wierzchołków ma wartość klucza pomiędzy wartościami synów, w takim razie l jest elementem lewego poddrzewa. Analogicznie r jest elementem prawego poddrzewa. Zauważmy również, że klucze całego poddrzewa $y$ w $B$ stanwowią spójny przedział posortowanego ciągu wszystkich kluczy, zatem najniższy wspólny przodek należy albo do lewego albo do prawego obszaru. Z tego wynika, że $l$ lub $r$ jest najniższym wspólnym przodkiem całego poddrzewa. Załóżmy bez straty ogólności, że jest to $l$. Zauważmy, że $r$ będzie punktem przejściowym dla $y$ w momencie $i$. Z definicji, najniższego wspólnego przodka, jest jedynym wierzchołkiem o najmniejszej głebokości, którego ścieżka przechodzi przez wierzchołek z $R(y)$. Ścieżka do $r$ przechodzi też przez $l$, które jest elementem $L(y)$. 
+\end{proof}
+
+\begin{lemma}
+Jeśli w momencie $i$ $z$ był punktem przejściowym wierzchołka $y$ i algorytm BST obsługując zapytania $x_j, ..., x_k$  nie przechodzi przez $z$, ani nie wykonuje rotacji, która by zmniejszyła głębokość $z$, to $z$ jest punktem przejściowym w każdym momencie z przedziału \([j, k]\). 
+\end{lemma}
+\begin{proof}
+Zdefiniujmy $l$ i $r$ jak w poprzednim dowodzie i załóżmy bez straty ogólności, że $l$ jest wspólnym przodkiem wyszystkich wierzchołków z $L(y)$ i $P(y)$ w momencie $j$. Zatem $r$ jest punktem przejsciowym $y$ w momencie $j$. Skoro algorytm BST nie przechodzi w zapytaniach przez $r$ to $r$ pozostaje najniższym wspólnym przodkiem wierzchołków $P(Y)$ w $T_i$. Dodatkowo, skoro nie została wykonana, żadna rotacja zmniejszająca  głębokość $r$ to poddrzewo $r$ w \(T_i\) pozostaje niezmienne. W czasie wykonywiania zapytań \( x_j,..., x_k\) , żaden element z $L(y)$ nie stał się synem $r$, zatem jakiś element $L(Y)$ musi być wspólnym przodkiem wszystkich wierzchołków z $L(y)$ i $P(y)$.
+Z tego wynika, że $r$ pozostaje punktem przejściowym $y$.
+\end{proof}
+
+\begin{lemma}
+\label{eig_trans_point}
+Każdy wierzchołek $z$ może być w momencie $i$ punktem przejściowym co najwyżej jednego wierzchołka $y$.
+\end{lemma}
+\begin{proof}
+Weźmy dowolne dwa wierzchołki $y_1$ i $y_2$, pokażemy, że ich punkty przejściowe w momencie $i$ są różne. Zdefiniujmy dla nich podobnie jak w dowodach poprzednich lematów odpowiednio $l_1, r_1$ i $l_2, r_2$. Jeśli $y_1$ i $y_2$ nie znajdują się na jednej ścieżce do korzenia ( żaden nie jest przodkiem drugiego), to ich lewe i prawe obszary są rozłączne, a zatem ich punkty przejściowe muszą być różne. Jeśli tak nie jest to załóżmy bez straty ogólności, że $y_1$, jest przodkiem $y_2$. Jeśli punkt przejściowy $y_1$ znajduje się w innym obszarze $y_1$ niż $y_2$, wtedy punkty przejściowe muszą być różne. W przeciwnym wypadku punkt przejściowy $y_1$ musi być wspólnym przodkiem elementów z $L(y_2)$ i $R(y_2)$. Zatem głębokość punktu przejściowego $y_1$ będzie nie większa niż głębokość $l_2$ i $r_2$. Z kolei punkt przejściowy $y_2$ ma głębokość nie mniejszą niż głebokości $l_2$ i $r_2$. Skoro $l_2$ i $r_2$ muszą mieć różne głębokości, to punkty przejściowe $y_1$ i $y_2$ muszą być różne.  
+\end{proof}
+\begin{theorem}
+\label{low_bound}
+\(OPT(X) \geq \frac{IB(X)}{2} - n\), gdzie $OPT$ to koszt działania optymalnego algorytmu BST na ciagu zapytań $X$.
+\end{theorem}
+\begin{proof}
+Bedziemy szacować z dołu liczbę operacji wykonywanych przez optymalny algorytm przez liczbę punktów przejściowych odwiedzonych (przechodzi przez nie ścieżka z korzenia do $x_i$ lub wykonuje się na nich rotacje zmniejszające ich głębokość) w trakcie wykonywania zapytań. Korzystając z \ref{eig_trans_point} będziemy zliczać te  wydarzenia dla każdego wierzchołka $y$ osobno, a następnie je zsumujemy. Niech \( x_{a_1}, x{a_2}, ..., x{a_k}\) będzie maksymalnym podciągiem zapytań, w którym każde dwa kolejne zapytania są o elementy w różnych obszarach $y$. $p$ będzie liczbą przeplotów w $y$. Załóżmy bez straty ogólności, że zapytania \(x_{a_{2i}}\) będą zapytaniami a elementy lewego obszary, \(x_{a_{2i+1}}\) prawego. Rozpatrzmy $l$ i $r$ takie jak w poprzednich dowodach. Wszystkie zapytania o prawy obszar $y$ odwiedzają $r$, a o lewy odwiedzają $l$. Zatem przy dwóch kolejnych zapytaniach, albo algorytm albo będzie przechodził przez punkt przejściowy przy wyszukiwaniu, albo punkt przejściowy się zmieni, co również wymaga odwiedzienia punktu przejsciowego. Zatem dla dwóch kolejnych zapytań z naszego poddciągu algorytm przynajmniej raz odwiedza punkt przejściowy $y$. Dla danego wierzchoła otrzymujemy odwiedzamy \(\lfloor \frac{p}{2} \rfloor \geq \frac{p}{2} -1\).  Sumując po wszystkich $y$ otrzymyjemy \(OPT(X) \geq \frac{IB(X)}{2} - n\).
+\end{proof}
+
+
+\subsection{Zastosowanie przeplotów w oszacowaniu konkurencyjności}
+\begin{lemma}\label{num_switch}
+Liczba nie preferowanych krawędzi na ścieżce z korzenia do \(x_i\) jest równa \(IB(X, i)\).
+\end{lemma}
+\begin{proof}
+Obecność niepreferowanej krawędzi \( \{a, b\}\) na ścieżce oznacza, że ostatnie zapytanie o element w poddrzewie wierzchołka $y$ w innym poddrzewie niż \(x_i\). To odpowiada przeplotowi.
+\end{proof}
+
+\begin{theorem}
+Dla ciągu zapytań \(X = \{x_1, x_2,..., x_m\}\), takich że \( \forall_i x_i \in \{1, 2, ..., n\}\) sumaryczny koszt działania drzewa Tango to \( O((OPT(X) + n)(1 + loglogn))\), gdzie \(OPT(X)\) to koszt optymalnego dynamicznego drzewa BST działającego offline. 
+\end{theorem}
+\begin{proof}
+Z \ref{num_switch} i \ref{Tango_cost} wynika, że koszt obsługi pojedynczego zapytania na drzewie Tango to \(O((IB(X, i)+1)(1+loglogn))\).Dodatkowo, dla każdego wierzchołka co najwyżej raz będziemy zmieniać jego stan z nie posiadania preferowanego syna na posiadanie jednego. Zatem sumaryczny koszt zapytania to \(O((IB(X)+m +n )(1+loglogn))\). Z \ref{low_bound} wiemy, że \(OPT(X) \geq IB(X) - n\). Oczywiste też jest, że \(OPT(X) \geq m\). Z tego wynika, że koszt algorytmu to \(O(OPT(X)+n )(1+loglogn))\).
+\end{proof}
 
 %%%%% BIBLIOGRAFIA
 
-%\begin{thebibliography}{1}
-%\bibitem{example} \ldots
-%\end{thebibliography}
+\begin{thebibliography}{9}
+\bibitem{sleator84}
+  Daniel Dominic Sleator,
+  Robert Endre Tarjan 
+  \emph{Self-Adjusting Binary Search Trees}.
+  Journal of the Association for Computing Machinery, Vol. 32, No. 3, July 1985. 
+  
+ \bibitem{demaine07}
+ Erik D. Demaine
+, Dion Harmon
+, John Iacono
+, And Mihai Patrascu
+  \emph{Dynamic Optimality—Almost}.
+  SIAM Journal on Computing, 2007, Vol. 37, No. 1 : pp. 240-251 
+  
+  \bibitem{derryberry05}
+  Jonathan Derryberry,
+  Daniel Dominic Sleator,
+  Chengwen Chris Wang,
+  \emph{A Lower Bound Framework for Binary Search Trees with Rotations}.
+  November 2005.
+  
+  \bibitem{cormen90}
+  Thomas H. Cormen,
+  Charles E. Leiseron,
+  Ronald R. Riverst
+  \emph{Introduction to algorithms}.
+  1990.
+  
+  \bibitem{bose10}
+  Prosenjit Bose, 
+  Karim Douïeb,Vida Dujmović,
+  Rolf Fagerberg,
+  \emph{An O(log log n)-Competitive Binary Search Tree with Optimal Worst-Case Access Times}.
+  February 2010
+  
+  
+  
+
+
+\end{thebibliography}
 
 \end{document}

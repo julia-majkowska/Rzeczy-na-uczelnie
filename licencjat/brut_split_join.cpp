@@ -59,10 +59,10 @@ int main(){//operacje s
             int kand = lower_bound(v[set].begin(), v[set].end(), elem)-v[set].begin();
             if(!v[set].empty() && v[set][kand] >= elem){
                 vector<int> nowy; 
-                if(v[set][kand] == elem){
+                /*if(v[set][kand] == elem){
                     cout<<"Result : "<<elem<<"\n";
                     kand++;
-                }
+                }*/
                 for(int i = kand; i< v[set].size(); i++)
                     nowy.push_back(v[set][i]);
                 int s = v[set].size();

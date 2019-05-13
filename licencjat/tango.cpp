@@ -1,29 +1,38 @@
 #include<bits/stdc++.h>
 #include"tango.h"
 
-using namespace std;
-
+using namespace std; 
 
 int main(){
+
+    vector<int> elems;
+    int n; 
+    scanf("%d", &n);
+    while( n--){
+        int a; 
+        scanf("%d", &a);
+        elems.push_back(a);
+    }
+    sort(elems.begin(), elems.end());
+        
+    
+    tango_tree<int> drzewo(elems, 0, elems.size() -1, 0);
     int q;
     scanf("%d", &q);
-    tango_tree<int> drzewo;
+    
     while(q--){
-        char op;
         int val;
-        scanf("\n%c %d", &op, &val);
+        scanf("%d", &val);
+        
         //printf("DEBUG %c %d\n", op, val);
-        //drzewo.wypisz();
-        //cout<<endl;
-        if(op == 'I'){
-            drzewo.insert(val);
-        }
-        if(op == 'F'){
-            bool k = drzewo.find(val);
-            if(!k ) printf("BRAK\n");
-            else printf("%d\n",val);
+        cout<<endl<<endl;
+        drzewo.wypisz();
+        cout<<endl<<endl;
+       
+        bool k = drzewo.find(val);
+        if(!k ) printf("BRAK\n");
+        else printf("%d\n",val);
 
-        }
     }
     
 }

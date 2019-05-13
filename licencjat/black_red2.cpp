@@ -30,6 +30,7 @@ void checkv(br_vert<T>* w){
         cout<<endl<<l_height<<" "<<r_height<<endl;
     }
     assert(l_height == r_height);
+
     
     bool good = true;
     if(w->is_red() && (is_red(w->right_son()) || is_red(w->left_son()))){
@@ -56,6 +57,7 @@ int main(){//operacje s
             scanf("%d", &a);
             x.insert(a);
         }
+        check_tree(x);
         v.push_back(x);
     }
     int q;
@@ -81,10 +83,13 @@ int main(){//operacje s
         }
         if(op == 'S'){
             scanf("%d %d", &set,&elem);
-            splitted_tree<int> my_pair = v[set].split2(elem);
+            /*splitted_tree<int> my_pair = v[set].split2(elem);
             v[set] = my_pair.lesser;
             v.push_back(my_pair.greater);
-            if(my_pair.pivot != NULL) cout<<"Result : "<<my_pair.pivot->value<<"\n";
+            if(my_pair.pivot != NULL) cout<<"Result : "<<my_pair.pivot->value<<"\n";*/
+            pair<br_tree<int>, br_tree<int> >res = v[set].split(elem);
+            v[set] = res.first;
+            v.push_back(res.second);
             print_sets();
             check_tree(v[set]);
             check_tree(v.back());

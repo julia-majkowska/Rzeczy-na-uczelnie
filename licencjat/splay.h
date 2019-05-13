@@ -93,7 +93,6 @@ public:
     tree_vert<T>* upper_bound(T searched){
         if(this->empty()) return NULL;
         tree_vert<T>* candidate = search(searched); 
-        //cout<<candidate->value<<"\n";
         if(candidate->value < searched) candidate = this->next(candidate);
         if(candidate!= NULL){
             candidate->splay();

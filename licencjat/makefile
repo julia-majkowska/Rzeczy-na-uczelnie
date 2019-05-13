@@ -1,4 +1,4 @@
-CC = g++ -std=c++11   
+CC = g++ -std=c++11 -g
 
 splay: splay.o 
 	$(CC)  splay.o -o splay

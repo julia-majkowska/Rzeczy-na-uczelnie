@@ -3,13 +3,16 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int q =20000; 
-    char syms[] = { 'I','F'};
+    int n = 20;
+    int q =20; 
     srand(atoi(argv[1]));
-    printf("%d\n", q);
+    printf("%d\n", n);
+    for(int i = 0; i< n; i++) printf("%d ", rand()%100 - 50);
+
+    printf("\n%d\n", q);
     for(int i = 0; i< q; i++){
-        int ind = rand()%2, v = rand()%200 - 100 ;
-        printf("%c %d\n", syms[ind], v);
+        int v = rand()%100 - 50 ;
+        printf("%d ", v);
         
     }
     

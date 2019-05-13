@@ -114,7 +114,7 @@ public:
     
     void wypisz(){
         if(this->is_null) return;
-        //cout<<"(";
+        //cout<<"("<<this->is_null<<" ";
         if(this->left!=NULL) this -> left_son()-> wypisz();
         if(! this-> is_null) cout<<this->value<<" ";//<<","<< this -> color<<", "<<black_h;
         if(this->right!=NULL) this -> right_son()-> wypisz();
@@ -499,14 +499,14 @@ protected:
     
     
 public:
-    void join_right(br_tree<T> r, br_vert<T>* pivot){
-        join_right(r.root, pivot);
-        r.root = NULL;
+    void join_right(br_tree<T>* r, br_vert<T>* pivot){
+        join_right(r->root, pivot);
+        delete r;//r->root = NULL;
     }
     
-    void join_left(br_tree<T> l, br_vert<T>* pivot){
-        join_left(l.root, pivot);
-        l.root = NULL;
+    void join_left(br_tree<T>* l, br_vert<T>* pivot){
+        join_left(l->root, pivot);
+        delete l;//l->root = NULL;
     }
     br_tree(){
         this-> root = new br_vert<T>();
@@ -528,11 +528,11 @@ public:
     }
     bool empty(){
         if(this->root == NULL) return true;
-        else this->root->is_null;
+        return this->root->is_null;
     }
     bool insert(T value);
     
-    pair<br_tree<T>,br_tree<T> > split(T pivot); 
+    pair<br_tree<T>*,br_tree<T>* > split(T pivot); 
     
     splitted_tree<T> split2(T pivot);
     
@@ -555,50 +555,52 @@ bool br_tree<T>::insert(T value){
 
 
 
-template<class T> 
-br_tree<T> join(br_tree<T> left, br_tree<T> right, br_vert<T>* pivot){
-    
-    if(left.height() > right.height()){
-        left.join_right(right, pivot); 
+template<class T> br_tree<T>* join(br_tree<T>* left, br_tree<T>* right, br_vert<T>* pivot){
+    /*left->wypisz();
+    cout<<endl<<left->empty()<<endl;
+    right->wypisz();
+    cout<<endl<<right->empty()<<endl;*/
+    if(left->height() > right->height()){
+        left->join_right(right, pivot); 
         return left; 
     }
     else{
-        right.join_left(left, pivot); 
+        right->join_left(left, pivot); 
         return right; 
     }
 }
 
 template<class T> 
-br_tree<T> tree_union(br_tree<T> A, br_tree<T> B){
-    cout<<"jestem w union ";
-    A.wypisz();
-    cout<<endl<<A.empty()<<endl;
-    B.wypisz();
-    cout<<endl<<B.empty()<<endl;
-    if(A.empty()) return B; 
-    if(B.empty()) return A; 
-    cout<<"Dalej unionuuje\n";
-    pair<br_tree<T>, br_tree<T> > splitted = A.split(B.root->value); 
-    br_tree<T> left_subtree(B.root->left_son());
-    br_tree<T> right_subtree(B.root->right_son()); 
+br_tree<T>* tree_union(br_tree<T>* A, br_tree<T>* B){
+    /**cout<<"jestem w union ";
+    A->wypisz();
+    cout<<endl<<A->root->is_null<<endl;
+    B->wypisz();
+    cout<<endl<<B->root->is_null<<endl;*/
+    if(A->empty()) return B; 
+    if(B->empty()) return A; 
+    //cout<<"Dalej unionuuje\n";
+    pair<br_tree<T>*, br_tree<T>* > splitted = A->split(B->root->value); 
+    br_tree<T>* left_subtree = new br_tree<T>(B->root->left_son());
+    br_tree<T>* right_subtree = new br_tree<T>(B->root->right_son()); 
     
-    B.root->disown_right();
-    B.root->disown_left();
-    br_tree<T> left_component = tree_union(splitted.first, left_subtree);
-    br_tree<T> right_component = tree_union(splitted.second, right_subtree);
+    B->root->disown_right();
+    B->root->disown_left();
+    br_tree<T>* left_component = tree_union(splitted.first, left_subtree);
+    br_tree<T>* right_component = tree_union(splitted.second, right_subtree);
     
-    return join(left_component, right_component, B.root); 
+    return join(left_component, right_component, B->root); 
 
 }
 
 template<class T> 
 class splitted_tree{
 public: 
-    br_tree<T> lesser; 
+    br_tree<T>* lesser; 
     br_vert<T> *pivot; //can be null if is not found
-    br_tree<T> greater; 
+    br_tree<T>* greater; 
     
-    splitted_tree(br_tree<T> l, br_tree<T> g,  br_vert<T> *p = NULL):
+    splitted_tree(br_tree<T>* l, br_tree<T>* g,  br_vert<T> *p = NULL):
     lesser(l), 
     greater(g), 
     pivot(p){};
@@ -607,8 +609,8 @@ public:
 template<class T> 
 splitted_tree<T> br_tree<T>::split2(T pivot){//splitting into lesser and greater or equal
         br_vert<T>* pointer = this-> root;
-        br_tree<T> l; 
-        br_tree<T> r;
+        br_tree<T>* l= new br_tree<T>(); 
+        br_tree<T>* r= new br_tree<T>();
         if(pointer == NULL || pointer -> is_null) return splitted_tree<T>(l, r);
         br_vert<T> * l_point = pointer->left_son();
         br_vert<T> * r_point = pointer->right_son();
@@ -618,41 +620,41 @@ splitted_tree<T> br_tree<T>::split2(T pivot){//splitting into lesser and greater
             splitted_tree<T> splitted = br_tree<T>(l_point).split2(pivot);
             return splitted_tree<T>(
                 splitted.lesser, 
-                join(splitted.greater, br_tree<T>(r_point), pointer),
+                join(splitted.greater,new br_tree<T>(r_point), pointer),
                 splitted.pivot);
         }
         else if (pointer->value < pivot) {
             splitted_tree<T> splitted = br_tree<T>(r_point).split2(pivot);
             return splitted_tree<T>(
-                join(br_tree<T>(l_point),splitted.lesser, pointer),
+                join(new br_tree<T>(l_point),splitted.lesser, pointer),
                 splitted.greater,
                 splitted.pivot);
         }
         
         return splitted_tree<T>(
-            tree_union(l,br_tree<T>(pointer->left_son())), 
-            tree_union(br_tree<T>(pointer->right_son()),r),
+            new br_tree<T>(l_point), 
+            new br_tree<T>(r_point),
             pointer); 
         
     }
 
 template<class T> 
-pair<br_tree<T>,br_tree<T> > br_tree<T>::split(T pivot){//splitting into lesser and greater or equal
+pair<br_tree<T>*,br_tree<T>* > br_tree<T>::split(T pivot){//splitting into lesser and greater or equal
         br_vert<T>* pointer = this-> root;
-        br_tree<T> l; 
-        br_tree<T> r;
+        br_tree<T>* l = new br_tree<T>(); 
+        br_tree<T>* r = new br_tree<T>();
         if(pointer == NULL || pointer -> is_null) return make_pair(l, r);
         br_vert<T> * l_point = pointer->left_son();
         br_vert<T> * r_point = pointer->right_son();
         pointer->disown_left();
         pointer->disown_right();
-        if(pointer->value > pivot){
-            pair<br_tree<T>, br_tree<T> > splitted = br_tree<T>(l_point).split(pivot);
-            return make_pair(splitted.first, join(splitted.second, br_tree<T>(r_point), pointer));
+        if(pointer->value >= pivot){
+            pair<br_tree<T>*, br_tree<T>* > splitted = br_tree<T>(l_point).split(pivot);
+            return make_pair(splitted.first, join(splitted.second, new br_tree<T>(r_point), pointer));
         }
         else if (pointer->value < pivot) {
-            pair<br_tree<T>, br_tree<T> > splitted = br_tree<T>(r_point).split(pivot);
-            return make_pair(join(br_tree<T>(l_point),splitted.first, pointer), splitted.second);
+            pair<br_tree<T>*, br_tree<T>* > splitted = br_tree<T>(r_point).split(pivot);
+            return make_pair(join(new br_tree<T>(l_point),splitted.first, pointer), splitted.second);
         }
         
         return make_pair(l, r); 

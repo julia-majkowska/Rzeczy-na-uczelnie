@@ -3,15 +3,15 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int n = 20;
-    int q =20; 
+    int n = 7;
+    int q =7; 
     srand(atoi(argv[1]));
     printf("%d\n", n);
-    for(int i = 0; i< n; i++) printf("%d ", rand()%100 - 50);
+    for(int i = 0; i< n; i++) printf("%d ", i);
 
     printf("\n%d\n", q);
     for(int i = 0; i< q; i++){
-        int v = rand()%100 - 50 ;
+        int v = rand()%n ;
         printf("%d ", v);
         
     }

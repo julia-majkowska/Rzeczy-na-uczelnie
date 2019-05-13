@@ -87,9 +87,9 @@ int main(){//operacje s
             v[set] = my_pair.lesser;
             v.push_back(my_pair.greater);
             if(my_pair.pivot != NULL) cout<<"Result : "<<my_pair.pivot->value<<"\n";*/
-            pair<br_tree<int>, br_tree<int> >res = v[set].split(elem);
-            v[set] = res.first;
-            v.push_back(res.second);
+            pair<br_tree<int>*, br_tree<int>* >res = v[set].split(elem);
+            v[set] = *res.first;
+            v.push_back(*res.second);
             print_sets();
             check_tree(v[set]);
             check_tree(v.back());
@@ -101,7 +101,7 @@ int main(){//operacje s
                 print_sets();
                 continue;
             }
-            v[set] = tree_union(v[set], v.back());
+            v[set] = *tree_union(&v[set], &v.back());
             v.pop_back();
             print_sets();
             check_tree(v[set]);

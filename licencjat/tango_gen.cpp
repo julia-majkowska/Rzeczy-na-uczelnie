@@ -3,16 +3,20 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int n = 511;//atoi(argv[2]);
-    int q =200; 
+    int n = 10023;//atoi(argv[2]);
+    int q =n;//200; 
     srand(atoi(argv[1]));
+    vector<int> v; 
     printf("%d\n", n);
-    for(int i = 0; i< n; i++) printf("%d ", i);
-
+    for(int i = 1; i<= n; i++){
+        printf("%d ", i);
+        v.push_back(i);
+    }   
+    random_shuffle(v.begin(), v.end());
     printf("\n%d\n", q);
     for(int i = 0; i< q; i++){
-        int v = rand()%n ;
-        printf("%d ", v);
+        //int v = rand()%n ;
+        printf("%d ", v[i]);
         
     }
     

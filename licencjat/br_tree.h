@@ -119,11 +119,11 @@ public:
     
     void wypisz(){
         if(this->is_null) return;
-        //cout<<"("<<this->is_null<<" ";
+        //cout<<"(";//<<this->is_null<<" ";
         if(this->left!=NULL) this -> left_son()-> wypisz();
-        if(! this-> is_null) cout<<this->value<<" ";//<<","<< this -> color<<", "<<black_h;
+        if(! this-> is_null) cout<<this->value<<" ";//<<this->min_depth<<" "<<this->max_depth<<" "<<this->depth<<" ";//<<","<< this -> color<<", "<<black_h;
         if(this->right!=NULL) this -> right_son()-> wypisz();
-        //cout<<")";
+        //cerr<<")";
     }
     void rotate_left(){
         tree_vert<T>::rotate_left();
@@ -242,6 +242,10 @@ protected:
                 x-> brother() -> update_black_height();
                 x-> parent()->update_black_height();
             }            
+        }
+        while(!x->is_root()){
+            x->update_black_height();
+            x = x->parent();
         }
         this->root->make_black();
     }

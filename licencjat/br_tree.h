@@ -14,6 +14,7 @@ public:
     int color; //false - red , true - black
     int black_h;
     int max_depth = 0; 
+    int min_depth = 1<<30;
     int depth = 0; 
     
     br_vert(T val, int d, bool il = false, bool col = RED, br_vert<T>*f = NULL, br_vert<T>*l = NULL, br_vert<T>*r = NULL):
@@ -21,6 +22,7 @@ public:
     color(col)
     {
         depth = d;
+        min_depth =d;
         black_h = 0;
         if(l!= NULL) black_h= l->black_h;
         black_h+=col;
@@ -100,13 +102,16 @@ public:
     void update_black_height(){
         int left_h  = 0, right_h = 0;
         this->max_depth = this->depth;
+        this->min_depth = this->depth;
         if(this->left_son() != NULL){
             left_h= this->left_son()->black_h;
             this->max_depth = max(this->max_depth, this->left_son()->max_depth);
+            this->min_depth = min(this->min_depth, this->left_son()->min_depth);
         }
         if(this->right_son() != NULL){
             right_h = this->right_son()->black_h;
             this->max_depth = max(this->max_depth, this->right_son()->max_depth);
+            this->min_depth = min(this->min_depth, this->right_son()->min_depth);
         }
         this->black_h = right_h + this->color;
         
@@ -131,6 +136,7 @@ public:
         if(this->right!=NULL) this->right_son()->update_black_height();
         this->update_black_height();
     }
+    
  
 };
 

@@ -3,8 +3,8 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int n = 7;
-    int q =7; 
+    int n = 511;//atoi(argv[2]);
+    int q =200; 
     srand(atoi(argv[1]));
     printf("%d\n", n);
     for(int i = 0; i< n; i++) printf("%d ", i);

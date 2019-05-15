@@ -19,23 +19,23 @@ int main(){
     tango_tree<int> drzewo(elems, 0, elems.size() -1, 0);
     int q;
     scanf("%d", &q);
-    cout<<endl<<endl;
-    drzewo.wypisz();
-    cout<<endl<<endl;
+    //cerr<<endl<<endl;
+    //drzewo.wypisz();
+    //cerr<<endl<<endl;
     
     while(q--){
         int val;
         scanf("%d", &val);
-        
+        //cerr<<"New query "<<val<<"\n";
         //printf("DEBUG %c %d\n", op, val);
         
        
         bool k = drzewo.find(val);
         if(!k ) printf("BRAK\n");
         else printf("%d\n",val);
-        cout<<endl<<endl;
-        drzewo.wypisz();
-        cout<<endl<<endl;
+        //cerr<<endl<<endl;
+        //drzewo.wypisz();
+        //cerr<<endl<<endl;
 
     }
     

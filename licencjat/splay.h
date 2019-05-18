@@ -12,6 +12,10 @@ public:
     splay_tree(tree_vert<T>* r){
         root = r;
     };
+    
+    ~splay_tree(){
+        if(this->root != NULL) delete this->root;
+    }
 
 protected:
     
@@ -54,6 +58,13 @@ protected:
         if(current->is_root()) return NULL;//does not have next element
         current = current->father;
         return current;         
+    }
+    
+    T find1(T searched){
+        T res;
+        if(this->root == NULL) return false;
+        splay(searched);
+        return this->root->value;
     }
     
     
@@ -163,7 +174,7 @@ bool splay_tree<T>::insert(T value){
         this ->root = new_root;
         return true;
     }
-    T pivot = this->find(value); 
+    T pivot = this->find1(value); 
     if(pivot == value) return false; 
     vector<splay_tree<T>*> halves = split(this, value);
     new_root->hook_up_left(halves[0]->root); 
@@ -174,8 +185,10 @@ bool splay_tree<T>::insert(T value){
 
 template<class T>
 bool splay_tree<T>::erase(T value){
-    T pivot = this->find(value); 
-    if(pivot != value) return false; 
+    if(this->root == NULL) return false;
+    tree_vert<T>* pivot = this->search(value); 
+    //cout<<pivot->value<<"\n";
+    if(pivot->value != value) return false; 
     vector<splay_tree<T>*> halves = split(this,value);
     this -> root = join(halves[0], halves[2])-> root;
     return true;

@@ -34,10 +34,10 @@ public:
     
     virtual ~tree_vert(){
         this->get_disowned();
-        if(this->left!=NULL && this->left->is_null){
+        if(this->left!=NULL){
             delete(this->left);
         }
-        if(this->left!=NULL && this->right->is_null){
+        if(this->left!=NULL){
             delete(this->right);
         }
     };

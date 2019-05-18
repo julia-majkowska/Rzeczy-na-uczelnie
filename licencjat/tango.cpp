@@ -48,5 +48,6 @@ int main(){
         //cerr<<endl<<endl;
 
     }
+    drzewo.destroy();
     
 }

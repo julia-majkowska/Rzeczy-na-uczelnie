@@ -163,6 +163,7 @@ protected:
                 }else{
                     if(is_red(s->left_son())){
                         s->color = s->parent()->color;
+                        s->update_black_height();
                         s->left_son()->make_black();
                         s->parent()->make_black();
                         s->rotate_right();
@@ -223,7 +224,7 @@ protected:
         
         if(x->is_red() || child->is_red()){
             child->make_black();
-            child->update_black_height();
+            if(f!= NULL && !f->is_null) f->update_black_height();
             delete(x);
             return;
         }
@@ -322,11 +323,13 @@ protected:
 public:
     void join_right(br_tree<T>* r, br_vert<T>* pivot){
         join_right(r->root, pivot);
+        r->root = NULL;
         delete r;
     }
     
     void join_left(br_tree<T>* l, br_vert<T>* pivot){
         join_left(l->root, pivot);
+        l->root = NULL;
         delete l;
     }
     br_tree(){
@@ -338,7 +341,9 @@ public:
     {
         if(r != NULL) this->root->make_black();
     };
-    
+    virtual ~br_tree(){
+        if(this->root != NULL) delete this->root; 
+    }
     int height(){
         if(this->root != NULL) return this->root->black_h;
     }

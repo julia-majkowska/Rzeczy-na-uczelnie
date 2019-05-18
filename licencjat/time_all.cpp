@@ -63,6 +63,7 @@ vector<double> experiment(const vector<int>& queries, int n){
     res.push_back(tttango.count());
     res.push_back(ttbr.count());
     res.push_back(ttset.count());
+    d_br.destroy();
     return res;
 }
 

@@ -35,7 +35,7 @@ void checkv(br_vert<T>* v){
 }
 
 template<class T>
-void check_tree(br_tree<T> t){
+void check_tree(br_tree<T>& t){
     if(t.root!=NULL) checkv(t.root);
 }
 

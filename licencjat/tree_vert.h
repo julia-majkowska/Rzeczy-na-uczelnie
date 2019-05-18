@@ -8,6 +8,7 @@ public:
     
     T value;
     bool is_null = false; //true with extra null vertexes
+    int ref_counter = 0;
     
     tree_vert<T>* father;
     tree_vert<T>* left;
@@ -31,7 +32,7 @@ public:
     is_null(true)
     {};
     
-    ~tree_vert(){
+    virtual ~tree_vert(){
         this->get_disowned();
         if(this->left!=NULL && this->left->is_null){
             delete(this->left);
@@ -40,6 +41,10 @@ public:
             delete(this->right);
         }
     };
+    
+    void ref();
+    
+    void uref();
     
     void wypisz();
     
@@ -70,6 +75,17 @@ public:
     tree_vert<T>* prev();
     
 };
+
+template<class T>
+void tree_vert<T>::uref(){
+   ref_counter--;
+   if(ref_counter == 0) delete this;
+}
+
+template<class T>
+void tree_vert<T>::ref(){
+   ref_counter++;
+}
 
 template<class T>
 void tree_vert<T>::wypisz(){

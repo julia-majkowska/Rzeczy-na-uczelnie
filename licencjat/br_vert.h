@@ -119,9 +119,11 @@ public:
     
     void wypisz(){
         if(this->is_null) return;
+        //cout<<"(";
         if(this->left!=NULL) this -> left_son()-> wypisz();
-        if(! this-> is_null) cout<<this->value<<" ";
+        if(! this-> is_null) cout<<this->value<<" ";//<<this->color<<" "<<this->black_h<<" ";
         if(this->right!=NULL) this -> right_son()-> wypisz();
+        //cout<<")";
         
     }
     void rotate_left(){

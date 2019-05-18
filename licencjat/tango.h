@@ -139,6 +139,12 @@ public:
         this->root= t.root;
     }
     
+    ~tango_tree(){
+        if(this->root != NULL){
+            delete this->Root();
+            this->root = NULL;
+        }
+    }
     void wypisz(){
         cerr<<"[ ";
         if(this->root != NULL ) ((tango_vert<T>*)this->root)-> wypisz();

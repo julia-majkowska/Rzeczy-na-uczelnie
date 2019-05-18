@@ -109,4 +109,8 @@ int main(){//operacje s
         
     }
     
+    for( int i = 0; i<v.size(); i++){
+        v[i].destroy();
+    }
+    
 }

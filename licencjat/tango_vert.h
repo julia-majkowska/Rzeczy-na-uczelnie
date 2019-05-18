@@ -25,10 +25,36 @@ public:
             npls->Root()->pref_father = this;
             npls->Root()->dir = LEFT;
         }
+        if(this->left!= NULL){
+            
+        }
         if(nprs != NULL && !nprs->empty()){
             nprs->Root()->pref_father = this;
             nprs->Root()->dir = RIGHT;
         }
+    }
+    
+    ~tango_vert(){
+        if(this->left!=NULL){
+            delete this->left_son();
+            this->left = NULL;
+        }
+        
+        if(this->right!=NULL){
+            delete this->right_son();
+            this->right = NULL;
+        }
+        
+        if(this->not_pref_left_son!=NULL){
+            delete this->not_pref_left_son;
+            this->not_pref_left_son = NULL;
+        }
+        
+        if(this->not_pref_right_son!=NULL){
+            delete this->not_pref_right_son;
+            this->not_pref_right_son = NULL;
+        }
+        
     }
     
     tango_vert<T>* left_son(){
@@ -38,6 +64,7 @@ public:
     tango_vert<T>* right_son(){
         return (tango_vert<T>*)this->right;
     }
+    
     bool has_left(){
         return this->not_pref_left_son != NULL && (!this->not_pref_left_son->empty());
     }

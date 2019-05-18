@@ -317,7 +317,11 @@ protected:
     }
     
     
-    
+    void set_root(br_vert<T>* r){
+        if(this->root != NULL) this->root->unref();
+        this->root = r; 
+        if(this->root != NULL) this->roor->ref();
+    }
     
     
 public:
@@ -341,7 +345,10 @@ public:
     {
         if(r != NULL) this->root->make_black();
     };
-    virtual ~br_tree(){
+    /*virtual ~br_tree(){
+        if(this->root != NULL) delete this->root; 
+    }*/
+    void destroy(){
         if(this->root != NULL) delete this->root; 
     }
     int height(){

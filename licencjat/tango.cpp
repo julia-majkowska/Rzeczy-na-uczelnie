@@ -14,10 +14,10 @@ int main(){
         scanf("%d", &a);
         elems.push_back(a);
     }
-    sort(elems.begin(), elems.end());
+    //sort(elems.begin(), elems.end());
         
     
-    tango_tree<int> drzewo(elems, 0, elems.size() -1, 0);
+    tango_tree<int> drzewo(elems);
     int q;
     scanf("%d", &q);
     //cerr<<endl<<endl;

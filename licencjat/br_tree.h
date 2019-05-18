@@ -1,144 +1,4 @@
-#include<bits/stdc++.h>
-#include"tree_vert.h"
-#include <cassert>
-
-const int RED = 0;
-const int BLACK = 1;
-const int DOUBLE_BLACK = 2; 
-template<class T> 
-class splitted_tree;
-
-template<class T>
-class br_vert: public tree_vert<T> {
-public: 
-    int color; //false - red , true - black
-    int black_h;
-    int max_depth = 0; 
-    int min_depth = 1<<30;
-    int depth = 0; 
-    
-    br_vert(T val, int d, bool il = false, bool col = RED, br_vert<T>*f = NULL, br_vert<T>*l = NULL, br_vert<T>*r = NULL):
-    tree_vert<T>(val, f, l, r, il),
-    color(col)
-    {
-        depth = d;
-        min_depth =d;
-        black_h = 0;
-        if(l!= NULL) black_h= l->black_h;
-        black_h+=col;
-    };
-    
-    br_vert()://constructor for an empty leaf
-    tree_vert<T>(),
-    color(BLACK),
-    black_h(1)
-    {};
-
-    
-    bool is_red(){
-        return this->color==0;
-    }
-    
-    bool is_black(){
-        return this->color>0;
-    }
-    
-    void make_red(){
-        this->color = RED;
-        update_black_height();
-    }
-    void make_black(){
-        this->color = BLACK;
-        update_black_height();
-    }
-    
-    void make_double_black(){
-        this->color = DOUBLE_BLACK;
-        this->update_black_height();
-    }
-    bool is_double_black(){
-        this->color == 2;
-    }
-    bool hook_up_left(br_vert<T>* x){
-        bool v= this->tree_vert<T>::hook_up_left(x);
-        this->update_black_height();
-        return v;
-    }
-    
-    bool hook_up_right(br_vert<T>* x){
-        bool v = this->tree_vert<T>::hook_up_right(x);
-        this->update_black_height();
-        return v;
-    }
-    br_vert<T>* parent(){
-        return (br_vert<T>*) this->father;
-        
-    }
-    br_vert<T>* left_son(){
-        return (br_vert<T>*) this->left;
-    }
-    
-    br_vert<T>* right_son(){
-        return (br_vert<T>*) this->right;
-        
-    }
-    br_vert<T>* grandparent(){
-        if(this->father == NULL) return NULL;
-        return (br_vert<T>*)this->father->father; 
-    }
-    
-    br_vert* uncle(){
-        if(this->father == NULL || this->grandparent() == NULL) return NULL;
-        if(this->father -> is_left()) return this->grandparent()->right_son();
-        return this->grandparent()->left_son();
-    }
-    
-    br_vert* brother(){
-        if(this->father == NULL) return NULL;
-        if(this-> is_left()) return this->parent()->right_son();
-        return this->parent()->left_son();
-    }
-    
-    void update_black_height(){
-        int left_h  = 0, right_h = 0;
-        this->max_depth = this->depth;
-        this->min_depth = this->depth;
-        if(this->left_son() != NULL){
-            left_h= this->left_son()->black_h;
-            this->max_depth = max(this->max_depth, this->left_son()->max_depth);
-            this->min_depth = min(this->min_depth, this->left_son()->min_depth);
-        }
-        if(this->right_son() != NULL){
-            right_h = this->right_son()->black_h;
-            this->max_depth = max(this->max_depth, this->right_son()->max_depth);
-            this->min_depth = min(this->min_depth, this->right_son()->min_depth);
-        }
-        this->black_h = right_h + this->color;
-        
-    }
-    
-    void wypisz(){
-        if(this->is_null) return;
-        //cout<<"(";//<<this->is_null<<" ";
-        if(this->left!=NULL) this -> left_son()-> wypisz();
-        if(! this-> is_null) cout<<this->value<<" ";//<<this->min_depth<<" "<<this->max_depth<<" "<<this->depth<<" ";//<<","<< this -> color<<", "<<black_h;
-        if(this->right!=NULL) this -> right_son()-> wypisz();
-        //cerr<<")";
-    }
-    void rotate_left(){
-        tree_vert<T>::rotate_left();
-        if(this->left!=NULL) this->left_son()->update_black_height();
-        this->update_black_height();
-    }
-    
-    void rotate_right(){
-        tree_vert<T>::rotate_right();
-        if(this->right!=NULL) this->right_son()->update_black_height();
-        this->update_black_height();
-    }
-    
- 
-};
+#include"br_vert.h"
 
 template<class T>
 bool is_black(br_vert<T>* x){
@@ -208,14 +68,12 @@ protected:
                 if(x->parent()->is_left()){
                     
                     if(x->is_right()){//P2
-                        //cout<<"P2 lr\n";
                         x->rotate_left();
                         if(x->parent()->is_root()) root = x -> parent();
                         x = x->left_son();//previous parent
                     }
                     
                     //P3
-                    //cout<<"P3ll\n";
                     x->parent()->make_black(); 
                     x->grandparent()->make_red();
                     x->parent()->rotate_right();
@@ -224,14 +82,12 @@ protected:
                 }
                 else{
                     if(x->is_left()){//P2
-                        //cout<<"P2rl\n";
                         x->rotate_right();
                         if(x->parent()->is_root()) root = x -> parent();
                         x = x->right_son();//previous parent
                     }
                     
                     //P3
-                   // cout<<"P3rr\n";
                     x->parent()->make_black(); 
                     x->grandparent()->make_red();
                     x->parent()->rotate_left();
@@ -251,8 +107,6 @@ protected:
     }
     
     void restore_delete(br_vert<T>* x){
-        //cout<<"wypisuje x\n";
-        //x->wypisz();
         if(x->is_red()){
             x->make_black();
             x->update_black_height();
@@ -265,16 +119,13 @@ protected:
         
         br_vert<T>* s = x->brother();
         if(s->is_null || s== NULL){
-            //cout<<"No sibling";
             return restore_delete(x->parent());
         }
         
         if(s->is_black()){//s can't be a leaf since its sibling had a black height of 2 
                 //At least one of s's children is red
-            //cout<<"Black s";
             x->make_black();
                 if(is_black(s->left_son()) && is_black(s->right_son())){
-                    //cout<<"Black sons ";
                     s->make_red();
                     s->update_black_height();
                     
@@ -291,10 +142,6 @@ protected:
                     //Right right case
                     
                     if(is_red(s->right_son())){
-                        //cout<<"Right right\n ";
-                        //s->right_son()->color = s->parent()->color;
-                        //s->update_black_height();
-                        //s->color= 
                         s->color = s->parent()->color;
                         s->right_son()->make_black();
                         s->parent()->make_black();
@@ -302,11 +149,10 @@ protected:
                         if(s->is_root()) this->root = s;
                     }
                     else if(is_red(s->left_son())){
-                        //cout<<"Right left\n ";
                         br_vert<T>* l = s->left_son();
                         s->color = s->parent()->color;
                         s->update_black_height();
-                        l->make_black();//color = x->parent()->color;
+                        l->make_black();
                         l->update_black_height();
                         l->rotate_right();       
                         l->rotate_left();
@@ -316,23 +162,17 @@ protected:
                     
                 }else{
                     if(is_red(s->left_son())){
-                        //cout<<"Left left\n ";
-                        //s->left_son()->color = s->parent()->color;
                         s->color = s->parent()->color;
                         s->left_son()->make_black();
                         s->parent()->make_black();
-                        //s->update_black_height();
-//                         s->color = s->parent()->color;
                         s->rotate_right();
                         if(s->is_root()) this->root = s;
-                        //cout<<"Left out"<<endl;
                     }
                     else if(is_red(s->right_son())){
-                        //cout<<"Left right\n ";
                         br_vert<T>*r = s->right_son();
                         s->color = s->parent()->color;
                         s->update_black_height();
-                        r->make_black();//x->parent()->color;
+                        r->make_black();
                         r->update_black_height();
                         r->rotate_left();       
                         r->rotate_right();
@@ -341,24 +181,20 @@ protected:
                     }
                     
                 }
-               // restore_delete(x);
             }else{
                 br_vert<T>*f = x->parent();
                 s->make_black();
                 f->make_red();
                 if(s->is_right()){
-                    //cout<<"Red right"<<endl;
                     s->tree_vert<T>::rotate_left();  
                     
                 }
                 else{
-                    //cout<<"Red left"<<endl;
+                    
                     s->tree_vert<T>::rotate_right();
                     
                 }
                 if(s->is_root()) this->root = s;
-                //cout<<"Po rotacji i aktualizacji\n";
-                //s->wypisz();
                 restore_delete(x);
             }
             
@@ -382,7 +218,7 @@ protected:
             x->get_disowned(); 
             f->hook_up_left(child);
         }
-        //cout<<"LALALA"<<endl;
+        
         //Step 2
         
         if(x->is_red() || child->is_red()){
@@ -391,9 +227,6 @@ protected:
             delete(x);
             return;
         }
-        
-        //cout<<"Po swapie"<<endl;
-        //this->wypisz();
         //Step 3
         x->make_double_black();
         delete(x);
@@ -407,26 +240,6 @@ protected:
         return ((br_vert<T>*) this->root->search(value));
     }
     
-    bool insert_vert(br_vert<T>* new_vert){
-        
-        if(new_vert == NULL || new_vert ->is_null) return true;
-        new_vert->color = RED;
-        new_vert->black_h = 0;
-        new_vert->disown_left();
-        new_vert->hook_up_left(new br_vert<T>());
-        new_vert->disown_right();
-        new_vert->hook_up_right(new br_vert<T>());
-        new_vert->get_disowned();
-        /*cout<<"wypisuje new_vert ";
-        new_vert->wypisz();
-        cout<<endl;
-        this->wypisz();
-        cout<<endl;*/
-        if(!put_in_vert(new_vert)) return false;
-        restore_insert(new_vert);
-        this->root->make_black();
-        return true;
-    }       
 
     void join_right(br_vert<T>* r_root, br_vert<T>* pivot){
         if(r_root == NULL || r_root -> is_null){
@@ -469,14 +282,12 @@ protected:
         if(l_root == NULL || l_root -> is_null){
             
             this->insert_vert(pivot);
-            //this->insert(pivot->value);
             return;
         }
         if(this->root == NULL || this->root -> is_null){
             
             this->root = l_root;
             this->insert_vert(pivot);
-            //this->insert(pivot->value);
             return;
         }
         br_vert<T> * r_root = this->root; 
@@ -511,12 +322,12 @@ protected:
 public:
     void join_right(br_tree<T>* r, br_vert<T>* pivot){
         join_right(r->root, pivot);
-        delete r;//r->root = NULL;
+        delete r;
     }
     
     void join_left(br_tree<T>* l, br_vert<T>* pivot){
         join_left(l->root, pivot);
-        delete l;//l->root = NULL;
+        delete l;
     }
     br_tree(){
         this-> root = new br_vert<T>();
@@ -541,9 +352,9 @@ public:
         return this->root->is_null;
     }
     bool insert(T value);
+    bool insert_vert(br_vert<T>* new_vert);
     
     pair<br_tree<T>*,br_tree<T>* > split(T pivot); 
-    
     splitted_tree<T> split2(T pivot);
     
     bool erase(T value); 
@@ -551,8 +362,26 @@ public:
     
     br_vert<T>* upper_bound(T searched);
 
+    bool find(T searched);
     
 };
+
+template<class T>
+bool br_tree<T>::insert_vert(br_vert<T>* new_vert){
+        
+        if(new_vert == NULL || new_vert ->is_null) return true;
+        new_vert->color = RED;
+        new_vert->black_h = 0;
+        new_vert->disown_left();
+        new_vert->hook_up_left(new br_vert<T>());
+        new_vert->disown_right();
+        new_vert->hook_up_right(new br_vert<T>());
+        new_vert->get_disowned();
+        if(!put_in_vert(new_vert)) return false;
+        restore_insert(new_vert);
+        this->root->make_black();
+        return true;
+} 
 
 template<class T>
 bool br_tree<T>::insert(T value){
@@ -566,10 +395,6 @@ bool br_tree<T>::insert(T value){
 
 
 template<class T> br_tree<T>* join(br_tree<T>* left, br_tree<T>* right, br_vert<T>* pivot){
-    /*left->wypisz();
-    cout<<endl<<left->empty()<<endl;
-    right->wypisz();
-    cout<<endl<<right->empty()<<endl;*/
     if(left->height() > right->height()){
         left->join_right(right, pivot); 
         return left; 
@@ -582,14 +407,9 @@ template<class T> br_tree<T>* join(br_tree<T>* left, br_tree<T>* right, br_vert<
 
 template<class T> 
 br_tree<T>* tree_union(br_tree<T>* A, br_tree<T>* B){
-    /**cout<<"jestem w union ";
-    A->wypisz();
-    cout<<endl<<A->root->is_null<<endl;
-    B->wypisz();
-    cout<<endl<<B->root->is_null<<endl;*/
     if(A->empty()) return B; 
     if(B->empty()) return A; 
-    //cout<<"Dalej unionuuje\n";
+    
     pair<br_tree<T>*, br_tree<T>* > splitted = A->split(B->root->value); 
     br_tree<T>* left_subtree = new br_tree<T>(B->root->left_son());
     br_tree<T>* right_subtree = new br_tree<T>(B->root->right_son()); 
@@ -675,7 +495,7 @@ template<class T>
 bool br_tree<T>::erase(T value){
     br_vert<T>* key = search(value);
     if(key== NULL) return false;
-    if(key->is_null) printf("Stop me there is a mistake");
+    if(key->is_null) cerr<<"Stop me there is a mistake";
     if(key->value != value) return false;
     if(key->left==NULL || key->right == NULL || key->left->is_null || key->right->is_null) this->remove(key);
     else{
@@ -685,6 +505,15 @@ bool br_tree<T>::erase(T value){
     }
     return true;
 }
+
+template<class T> 
+bool br_tree<T>::find(T searched){
+    if(this->empty()) return false;
+    br_vert<T>* candidate = (br_vert<T>*)search(searched); 
+    if(candidate == NULL) return false; 
+    return candidate->value == searched;    
+}
+
 template<class T> 
 br_vert<T>* br_tree<T>::lower_bound(T searched){
     if(this->empty()) return NULL;

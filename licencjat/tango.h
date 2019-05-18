@@ -1,187 +1,11 @@
 #include<bits/stdc++.h>
-#include"br_tree.h"
-bool LEFT = true; 
-bool RIGHT = false;
+#include"tango_vert.h"
 
-template<class T>
-class tango_tree;
-
-template<class T>
-class tango_vert: public br_vert<T>{
-    
-public:
-
-   
-    tango_tree<T>* not_pref_left_son=NULL; 
-    tango_tree<T>* not_pref_right_son=NULL;
-    tango_vert<T>* pref_father=NULL;
-    bool dir = LEFT;
-    
-    tango_vert(T val, int d, tango_tree<T> * npls = NULL, tango_tree<T> * nprs = NULL, tango_vert<T>* ps = NULL):
-    br_vert<T>(val, d), 
-    not_pref_left_son(npls),
-    not_pref_right_son(nprs){
-        this->depth = d;
-        if(npls != NULL && !npls->empty()){
-            npls->Root()->pref_father = this;
-            npls->Root()->dir = LEFT;
-        }
-        if(nprs != NULL && !nprs->empty()){
-            nprs->Root()->pref_father = this;
-            nprs->Root()->dir = RIGHT;
-        }
-    }
-    
-    void wypisz(){
-        //cerr<<"ISNULL "<<this->is_null<<"\n";
-        if(this->is_null) return;
-        cerr<<"(";
-        if(this->left!=NULL) this -> left_son()-> wypisz();
-        //cerr<<"{";//<<endl;
-        //cerr<<(this->not_pref_left_son == NULL)<<" "<<(this->has_left())<<endl;
-        if(this->has_left()) this->not_pref_left_son->wypisz();
-        //cerr<<"left "<<endl;
-        cerr<<this->value<<" ";//","<< this -> color<<", "<<black_h;
-        //cerr<<"val "<<endl;
-        //cerr<<this->has_right();//<<" "<<endl;
-        if(this->has_right()) this->not_pref_right_son->wypisz();
-        //cerr<<"}";//<<endl;//<<endl;
-        if(this->right!=NULL) this -> right_son()-> wypisz();
-        cerr<<")";//<<endl;//<<endl;
-        
-    }
-    tango_vert<T>* left_son(){
-        return (tango_vert<T>*)this->left;
-    }
-    
-    tango_vert<T>* right_son(){
-        return (tango_vert<T>*)this->right;
-    }
-    bool has_left(){
-        return this->not_pref_left_son != NULL && (!this->not_pref_left_son->empty());
-    }
-    bool has_right(){
-        return this->not_pref_right_son != NULL && (!this->not_pref_right_son->empty());
-    }
-    
-    void add_left(tango_tree<T>* l){
-        //if(this->has_left()) this->left->wypisz();
-        assert(!this->has_left()); //TE ASSERTY POWINNY WRÓCIĆ
-        this->not_pref_left_son = l;
-        //l->pref_father = this;
-    }
-    void add_right(tango_tree<T>* r){
-        //if(this->has_right()) this->right->wypisz();
-        assert(!this->has_right());
-        //r->wypisz();
-        /*cerr<<endl;
-        (r)->wypisz();
-        cerr<<endl<<endl;*/
-        this->not_pref_right_son = r;
-        /*cerr<<"Added right";
-        this->wypisz();
-        cerr<<endl<<endl;*/
-        //r->pref_father = this;
-    }
-    void remove_left(){
-        //if(this->not_pref_left_son!= NULL) this->not_pref_left_son->pref_father = NULL;
-        this->not_pref_left_son = NULL;
-        
-    }
-    void remove_right(){
-        //if(this->not_pref_right_son!= NULL) this->not_pref_right_son->pref_father = NULL;
-        this->not_pref_right_son =NULL;
-    }
-    
-    tango_vert<T>* leftest(){
-        tree_vert<T>* cand  = this;
-        while(cand->left_son() != NULL) cand = cand->left_son();
-        if(cand->has_left()) return cand->not_pref_left_son->root->leftest();
-        else return cand;
-    }
-    
-    tango_vert<T>* rightest(){
-        tree_vert<T>* cand  = this;
-        while(cand->right_son() != NULL) cand = cand->right_son();
-        if(cand->has_right()) return cand->not_pref_right_son->root->rightest();
-        else return cand;
-    }
-    
-    bool reorganize_left(T value){
-        if(this->not_pref_left_son != NULL && !this-> not_pref_left_son->empty())
-            return this->not_pref_left_son->reorganize(value);
-        return false;
-    }
-    
-    bool reorganize_right(T value){
-        if(this->not_pref_right_son != NULL && !this-> not_pref_right_son->empty())
-            return this->not_pref_right_son->reorganize(value);
-        return false;
-    }
-    
-    int size(){
-        int suma = 1;
-        
-        if(this->is_null) return 0;
-        if(this->left!=NULL){
-            suma+=this -> left_son()-> size();
-            assert(this->left_son()->min_depth >= this->min_depth);
-            assert(this->left_son()->max_depth <= this->max_depth);
-        }
-        
-        if(this->has_left()){
-            suma+=this->not_pref_left_son->size();
-            assert(this->not_pref_left_son->Root()->min_depth > this->min_depth);
-        }
-        
-        if(this->has_right()){
-            suma+= this->not_pref_right_son->size();
-            assert(this->not_pref_right_son->Root()->min_depth > this->min_depth);
-        }
-        if(this->right!=NULL){
-            suma+=this -> right_son()-> size();
-            assert(this->right_son()->min_depth >= this->min_depth);
-            assert(this->right_son()->max_depth <= this->max_depth);
-        }
-        return suma;
-    }
-    
-    vector<int> content(){
-        vector<int> vector1; 
-        
-        
-        if(this->is_null) return vector1 ;
-        vector1.push_back(this->value);
-        if(this->left!=NULL){
-            vector<int> vector2 =this -> left_son()-> content();
-            vector1.insert( vector1.end(), vector2.begin(), vector2.end() );
-        }
-        
-        if(this->has_left()){
-            vector<int> vector2 = this->not_pref_left_son->content();
-            vector1.insert( vector1.end(), vector2.begin(), vector2.end() );
-        }
-        
-        if(this->has_right()){
-            vector<int> vector2 =this->not_pref_right_son->content();
-            vector1.insert( vector1.end(), vector2.begin(), vector2.end() );
-        }
-        if(this->right!=NULL){
-            vector<int> vector2 =this -> right_son()-> content();
-            vector1.insert( vector1.end(), vector2.begin(), vector2.end() );
-        }
-        return vector1;
-    }
-   
-
-
-};
 
 template<class T>
 class tango_tree: public br_tree<T>{
     
     pair<tango_vert<T>*, tango_vert<T>* > find_interval(int d){
-        //cerr<<"finding interva l"<<(this->root == NULL)<<endl;
         if(this->root->max_depth <=  d) return make_pair(((tango_vert<T>*) NULL), ((tango_vert<T>*) NULL));
         tango_vert<T>* cand1 = (tango_vert<T>*)this->root; 
         while(cand1->max_depth >d){
@@ -202,7 +26,7 @@ class tango_tree: public br_tree<T>{
                 cand2 = (tango_vert<T>*)cand2->left_son();
             }
         }
-        //cerr<<"Before prev i next"<<endl;
+        
         cand1 = ((tango_vert<T>*) cand1->prev());
         cand2 = ((tango_vert<T>*) cand2->next());
         return make_pair(cand1, cand2);
@@ -210,9 +34,9 @@ class tango_tree: public br_tree<T>{
     
     tango_vert<T>* find_root(){
         tango_vert<T>* pointer = (tango_vert<T>*) this->root;
-        //cerr<<"FINDING ROOT\n";
+        
         while(pointer -> min_depth != pointer -> depth){
-            //cerr<<pointer->value<<" "<<pointer->min_depth<<" "<<pointer->depth<<"\n";
+            
             if(pointer -> left_son() != NULL && pointer -> left_son() -> min_depth == pointer -> min_depth) pointer = pointer->left_son();
             else pointer = pointer ->right_son();
         }
@@ -222,48 +46,28 @@ class tango_tree: public br_tree<T>{
     void cut(tango_vert<T>* candidate){
         
         pair<tango_vert<T>*, tango_vert<T>* > inter = find_interval(candidate->depth);
-        //cerr<<"interval_ found\n"<<endl;//<< inter.first->value<<" "<<inter.second->value<<"\n";
+        
         if(inter.first == NULL && inter.second == NULL) return;
         if(inter.first == NULL){
-            //cerr<<"first null "<<inter.second->value<<" ";
-            //this->wypisz();
-            //cerr<<endl;
-            //this->br_tree<T>::wypisz();
-            //cerr<<endl;
             splitted_tree<T> s = this->split2(inter.second->value);
-            //((tango_tree<T>*) s.lesser) -> wypisz();
-            //cerr<<endl;
             ((tango_tree<T>*) s.lesser)->become_unpreferred();
-            //((tango_vert<T>*) s.pivot) -> wypisz();
-            //cerr<<endl;
-            //parent -> remove_right();
-            tango_tree<T>* joined = (tango_tree<T>*) join(new tango_tree<T>(), s.greater, s.pivot);
+            s.greater->insert_vert(s.pivot);
+            tango_tree<T>* joined = (tango_tree<T>*) s.greater;//(tango_tree<T>*) join(new tango_tree<T>(), s.greater, s.pivot);
             this->root = joined->root; 
             return;
         }
         if(inter.second == NULL){
-            //cerr<<"second null  "<<inter.first->value<<" ";;
+            
             splitted_tree<T> s = this->split2(inter.first->value);
-            
             ((tango_tree<T>*) s.greater)->become_unpreferred();
-            
-            //((tango_vert<T>*) s.pivot) -> wypisz();
-            //cerr<<endl;
-            //parent -> remove_left();
-            tango_tree<T>* joined = (tango_tree<T>*) join(s.lesser,new  tango_tree<T>(), s.pivot);
+            s.lesser->insert_vert(s.pivot);
+            tango_tree<T>* joined = (tango_tree<T>*) s.lesser;//(tango_tree<T>*) join(s.lesser,new  tango_tree<T>(), s.pivot);
             this->root = joined->root; 
             return;
         }
-        //cerr<<"both good "<<inter.first->value<<" "<<inter.second->value<<" ";;
+    
         splitted_tree<T> s1 = this->split2(inter.first->value);
-        //if(inter.first->value == candidate->value) ((tango_vert<T>*) s1.pivot) ->remove_right();
         splitted_tree<T> s2 = s1.greater->split2(inter.second->value);
-        //if(inter.second->value == candidate->value) ((tango_vert<T>*) s2.pivot) ->remove_left(); 
-        //vector<int> c1 = ((tango_tree<T>* ) s2.lesser)->content();
-        //sort(c1.begin(), c1.end());
-        //for(auto c2 : c1 ) cerr<<c2<<" ";
-        //cerr<<"########\n";
-        //s2.lesser->wypisz();
         ((tango_tree<T>*) s2.lesser)->become_unpreferred();
         tango_tree<T>* joined_greater = (tango_tree<T>*) join(new tango_tree<T>(), s2.greater, s2.pivot);
         tango_tree<T>* joined = (tango_tree<T>*) join(s1.lesser, s2.greater, s1.pivot);
@@ -284,6 +88,28 @@ protected :
     tango_tree (br_tree<T> t){
         this->root = t.root;
     }
+    void make_tree(const vector<T>& v, int p, int k, int h)
+    {
+        if(p == k){
+           this->root = new tango_vert<T>(v[p], h); 
+        }
+        else{
+            int m = (p+k)/2;
+            tango_tree<T>* left = NULL;
+            tango_tree<T>* right = NULL;
+            if(m<k)  right =  new tango_tree(v, m+1, k,  h+1);
+            if(p<m)  left = new tango_tree(v, p, m-1, h+1);
+            this->root = new tango_vert<T>(v[m], h, left, right); 
+        }
+    }
+    
+    tango_tree(const vector<T>& v, int p, int k, int h):
+    br_tree<T>()
+    {
+        make_tree(v, p, k, h);
+
+    }
+    
 public:
     
     tango_vert<T>* Root(){
@@ -291,135 +117,63 @@ public:
     }
     
     void become_unpreferred(){
-        //cerr<<"BECOMING UNPREFFERED\n";
         tango_vert<T>* my_root =find_root();
         tango_vert<T>* parent = my_root->pref_father;
         if(my_root == NULL || my_root->is_null) return;
-        if(parent == NULL) 
-            cerr<<"COŚ DZIWNEGO ODPINAM ROOTA\n";
+        if(parent == NULL) return;
         
-        //cerr<<"ROOT AND PARENT"<<my_root->value<<" "<<my_root->depth<<" "<<my_root->min_depth<<" "<<parent->value<<" "<<parent->depth<<" "<<parent->min_depth<<"\n";
         if(my_root->dir == RIGHT)
             parent->add_right(this);
         else
             parent->add_left(this);
         
-    }
+    }    
     
-    void become_preferred(){
-        tango_vert<T>* my_root =find_root();
-        tango_vert<T>* parent = my_root->pref_father;
-        if(my_root == NULL || my_root->is_null) return;
-        //if(parent == NULL) cerr<<"COŚ DZIWNEGO ODPINAM ROOTA\n";
-        
-        if(my_root->dir == RIGHT)
-            parent->remove_right();
-        else
-            parent->remove_left();
-    }
-    
-    tango_tree(vector<T> v, int p, int k, int h):
+    tango_tree(vector<T> v):
     br_tree<T>()
     {
-        //cerr<<p<<" "<<k<<" ";
-        if(p == k){
-           this->root = new tango_vert<T>(v[p], h); 
-        }
-        else{
-        
-        int m = (p+k)/2;
-        //cerr<<" "<<m<<" "<<v[m]<<"\n";
-        tango_tree<T>* left = NULL;
-        tango_tree<T>* right = NULL;
-        if(m<k)  right =  new tango_tree(v, m+1, k,  h+1);
-        if(p<m)  left = new tango_tree(v, p, m-1, h+1);
-        this->root = new tango_vert<T>(v[m], h, left, right); 
-        }
+        sort(v.begin(), v.end());
+        make_tree(v, 0, v.size()-1, 0);
     }
     tango_tree(const tango_tree<T> &t){
         this->root= t.root;
     }
     
     void wypisz(){
-        cerr<<"[ ";//<<endl;
-        //cerr<<(this->root == NULL)<<" "<<this->root->is_null<<endl;
+        cerr<<"[ ";
         if(this->root != NULL ) ((tango_vert<T>*)this->root)-> wypisz();
-        cerr<<" ]";//<<endl;
+        cerr<<" ]";
     }
     
     bool reorganize(T value){
         if(this -> root == NULL || this-> root->is_null) return false;
         tango_vert<T>* candidate = (tango_vert<T>*) this->root->search(value);
-        /*cerr<<"Candidate searched\n";
-        this->wypisz();
-        cerr<<endl;*/
         if(candidate->value < value && !candidate->has_right()) candidate =  (tango_vert<T>*) candidate->next();
         else if(candidate->value > value && !candidate->has_left()) candidate = (tango_vert<T>*) candidate->prev();
         if(candidate == NULL) return false;
-        /*if(candidate -> value < value){
-            tango_vert<T>* n = (tango_vert<T> *)candidate ->next();
-            if(n != NULL && n->depth > candidate->depth) candidate = n; 
-        }
-        else if (candidate -> value > value){
-            tango_vert<T>* p = (tango_vert<T> *)candidate ->prev();
-            if(p != NULL && p->depth > candidate->depth) candidate = p; 
-        }*/
-        //cerr<<" | "<<candidate->value<<" "<<candidate->depth<<" | ";
         bool found = (candidate->value  == value);
         
         tango_tree<T>* joined = this;
         if(candidate->value > value){
-            //cerr<<"Candidate found "<<candidate->value<<"\n";
             this->cut(candidate);
-            //cerr<<"Candidate cut\n";
-            //this->wypisz();
-            //cerr<<endl;
-            //cerr<<"REORG LEFT\n";
             found = candidate -> reorganize_left(value);
-            //cerr<<"Candidate left reorgranized\n"<<((bool) candidate->not_pref_left_son == NULL)<<"\n";
             if(candidate -> not_pref_left_son != NULL){
-                //cerr<<"I will be joining ";
-                //this->br_tree<T>::wypisz();
-                //cerr<<"\n and this ";
-                //candidate->not_pref_left_son->br_tree<T>::wypisz();
-                //cerr<<endl;
                 br_tree<T>* t = tree_union(this, candidate->not_pref_left_son);
                 candidate->remove_left();
-                //cerr<<"JOINED\n"<<endl;
                 joined = (tango_tree<T>*) t;
                 
             }
-            //cerr<<"Candidate left joined\n";
         }
         else if(candidate->value < value){
-            //cerr<<"Candidate found "<<candidate->value<<"\n";
             this->cut(candidate);
-            //cerr<<"Candidate cut\n";
-            //this->wypisz();
-            //cerr<<endl;
-            //cerr<<"REORG RIGHT\n";
             found = candidate -> reorganize_right(value);
-            //cerr<<"Candidate right reorgranized\n";
             if(candidate -> not_pref_right_son != NULL){
-                //cerr<<"I will be joining ";
-                //this->br_tree<T>::wypisz();
-                //cerr<<"\n and this ";
-                //candidate->not_pref_right_son->br_tree<T>::wypisz();
-                //cerr<<endl;
                 joined = (tango_tree<T>*) tree_union(this, candidate->not_pref_right_son);
                 candidate->remove_right();
-                //cerr<<"Candidate right joined\n";
             }
         }
-        //cerr<<"Left son pointer "<<joined->root->left_son()<<"\n";
-        //joined->root->wypisz();
-        //cerr<<endl<<endl;
-        //this->wypisz();
-        //cerr<<endl<<endl;
         
         this->root = joined->root;
-        //this->wypisz();
-        //cerr<<endl<<endl;
         return found;
         
     }

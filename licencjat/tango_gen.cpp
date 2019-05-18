@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int n = 10023;//atoi(argv[2]);
+    int n = 100000;//atoi(argv[2]);
     int q =n;//200; 
     srand(atoi(argv[1]));
     vector<int> v; 
@@ -15,8 +15,8 @@ int main(int argc, char* argv[]){
     random_shuffle(v.begin(), v.end());
     printf("\n%d\n", q);
     for(int i = 0; i< q; i++){
-        //int v = rand()%n ;
-        printf("%d ", v[i]);
+        int v = rand()%(2*n) ;
+        printf("%d ", v);
         
     }
     

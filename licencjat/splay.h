@@ -70,11 +70,11 @@ public:
         
     };
     
-    T find(T searched){
+    bool find(T searched){
         T res; 
-        if(this ->root == NULL) return res;
+        if(this ->root == NULL) return false;
         splay(searched);
-        return this->root->value;
+        return this->root->value == searched;
     };
     
     

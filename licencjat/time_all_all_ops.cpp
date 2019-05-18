@@ -192,16 +192,12 @@ double experiment_randwalk(int seed, int q){
             start = chrono::system_clock::now();
             tree_vert<double>* k = drzewo.lower_bound(val);
             end = chrono::system_clock::now();
-            //if(k == NULL ) printf("BRAK\n");
-            //else printf("%d\n",k -> value);
 
         }
         if(op == 'U'){
             start = chrono::system_clock::now();
             tree_vert<double>* k = drzewo.upper_bound(val);
             end = chrono::system_clock::now();
-            //if(k == NULL ) printf("BRAK\n"); 
-            //else printf("%d\n", k-> value);
         }
         
         elapsed_seconds = end - start; 

@@ -9,7 +9,7 @@ splay.o: splay.cpp tree_vert.h splay.h
 black_red: black_red.o
 	$(CC) black_red.o -o black_red
 
-black_red.o: black_red.cpp tree_vert.h br_tree.h
+black_red.o: black_red.cpp tree_vert.h br_tree.h br_vert.h
 	$(CC) black_red.cpp -c -o black_red.o
 	
 #Dgen: Dgen.cpp
@@ -21,7 +21,7 @@ brut_split_join: brut_split_join.cpp
 black_red2: black_red2.o
 	$(CC) black_red2.o -o black_red2
 	
-black_red2.o: black_red2.cpp tree_vert.h br_tree.h
+black_red2.o: black_red2.cpp tree_vert.h br_tree.h br_vert.h
 	$(CC) black_red2.cpp -c -o black_red2.o
 #tree_vert.o: tree_vert.h tree_vert.tpp
 #	$(CC) tree_vert.h -c -o tree_vert.o
@@ -29,7 +29,7 @@ black_red2.o: black_red2.cpp tree_vert.h br_tree.h
 tango: tango.o
 	$(CC) tango.o -o tango
 
-tango.o: tango.cpp tango.h br_tree.h tree_vert.h
+tango.o: tango.cpp tango.h tango_vert.h br_tree.h br_vert.h tree_vert.h
 	$(CC) tango.cpp -c -o tango.o
 	
 splay_time: splay_time.o 
@@ -40,3 +40,9 @@ splay_time.o: splay_time.cpp tree_vert.h splay.h
 	
 set_time: set_time.cpp
 	$(CC)  splay_time.cpp -o set_time
+
+time_all: time_all.o 
+	$(CC)  time_all.o -o time_all
+
+time_all.o: time_all.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
+	$(CC) time_all.cpp -c -o time_all.o

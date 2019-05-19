@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for i in `seq 1 100`
+for i in `seq 1 10000`
 do
         ./gen_split_join $i > testy2/test$i.in
         ./brut_split_join < testy2/test$i.in > brut2.out

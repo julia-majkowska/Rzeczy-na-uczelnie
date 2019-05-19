@@ -101,7 +101,7 @@ int main(){//operacje s
                 print_sets();
                 continue;
             }
-            v[set] = *tree_union(&v[set], &v.back());
+            v[set].tree_union(&v.back());
             v.pop_back();
             print_sets();
             check_tree(v[set]);

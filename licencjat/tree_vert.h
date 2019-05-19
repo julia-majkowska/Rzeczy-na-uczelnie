@@ -100,6 +100,7 @@ template<class T>
 void tree_vert<T>::disown_left(){
     if(this->left!= NULL){
         this->left->father = NULL;
+        //if(this->left->is_null) delete this->left;
         this->left = NULL;
     }
 }
@@ -108,6 +109,7 @@ template<class T>
 void tree_vert<T>::disown_right(){
     if(this->right!= NULL){
         this->right->father = NULL;
+        //if(this->right->is_null) delete this->right;
         this->right = NULL;
     }
 }

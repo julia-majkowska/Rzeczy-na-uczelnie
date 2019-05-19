@@ -164,7 +164,7 @@ public:
             this->cut(candidate);
             found = candidate -> reorganize_left(value);
             if(candidate -> not_pref_left_son != NULL){
-                br_tree<T>* t = tree_union(this, candidate->not_pref_left_son);
+                br_tree<T>* t = this->tree_union(candidate->not_pref_left_son);
                 candidate->remove_left();
                 joined = (tango_tree<T>*) t;
                 
@@ -174,7 +174,7 @@ public:
             this->cut(candidate);
             found = candidate -> reorganize_right(value);
             if(candidate -> not_pref_right_son != NULL){
-                joined = (tango_tree<T>*) tree_union(this, candidate->not_pref_right_son);
+                joined = (tango_tree<T>*) this->tree_union(candidate->not_pref_right_son);
                 candidate->remove_right();
             }
         }

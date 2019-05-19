@@ -7,12 +7,12 @@ int main(int argc, char* argv[]){//operacje s
     char syms[] = {'M', 'S', 'D', 'I'};
     srand(atoi(argv[1]));
     
-    int sets =3; 
+    int sets =30; 
     int set_size[sets+10];
-    int q=5;
+    int q=50;
     int sum = q;
     for(int i = 0; i< sets; i++){
-        set_size[i] = rand()%5 + 1;
+        set_size[i] = rand()%50 + 1;
         sum += set_size[i];
     }
     vector<int> elems;

@@ -6,7 +6,7 @@
 using namespace std;
 
 const int qs[] = {10, 100, 1000, 10000, 100000, 1000000};
-const int num_reps = 100;
+const int num_reps = 50;
 
 vector<double> experiment(const vector<int>& queries, int n){
     splay_tree<int> d_splay;
@@ -103,10 +103,10 @@ vector<double>  experiment_uniform(int seed, int q, int n){
     return experiment(queries, n);
 }
 
-int pruf[1000001];
-int zlicz[1000001];
-int ojciec[1000001];
-vector<int> lista[1000001];
+int pruf[10001];
+int zlicz[10001];
+int ojciec[10001];
+vector<int> lista[10001];
 
 void make_graph(int seed, int n){
     srand(seed);
@@ -171,7 +171,7 @@ int main(){
     uni.open ("wyniki/uniform.res");
 
     
-    for(int n = 16; n< 100; n*=2){// to bedzie petla po n
+    for(int n = 16; n<= 1024; n*=2){// to bedzie petla po n
         for(int q = n/4; q<=n*8; q*=2){
             //gauss 0.1*n
             vector<double> total_secs(4, 0.0);

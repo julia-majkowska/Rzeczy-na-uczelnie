@@ -48,6 +48,6 @@ int main(){
         //cerr<<endl<<endl;
 
     }
-    drzewo.destroy();
+    //drzewo.destroy();
     
 }

@@ -34,7 +34,29 @@ public:
         }
     }
     
+    void wypisz(){
+        //cerr<<"ISNULL "<<this->is_null<<"\n";
+        if(this->is_null) return;
+        cerr<<"(";
+        if(this->left!=NULL) this -> left_son()-> wypisz();
+        //cerr<<"{";//<<endl;
+        //cerr<<(this->not_pref_left_son == NULL)<<" "<<(this->has_left())<<endl;
+        if(this->has_left()) this->not_pref_left_son->wypisz();
+        //cerr<<"left "<<endl;
+        cerr<<this->value<<" ";//","<< this -> color<<", "<<black_h;
+        //cerr<<"val "<<endl;
+        //cerr<<this->has_right();//<<" "<<endl;
+        if(this->has_right()) this->not_pref_right_son->wypisz();
+        //cerr<<"}";//<<endl;//<<endl;
+        if(this->right!=NULL) this -> right_son()-> wypisz();
+        cerr<<")";//<<endl;//<<endl;
+        
+    }
+    
     ~tango_vert(){
+        //cout<<"Deleting "<<this->value<<"\n";
+        //this->wypisz();
+        //cout<<endl;
         if(this->left!=NULL){
             delete this->left_son();
             this->left = NULL;
@@ -54,7 +76,7 @@ public:
             delete this->not_pref_right_son;
             this->not_pref_right_son = NULL;
         }
-        
+        // cout<<"Deleted "<<this->value<<"\n";
     }
     
     tango_vert<T>* left_son(){

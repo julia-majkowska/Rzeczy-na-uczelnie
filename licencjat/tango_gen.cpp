@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
     random_shuffle(v.begin(), v.end());
     printf("\n%d\n", q);
     for(int i = 0; i< q; i++){
-        int v = rand()%(2*n) ;
+        int v = rand()%(n)+1 ;
         printf("%d ", v);
         
     }

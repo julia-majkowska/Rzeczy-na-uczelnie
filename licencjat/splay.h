@@ -137,13 +137,13 @@ vector<splay_tree<T>* > split(splay_tree<T>* tree, T searched){// spliting betwe
         splay_tree<T>* lesser = new splay_tree<T>(tree->root->left);
         result.push_back(lesser);   
         tree->root->disown_left();
-        result.push_back(tree);
+        result.push_back(new splay_tree<T>(tree->root));
         return result;
     }
     if(tree->root->value < searched){
         splay_tree<T>* greater = new splay_tree<T>(tree->root->right);
         tree->root->disown_right();
-        result.push_back(tree);
+        result.push_back(new splay_tree<T>(tree->root));
         result.push_back(greater);
         return result;
     }
@@ -151,7 +151,6 @@ vector<splay_tree<T>* > split(splay_tree<T>* tree, T searched){// spliting betwe
         splay_tree<T>* lesser = new splay_tree<T>(tree->root->left);
         result.push_back(lesser); 
         tree->root->disown_left();
-        
         splay_tree<T>* greater = new splay_tree<T>(tree->root->right);
         tree->root->disown_right();
         result.push_back(tree);
@@ -165,6 +164,8 @@ splay_tree<T>* join( splay_tree<T>* lesser, splay_tree<T>* greater){
     if(greater->empty()) return lesser;
     lesser->find(greater->root->value);
     lesser->root->hook_up_right(greater->root);
+    greater->root = NULL;
+    delete greater;
     return lesser;
 }
 template<class T>
@@ -180,6 +181,10 @@ bool splay_tree<T>::insert(T value){
     new_root->hook_up_left(halves[0]->root); 
     new_root-> hook_up_right(halves[1]->root);
     this -> root = new_root;
+    halves[0]->root = NULL;
+    halves[1]->root = NULL;
+    if(halves[0] != NULL) delete halves[0];
+    if(halves[1] != NULL) delete halves[1];
     return true;
 }
 
@@ -190,6 +195,10 @@ bool splay_tree<T>::erase(T value){
     //cout<<pivot->value<<"\n";
     if(pivot->value != value) return false; 
     vector<splay_tree<T>*> halves = split(this,value);
-    this -> root = join(halves[0], halves[2])-> root;
+    splay_tree<T>* joined = join(halves[0], halves[2]);
+    this -> root = joined-> root;
+    joined->root = NULL;
+    if(joined != NULL) delete joined; 
+    if(halves[1] != NULL) delete halves[1];
     return true;
 }

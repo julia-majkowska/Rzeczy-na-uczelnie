@@ -72,9 +72,11 @@ int main(){
         //drzewo.wypisz();
         //cout<<endl;
         check_tree(drzewo);
+        
         //cout<<"Params :"<<drzewo.root->is_null<<" "<<drzewo.root->value<<endl;
         
         
     }
+    drzewo.destroy();
     
 }

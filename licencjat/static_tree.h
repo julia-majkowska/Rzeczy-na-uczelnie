@@ -75,8 +75,8 @@ class static_tree{
         this->root = rek_tree((int *)r, n, 0, n-1,  values);
     }
 public:
-    static_tree(vector<T> queries){
-        make_tree(queries);
+    static_tree(const vector<T>& queries){
+        make_tree(vector<T>(queries));
     }
     
     ~static_tree(){

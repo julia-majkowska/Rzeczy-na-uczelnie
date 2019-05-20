@@ -70,7 +70,7 @@ class tango_tree: public br_tree<T>{
         splitted_tree<T> s2 = s1.greater->split2(inter.second->value);
         ((tango_tree<T>*) s2.lesser)->become_unpreferred();
         tango_tree<T>* joined_greater = (tango_tree<T>*) join(new tango_tree<T>(), s2.greater, s2.pivot);
-        tango_tree<T>* joined = (tango_tree<T>*) join(s1.lesser, s2.greater, s1.pivot);
+        tango_tree<T>* joined = (tango_tree<T>*) join(s1.lesser, joined_greater, s1.pivot);
         this->root = joined->root; 
         
     }

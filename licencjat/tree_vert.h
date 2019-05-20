@@ -33,10 +33,13 @@ public:
     left(NULL),
     right(NULL), 
     is_null(true)
-    {};
+    {
+        //cout<<"create -1 "<<this<<"\n";
+    };
     
     virtual ~tree_vert(){
         this->get_disowned();
+        //cout<<"deleting "<<(this->is_null?-1:this->value)<<" "<<this<<"\n";
         if(this->left!=NULL){
             delete(this->left);
         }

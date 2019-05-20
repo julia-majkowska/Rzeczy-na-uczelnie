@@ -43,9 +43,9 @@ int main(){
         //cerr<<"\n";
         if(!k ) printf("BRAK\n");
         else printf("%d\n",val);
-        //cerr<<endl<<endl;
-        //drzewo.wypisz();
-        //cerr<<endl<<endl;
+        /*cerr<<endl<<endl;
+        drzewo.wypisz();
+        cerr<<endl<<endl;*/
 
     }
     //drzewo.destroy();

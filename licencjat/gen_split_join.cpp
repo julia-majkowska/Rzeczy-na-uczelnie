@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){//operacje s
     int q=50;
     int sum = q;
     for(int i = 0; i< sets; i++){
-        set_size[i] = rand()%50 + 1;
+        set_size[i] = rand()%500 + 1;
         sum += set_size[i];
     }
     vector<int> elems;

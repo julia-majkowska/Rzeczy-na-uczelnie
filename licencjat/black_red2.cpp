@@ -90,6 +90,10 @@ int main(){//operacje s
             pair<br_tree<int>*, br_tree<int>* >res = v[set].split(elem);
             v[set] = *res.first;
             v.push_back(*res.second);
+            res.first -> root = NULL;
+            res.second ->root = NULL;
+            delete res.first;
+            delete res.second;
             print_sets();
             check_tree(v[set]);
             check_tree(v.back());

@@ -120,7 +120,9 @@ public:
     }
     
     void wypisz(){
-        if(this->is_null) return;
+        if(this->is_null){
+            return;
+        }
         //cout<<"(";
         if(this->left!=NULL) this -> left_son()-> wypisz();
         if(! this-> is_null) cout<<this->value<<" ";//<<this->color<<" "<<this->black_h<<" ";

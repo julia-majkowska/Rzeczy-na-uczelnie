@@ -247,7 +247,8 @@ protected:
     }
     
 
-    void join_right(br_vert<T>* r_root, br_vert<T>* pivot){
+    void 
+    join_right(br_vert<T>* r_root, br_vert<T>* pivot){
         if(r_root == NULL || r_root -> is_null){
             if(r_root != NULL && r_root->is_null) delete r_root;
             this->insert_vert(pivot);
@@ -333,13 +334,13 @@ public:
     void join_right(br_tree<T>* r, br_vert<T>* pivot){
         join_right(r->root, pivot);
         r->root = NULL;
-        delete r;
+        //delete r;
     }
     
     void join_left(br_tree<T>* l, br_vert<T>* pivot){
         join_left(l->root, pivot);
         l->root = NULL;
-        delete l;
+        //delete l;
     }
     br_tree(){
         this-> root = new br_vert<T>();
@@ -417,14 +418,19 @@ bool br_tree<T>::insert(T value){
 
 template<class T> 
 br_tree<T>* join(br_tree<T>* left, br_tree<T>* right, br_vert<T>* pivot){
+    br_tree<T>* res = NULL;
     if(left->height() > right->height()){
         left->join_right(right, pivot); 
-        return left; 
+        res = new br_tree<T>(left->root); 
     }
     else{
         right->join_left(left, pivot); 
-        return right; 
+        res = new br_tree<T>(right->root); 
+               
     }
+    left->root = NULL;
+    right->root = NULL;
+    return res; 
 }
 
 template<class T> 
@@ -455,7 +461,12 @@ br_tree<T>* br_tree<T>::tree_union(br_tree<T>* A){
     delete right_subtree;
     
     br_tree<T>* res= join(left_component, right_component, A->root); 
-    this->root = res -> root; 
+    this->root = res -> root;
+    
+    left_component -> root = NULL; 
+    delete left_component; 
+    right_component -> root = NULL;
+    delete right_component;
     res->root = NULL;
     delete res;
     A -> root = NULL; 
@@ -536,11 +547,11 @@ pair<br_tree<T>*,br_tree<T>* > br_tree<T>::split(T pivot){//splitting into lesse
         pointer->disown_right();
         if(pointer->value >= pivot){
             pair<br_tree<T>*, br_tree<T>* > splitted = br_tree<T>(l_point).split(pivot);
-            return make_pair(splitted.first, join(splitted.second, new br_tree<T>(r_point), pointer));
+            pair<br_tree<T>*,br_tree<T>* > res =  make_pair(splitted.first, join(splitted.second, new br_tree<T>(r_point), pointer));
         }
         else {
             pair<br_tree<T>*, br_tree<T>* > splitted = br_tree<T>(r_point).split(pivot);
-            return make_pair(join(new br_tree<T>(l_point),splitted.first, pointer), splitted.second);
+            pair<br_tree<T>*,br_tree<T>* > res = make_pair(join(new br_tree<T>(l_point),splitted.first, pointer), splitted.second);
         }
         
     }

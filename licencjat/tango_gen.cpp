@@ -3,7 +3,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]){ 
-    int n = 10;//atoi(argv[2]);
+    int n = 1000;//atoi(argv[2]);
     int q =n;//200; 
     srand(atoi(argv[1]));
     vector<int> v; 

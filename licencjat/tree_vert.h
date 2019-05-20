@@ -40,7 +40,7 @@ public:
         if(this->left!=NULL){
             delete(this->left);
         }
-        if(this->left!=NULL){
+        if(this->right!=NULL){
             delete(this->right);
         }
     };

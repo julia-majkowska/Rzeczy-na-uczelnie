@@ -5,9 +5,9 @@ using namespace std;
 template<class T>
 class static_tree{
     tree_vert<T>* root;
-    tree_vert<T>* rek_tree(int* rt, int n, int i, int j, vector<int>& values ){
+    tree_vert<T>* rek_tree(const vector<vector<int> >& rt, int n, int i, int j, vector<int>& values ){
         if(i == j) return new tree_vert<T>(values[i]);
-        int my_root = rt[n*i + j]; 
+        int my_root = rt[i][j]; 
         tree_vert<T>* l = NULL;
         if(my_root > i)  l = rek_tree(rt, n, i, my_root -1, values);
         tree_vert<T>* r = NULL;
@@ -43,11 +43,18 @@ class static_tree{
         
         
         int n = counts.size();
-        long long sum[n+1];
+        vector<long long> sum(n+1, 0);
         sum[0] = counts[0].second;
         for(int i = 1; i<n; i++) sum[i] = sum[i-1] + counts[i].second;
-        long long cost[n+1][n+1];
-        int r[n][n];
+        vector<vector<long long> > cost;
+        vector<vector<int> >r;
+        
+        for(int i = 0; i<n; i++){
+            cost.push_back(vector<long long>(n, 0));
+            r.push_back(vector<int>(n, 0));
+        }
+        //long long cost[n+1][n+1];
+        //int r[n][n];
         for(int i = 0; i<n; i++){
             cost[i][i] = counts[i].second; 
             r[i][i] = i;
@@ -72,7 +79,7 @@ class static_tree{
             }
         }
         
-        this->root = rek_tree((int *)r, n, 0, n-1,  values);
+        this->root = rek_tree(r, n, 0, n-1,  values);
     }
 public:
     static_tree(vector<T> queries){

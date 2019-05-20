@@ -1,4 +1,8 @@
+#ifndef BR_TREE_H
+#define BR_TREE_H
+
 #include"br_vert.h"
+
 
 template<class T>
 bool is_black(br_vert<T>* x){
@@ -584,3 +588,4 @@ br_vert<T>* br_tree<T>::upper_bound(T searched){
     
 }
 
+#endif

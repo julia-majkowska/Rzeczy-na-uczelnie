@@ -1,3 +1,5 @@
+#ifndef BR_VERT_H
+#define BR_VERT_H
 #include<bits/stdc++.h>
 #include"tree_vert.h"
 #include <cassert>
@@ -140,3 +142,4 @@ public:
     
  
 };
+#endif

@@ -1,5 +1,8 @@
 #include<bits/stdc++.h>
 
+#ifndef TREE_VERT_H
+#define TREE_VERT_H
+
 using namespace std;
 
 template<class T>
@@ -303,4 +306,5 @@ tree_vert<T>* tree_vert<T>::prev(){
     current = current->father;
     return current;      
 }
+#endif
 

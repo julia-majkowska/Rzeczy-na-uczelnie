@@ -67,6 +67,7 @@
 % ...
 %%%%%
 
+
 \begin{document}
 
 %%%%% POCZĄTEK ZASADNICZEGO TEKSTU PRACY
@@ -360,7 +361,10 @@ Drzewo Tango jest strukturą samoorganizującą, symulującą działanie zbilans
  \item{Preferowana ścieżka wierzchołka– ścieżka prowadząca od wierzchołka (korzenia poddrzewa) do wyróżnionego elementu, w naszym wypadku będzie to najpóźniej  żądany element w poddrzewie.} 
  \item{Preferowany syn – syn wierzchołka leżący na preferowanej ścieżce wierzchołka. Jeżeli ostatnim odwiedzonym wierzchołkiem poddrzewa jest korzeń, wtedy korzeń nie ma preferowanego syna.} 
  \item{Krawędź preferowana – krawędź pomiędzy wierzchołkiem a preferowanym synem} \item{Drzewo pomocnicze -- drzewo czerwono-czarne zawierające wierzchołki ścieżki preferowanej.} 
- \item{Niepreferowany syn – syn wierzchołka nie leżący na preferowanej ścieżce} \item{Niepreferowana krawędź – krawędź prowadząca do nie preferowanego syna} \item{Głębokość wierzchołka \(\mathcal{D}(w)\) -- odległość wierzchołka w od korzenia drzewa} \item{Maksymalna głębokość wierzchołka \(\mathcal{G}(w)\)-- maksimum głębokości w poddrzewie wierzchołka w w drzewie pomocniczym.} 
+ \item{Niepreferowany syn – syn wierzchołka nie leżący na preferowanej ścieżce} 
+ \item{Niepreferowana krawędź – krawędź prowadząca do nie preferowanego syna} 
+ \item{Głębokość wierzchołka \(\mathcal{D}(w)\) -- odległość wierzchołka w od korzenia drzewa} 
+ \item{Maksymalna i minimalna głębokość wierzchołka \(\mathcal{G}(w)\)-- maksimum i minimum głębokości w poddrzewie wierzchołka w w drzewie pomocniczym.} 
  \end{itemize} 
  \subsection{Konstrukcja struktury}  
 
@@ -473,119 +477,116 @@ Z \ref{num_switch} i \ref{Tango_cost} wynika, że koszt obsługi pojedynczego za
 
 \section{Opis implementacji} 
 
-Implementacja składa się z dwóch klas \texttt{br\_tree},\texttt{br\_vert}\texttt{tango\_tree} i\texttt{tango\_vert}. 
+Implementacja składa się z czterech klas \texttt{br\_tree},\texttt{br\_vert}\texttt{tango\_tree} i \texttt{tango\_vert}. Dodatkowo funkcja split zwraca klasę pomocniczą  \texttt{splitted\_tree}.
+
 
 \subsection{br\_vert}
 
-Ta klasa reprezentuje wierzchołek drzewa czerwono-czarnego oraz jego poddrzewo. Ta klasa dziedziczy po wcześniej wymienionej klasie \texttt{tree\_vert}. Rozszerza funkcjonalność klasy bazowej o aktualizowanie czarnej wysokości przy zmianach w strukturze drzewa oraz o następujące metody
+Ta klasa reprezentuje wierzchołek drzewa czerwono-czarnego oraz jego poddrzewo. Poza standardowymi właściwościami drzewa czerwono czarnego, wierzchołek utrzymuje minimalną i maksymalną głębokość potrzebne do wykonywania operacji na drzewach pomocniczych. Ta klasa dziedziczy po wcześniej wymienionej klasie \texttt{tree\_vert}. Rozszerza funkcjonalność klasy bazowej o aktualizowanie czarnej wysokości przy zmianach w strukturze drzewa oraz o następujące metody:
 
 \begin{itemize}
 
 \item{Konstruktor \texttt{tree\_vert(T val, tree\_vert<T>*f = NULL, tree\_vert<T>*l = NULL, tree\_vert<T>*r = NULL, bool is\_null = false)} tworzący wierzchołek trzymający wartość. Umożliwia ustawienie ojca wierzchołka (f), lewego syna (l), prawego syna (r) oraz wartość oznaczającą czy wartość w wierzchołku ma być traktowana jako cześć drzewa (is\_null)}
 
-\item{\texttt{ br\_vert<T>* parent(), br\_vert<T>* left\_son(), br\_vert<T>* right\_son(), br\_vert<T>* grandparent(),br\_vert<T>* uncle(),br\_vert<T>* brother()} - zwracają }
+\item{\texttt{  br\_vert<T>* left\_son(), br\_vert<T>* right\_son(),br\_vert<T>* parent(), br\_vert<T>* grandparent(),br\_vert<T>* uncle(),br\_vert<T>* brother()} - zwracają odpowiednio synów, ojca, dziadka, drugiego syna dziadka oraz drugiego syna ojca wierzchołka. }
     
-\item{\texttt{bool hook\_up\_left(tree\_vert<T>*)} i \texttt{bool hook\_up\_right(tree\_vert<T>*)} - podpinają wierzchołek z argumentu jako odpowiednio lewego i prawego syna wierzchołka.}
+\item{\texttt{ void update\_black\_height()} - aktualizuje czarną wysokość wierzchołka oraz minimalną oraz maksymalną głębokość poddrzewa}
 
-\item{\texttt{bool get\_disowned()} - rozcina krawędź pomiędzy wierzchołkiem a jego ojcem}
-
-\item{\texttt{bool is\_root(), bool is\_left(),  bool is\_right()} - sprawdzają czy wierzchołek jest korzeniem, lewym synem czy prawym synem}
-
-\item{\texttt{void rotate\_left(), void rotate\_right()} - wykonują rotację ojca wierzchołka}
-    
-\item{\texttt{void splay()} - wykonuje operację splay na danym wierzchołku}
-    
-\item{\texttt{tree\_vert<T>* search( T )} - wyszukuje klucza danego jako argument w poddrzewie wierzchołka i zwraca ostatni napotkany wierzchołek}
-   
-\item{\texttt{tree\_vert<T>* next() ,  tree\_vert<T>* prev()} - zwracają natępnika oraz poprzednika wierzchołka w drzewie}
 \end{itemize}
 
 \section{br\_tree}
 
-Ta klasa reprezentuje całe drzewo splay. Udostępnia następujące metody: 
+Ta klasa reprezentuje całe drzewo czerwono-czarne. Aby zachować poprawne własności maksymalnej i minimalnej głębokości przy wstawianiu i łączeniu drzew aktualizacja głębokości musi się odbyć na całej ścieżce do korzenia, a nie do pierwszego czerwonego wierzchołka jak w normalnym drzewie czerwono czarnym. Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{splay\_tree(),splay\_tree(tree\_vert<T>*) } tworzące puste drzewo i drzewo danym korzeniu }
+\item{Konstruktory \texttt{br\_tree(),splay\_tree(br\_vert<T>*) } tworzące puste drzewo i drzewo danym korzeniu }
 
-\item{Desktruktor zwalniający wszystkie wskaźniki w drzewie}
+\item{\texttt{void destroy()} - zwalnia pamięć zajmowana przez wszystkie wierzchołki w drzewie. Destruktor nie zwalnia wierzchołków}
 
-\item{\texttt{void splay(T)} - wykonuje operację splay na ostatnim wierzchołku na ścieżce wyszukiwania klucza podanego jako argument}
+\item{\texttt{void join\_right(br\_tree<T>* r, br\_vert<T>* pivot)} - łączy drzewo z drzewem $r$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $r$ i klucz wierzchołka $pivot$ muszą być większe niż wszystkie klucze w drzewie. Operacja niszczy drzewo $r$}
+
+\item{\texttt{void join\_right(br\_tree<T>* l, br\_vert<T>* pivot)} - łączy drzewo z drzewem $l$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $l$ i klucz wierzchołka $pivot$ muszą być mniejsze niż wszystkie klucze w drzewie. Operacja niszczy drzewo $l$}
+
+\item{\texttt{int height()} - zwraca czarną wysokość drzewa}
+ 
+\item{\texttt{bool empty()} - sprawdza czy drzewo jest puste}
+
+\item{\texttt{br\_tree<T>* tree\_union(br\_tree<T>* A)} - dołącza do drzewa wszystkie wierzchołki z drzewa $A$}
+
+\item{\texttt{pair<br\_tree<T>*,br\_tree<T>* > split(T)} - rozdziela drzewo na elementy mniejsze i większe równe od argumentu}
+
+\item{\texttt{splitted\_tree<T> split2(T)} - rozdziela drzewo na elementy mniejsze, większe i wydziela element równy kluczowi (jeśli taki istnieje)}
 
 \item{\texttt{bool find(T)} - sprawdza czy element znajduje się w drzewie}
     
 \item{\texttt{tree\_vert<T>* lower\_bound( T ), tree\_vert<T>* upper\_bound( T ) } - wyszukują klucza danego jako argument w drzewie i zwraca wskażniki na odpowiednio najmniejszy element większy równy i najmniejszy element mniejszy równy. Gdy wynik nie istnieje zwraca NULL }
    
 \item{\texttt{bool insert(T)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku}
+\item{\texttt{bool insert\_vert(br\_vert<T>*)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku}
 \item{\texttt{bool erase(T)} - wstawia element do drzewa zwraca \texttt{true} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku}
 
 \end{itemize}
 
-Dodatkowo na drzewach splay są dostępne następujące funkcje : 
+Dodatkowo na drzewach  są dostępne następujące funkcje : 
 
 \begin{itemize}
-
-\item{\texttt{vector<splay\_tree<T>* > split(splay\_tree<T>* tree, T searched)} - rozdziela drzewo tree na drzewa z elementami mniejszymi, równymi i większymi od podanej wartości}
-\item{\texttt{splay\_tree<T>* join( splay\_tree<T>* lesser, splay\_tree<T>* greater)} - wykonuje operację join na dwóch drzewach}
+\item{\texttt{br\_tree<T>* join( br\_tree<T>* lesser, br\_tree<T>* greater)} - łączy dwa drzewa. Pierwszy argument ma wszystkie klucze mniejsze niż drugi argument}
 
 \end{itemize}
 
 
-\subsection{br\_vert}
 
-Ta klasa reprezentuje wierzchołek drzewa czerwono-czarnego oraz jego poddrzewo. Ta klasa dziedziczy po wcześniej wymienionej klasie \texttt{tree\_vert}. Rozszerza funkcjonalność klasy bazowej o aktualizowanie czarnej wysokości przy zmianach w strukturze drzewa oraz o następujące metody
+\subsection{tango\_vert}
+
+Ta klasa reprezentuje wierzchołek drzewa tango oraz jego poddrzewo. Ta klasa dziedziczy po klasie \texttt{br\_vert} i jest odpowiedzialna za obsługiwanie operacji na niepreferowanych krawędziach. Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktor \texttt{tree\_vert(T val, tree\_vert<T>*f = NULL, tree\_vert<T>*l = NULL, tree\_vert<T>*r = NULL, bool is\_null = false)} tworzący wierzchołek trzymający wartość. Umożliwia ustawienie ojca wierzchołka (f), lewego syna (l), prawego syna (r) oraz wartość oznaczającą czy wartość w wierzchołku ma być traktowana jako cześć drzewa (is\_null)}
+\item{Konstruktor \texttt{tango\_vert(T val, int d, tango\_tree<T> * npls = NULL, tango\_tree<T> * nprs = NULL, tango\_vert<T>* ps = NULL)} tworzący wierzchołek trzymający wartość $val$. Umożliwia ustawienie niepreferowanych ojca wierzchołka (ps), lewego syna (npls), prawego syna (nprs)}
 
-\item{\texttt{ br\_vert<T>* parent(), br\_vert<T>* left\_son(), br\_vert<T>* right\_son(), br\_vert<T>* grandparent(),br\_vert<T>* uncle(),br\_vert<T>* brother()} - zwracają }
+\item{Destruktor zwalniający wszystkie wierzchołki w poddrzewie wierzchołka}
+
+\item{\texttt{  tango\_vert<T>* left\_son(), tagno\_vert<T>* right\_son()} - zwracają odpowiednio lewego i prawego syna wierzchołka. }
     
-\item{\texttt{bool hook\_up\_left(tree\_vert<T>*)} i \texttt{bool hook\_up\_right(tree\_vert<T>*)} - podpinają wierzchołek z argumentu jako odpowiednio lewego i prawego syna wierzchołka.}
+\item{\texttt{  bool has\_left(), bool has\_right()} - sprawdzają czy wierzchołek ma niepreferowane lewe i prawe poddrzewo. }
 
-\item{\texttt{bool get\_disowned()} - rozcina krawędź pomiędzy wierzchołkiem a jego ojcem}
+\item{\texttt{  bool add\_left(tango\_tree<T>* ), bool add\_right(tango\_tree<T>*)} - dodają drzewo jako niepreferowane lewe i prawe poddrzewo. }
 
-\item{\texttt{bool is\_root(), bool is\_left(),  bool is\_right()} - sprawdzają czy wierzchołek jest korzeniem, lewym synem czy prawym synem}
+\item{\texttt{  void remove\_left(), void add\_right()} - usuwają niepreferowane lewe i prawe poddrzewo. }
 
-\item{\texttt{void rotate\_left(), void rotate\_right()} - wykonują rotację ojca wierzchołka}
-    
-\item{\texttt{void splay()} - wykonuje operację splay na danym wierzchołku}
-    
-\item{\texttt{tree\_vert<T>* search( T )} - wyszukuje klucza danego jako argument w poddrzewie wierzchołka i zwraca ostatni napotkany wierzchołek}
-   
-\item{\texttt{tree\_vert<T>* next() ,  tree\_vert<T>* prev()} - zwracają natępnika oraz poprzednika wierzchołka w drzewie}
+
+\item{\texttt{ bool reorganize\_left(T), bool reorganize\_right(T)} - wywołują reorganizację względem klucza na lewym i prawym niepreferowanym poddrzewie (jeśli istnieje) }
+
 \end{itemize}
 
-\section{br\_tree}
+\section{tango\_tree}
 
-Ta klasa reprezentuje całe drzewo splay. Udostępnia następujące metody: 
+Ta klasa reprezentuje całe tango.  Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{splay\_tree(),splay\_tree(tree\_vert<T>*) } tworzące puste drzewo i drzewo danym korzeniu }
+\item{Konstruktory \texttt{tango\_tree(vector<T>),tango\_tree(const tango\_tree<T> \&) } tworzące nowe drzewo o danych kluczach i kopiujący}
 
-\item{Desktruktor zwalniający wszystkie wskaźniki w drzewie}
+\item{Deskturktor zwalniający pamięć zajmowana przez wszystkie wierzchołki w drzewie}
 
-\item{\texttt{void splay(T)} - wykonuje operację splay na ostatnim wierzchołku na ścieżce wyszukiwania klucza podanego jako argument}
+\item{\texttt{tango\_vert<T>* Root()} - zwraca korzeń drzewa}
+
+\item{\texttt{void become\_unpreferred()} - podpina drzewo pod ojca korzenia w drzewie referencyjnym}
+
+\item{\texttt{bool reorganize(T)} - wyszukuje wartości w drzewie i wykonuje reorganizacje, aby ostatni element na ścieżce wyszukiwania był na ścieżce preferowanej całego drzewa}
 
 \item{\texttt{bool find(T)} - sprawdza czy element znajduje się w drzewie}
-    
-\item{\texttt{tree\_vert<T>* lower\_bound( T ), tree\_vert<T>* upper\_bound( T ) } - wyszukują klucza danego jako argument w drzewie i zwraca wskażniki na odpowiednio najmniejszy element większy równy i najmniejszy element mniejszy równy. Gdy wynik nie istnieje zwraca NULL }
-   
-\item{\texttt{bool insert(T)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku}
-\item{\texttt{bool erase(T)} - wstawia element do drzewa zwraca \texttt{true} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku}
+       
 
 \end{itemize}
 
-Dodatkowo na drzewach splay są dostępne następujące funkcje : 
+Dodatkowo na drzewach  są dostępne następujące funkcje : 
 
 \begin{itemize}
-
-\item{\texttt{vector<splay\_tree<T>* > split(splay\_tree<T>* tree, T searched)} - rozdziela drzewo tree na drzewa z elementami mniejszymi, równymi i większymi od podanej wartości}
-\item{\texttt{splay\_tree<T>* join( splay\_tree<T>* lesser, splay\_tree<T>* greater)} - wykonuje operację join na dwóch drzewach}
+\item{\texttt{br\_tree<T>* join( br\_tree<T>* lesser, br\_tree<T>* greater)} - łączy dwa drzewa. Pierwszy argument ma wszystkie klucze mniejsze niż drugi argument}
 
 \end{itemize}
-
 
 \chapter{Badanie wydajności drzew}
 \section{Generowanie danych}
@@ -601,12 +602,42 @@ Zbadamy w jakim czasie obsługują zapytania implementacji poszczególnych struk
 
 %%%%% BIBLIOGRAFIA
 
-%\bibliographystyle{apacite}
-
 \begin{thebibliography}{references}
 
-
-
-\end{thebibliography}
+\bibitem{sleator84}
+  Daniel Dominic Sleator,
+  Robert Endre Tarjan 
+  \emph{Self-Adjusting Binary Search Trees}.
+  Journal of the Association for Computing Machinery, Vol. 32, No. 3, July 1985. 
+  
+ \bibitem{demaine07}
+ Erik D. Demaine
+, Dion Harmon
+, John Iacono
+, And Mihai Patrascu
+  \emph{Dynamic Optimality—Almost}.
+  SIAM Journal on Computing, 2007, Vol. 37, No. 1 : pp. 240-251 
+  
+  \bibitem{derryberry05}
+  Jonathan Derryberry,
+  Daniel Dominic Sleator,
+  Chengwen Chris Wang,
+  \emph{A Lower Bound Framework for Binary Search Trees with Rotations}.
+  November 2005.
+  
+  \bibitem{cormen90}
+  Thomas H. Cormen,
+  Charles E. Leiseron,
+  Ronald R. Riverst
+  \emph{Introduction to algorithms}.
+  1990.
+  
+  \bibitem{bose10}
+  Prosenjit Bose, 
+  Karim Douïeb,Vida Dujmović,
+  Rolf Fagerberg,
+  \emph{An O(log log n)-Competitive Binary Search Tree with Optimal Worst-Case Access Times}.
+  February 2010
+  \end{thebibliography}
 
 \end{document}

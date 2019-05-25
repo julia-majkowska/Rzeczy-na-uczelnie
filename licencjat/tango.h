@@ -104,7 +104,7 @@ protected :
     }
     
     tango_tree(const vector<T>& v, int p, int k, int h):
-    br_tree<T>()
+    br_tree<T>(false)
     {
         make_tree(v, p, k, h);
 
@@ -130,7 +130,7 @@ public:
     }    
     
     tango_tree(vector<T> v):
-    br_tree<T>()
+    br_tree<T>(false)
     {
         sort(v.begin(), v.end());
         make_tree(v, 0, v.size()-1, 0);

@@ -341,9 +341,9 @@ public:
         l->root = NULL;
         //delete l;
     }
-    br_tree(){
+    br_tree(bool create_root = true){
         //cout<<"creating tree "<<this<<"\n";
-        this-> root = new br_vert<T>();
+        if(create_root) this-> root = new br_vert<T>();
     }
     
     br_tree(br_vert<T>* r):

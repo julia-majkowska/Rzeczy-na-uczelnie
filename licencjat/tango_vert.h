@@ -103,9 +103,17 @@ public:
         this->not_pref_right_son = r;
     }
     void remove_left(){
+        if(this->not_pref_left_son!= NULL){
+            this->not_pref_left_son->root  = NULL;
+            delete not_pref_left_son;
+        }
         this->not_pref_left_son = NULL;        
     }
     void remove_right(){
+        if(this->not_pref_right_son!= NULL){
+            this->not_pref_right_son->root  = NULL;
+            delete not_pref_right_son;
+        }
         this->not_pref_right_son =NULL;
     }
     

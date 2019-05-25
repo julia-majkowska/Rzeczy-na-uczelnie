@@ -11,7 +11,6 @@ public:
     
     T value;
     bool is_null = false; //true with extra null vertexes
-    int ref_counter = 0;
     
     tree_vert<T>* father;
     tree_vert<T>* left;
@@ -81,17 +80,6 @@ public:
     tree_vert<T>* prev();
     
 };
-
-template<class T>
-void tree_vert<T>::uref(){
-   ref_counter--;
-   if(ref_counter == 0) delete this;
-}
-
-template<class T>
-void tree_vert<T>::ref(){
-   ref_counter++;
-}
 
 template<class T>
 void tree_vert<T>::wypisz(){

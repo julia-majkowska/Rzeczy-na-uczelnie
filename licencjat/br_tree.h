@@ -22,7 +22,6 @@ class br_tree{
 public:    
     br_vert<T>* root; 
     br_tree<T>(const br_tree<T>& t){
-        //cout<<"creating tree "<<this<<"\n";
         this->root = t.root;
     }
 protected: 
@@ -364,6 +363,7 @@ public:
     }
     int height(){
         if(this->root != NULL) return this->root->black_h;
+        return 0;
     }
     
     void wypisz(){

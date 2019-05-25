@@ -185,13 +185,6 @@ public:
     }
     
     
-    int size(){
-        return this->Root()->size();
-    }
-    
-    vector<int> content(){
-        return this->Root()->content();
-    }
     
     bool find(T value){
         bool res = reorganize(value);

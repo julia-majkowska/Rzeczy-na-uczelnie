@@ -109,7 +109,7 @@ public:
         this->not_pref_right_son =NULL;
     }
     
-    tango_vert<T>* leftest(){
+    /*tango_vert<T>* leftest(){
         tree_vert<T>* cand  = this;
         while(cand->left_son() != NULL) cand = cand->left_son();
         if(cand->has_left()) return cand->not_pref_left_son->root->leftest();
@@ -121,7 +121,7 @@ public:
         while(cand->right_son() != NULL) cand = cand->right_son();
         if(cand->has_right()) return cand->not_pref_right_son->root->rightest();
         else return cand;
-    }
+    }*/
     
     bool reorganize_left(T value){
         if(this->not_pref_left_son != NULL && !this-> not_pref_left_son->empty())

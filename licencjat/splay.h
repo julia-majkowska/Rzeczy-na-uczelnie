@@ -14,7 +14,10 @@ public:
     };
     
     ~splay_tree(){
-        if(this->root != NULL) delete this->root;
+        if(this->root != NULL){
+            //cerr<<"Deleting a vertex\n";
+            delete this->root;
+        }
     }
 
 protected:
@@ -67,19 +70,20 @@ protected:
         return this->root->value;
     }
     
+    void splay(T splay_value){
+        tree_vert<T>* new_root = search(splay_value); 
+        new_root->splay();
+        this -> root = new_root;
+        
+    }
+    
+    vector<splay_tree<T>* > split(T searched);
     
 public:
     
     void wypisz(){
         if(this-> root!= NULL) this->root->wypisz(); 
     }
-    
-    void splay(T splay_value){
-        tree_vert<T>* new_root = search(splay_value); 
-        new_root->splay();
-        this -> root = new_root;
-        
-    };
     
     bool find(T searched){
         T res; 
@@ -122,8 +126,8 @@ public:
 };
 
 template<class T>
-vector<splay_tree<T>* > split(splay_tree<T>* tree, T searched){// spliting between less that,equal and greater than
-    if(tree->root == NULL){
+vector<splay_tree<T>* > splay_tree<T>::split(T searched){// spliting between less that,equal and greater than
+    if(this->root == NULL){
         vector<splay_tree<T>* > result;
         splay_tree<T> * empty1 = new splay_tree<T>();
         result.push_back(empty1);
@@ -131,42 +135,53 @@ vector<splay_tree<T>* > split(splay_tree<T>* tree, T searched){// spliting betwe
         result.push_back(empty2);
         return result;
     }
-    tree->splay(searched);
+    this->splay(searched);
     vector<splay_tree<T>* > result;
-    if(tree->root->value > searched){
-        splay_tree<T>* lesser = new splay_tree<T>(tree->root->left);
+    if(this->root->value > searched){
+        splay_tree<T>* lesser = new splay_tree<T>(this->root->left);
         result.push_back(lesser);   
-        tree->root->disown_left();
-        result.push_back(new splay_tree<T>(tree->root));
+        this->root->disown_left();
+        result.push_back(new splay_tree<T>(this->root));
         return result;
     }
-    if(tree->root->value < searched){
-        splay_tree<T>* greater = new splay_tree<T>(tree->root->right);
-        tree->root->disown_right();
-        result.push_back(new splay_tree<T>(tree->root));
+    if(this->root->value < searched){
+        splay_tree<T>* greater = new splay_tree<T>(this->root->right);
+        this->root->disown_right();
+        result.push_back(new splay_tree<T>(this->root));
         result.push_back(greater);
         return result;
     }
-    if(tree->root->value == searched){
-        splay_tree<T>* lesser = new splay_tree<T>(tree->root->left);
+    if(this->root->value == searched){
+        splay_tree<T>* lesser = new splay_tree<T>(this->root->left);
         result.push_back(lesser); 
-        tree->root->disown_left();
-        splay_tree<T>* greater = new splay_tree<T>(tree->root->right);
-        tree->root->disown_right();
-        result.push_back(tree);
+        this->root->disown_left();
+        splay_tree<T>* greater = new splay_tree<T>(this->root->right);
+        this->root->disown_right();
+        result.push_back(new splay_tree<T>(this->root));
         result.push_back(greater);
         return result;
     }
 }
 template<class T>
 splay_tree<T>* join( splay_tree<T>* lesser, splay_tree<T>* greater){
-    if(lesser->empty()) return greater;
-    if(greater->empty()) return lesser;
-    lesser->find(greater->root->value);
-    lesser->root->hook_up_right(greater->root);
+    splay_tree<T>* res;
+    if(lesser->empty()){
+        res = new splay_tree<T>(greater->root);
+        
+    }
+    else if(greater->empty()){
+        res = new splay_tree<T>(lesser->root);
+    }
+    else{
+        lesser->find(greater->root->value);
+        lesser->root->hook_up_right(greater->root);
+        
+        res = new splay_tree<T>(lesser->root);
+    }
     greater->root = NULL;
-    delete greater;
-    return lesser;
+    lesser->root = NULL;
+    //delete greater;
+    return res;
 }
 template<class T>
 bool splay_tree<T>::insert(T value){
@@ -177,7 +192,8 @@ bool splay_tree<T>::insert(T value){
     }
     T pivot = this->find1(value); 
     if(pivot == value) return false; 
-    vector<splay_tree<T>*> halves = split(this, value);
+    vector<splay_tree<T>*> halves = this->split(value);
+    //if(halves.size()>=3) return false;
     new_root->hook_up_left(halves[0]->root); 
     new_root-> hook_up_right(halves[1]->root);
     this -> root = new_root;
@@ -194,11 +210,23 @@ bool splay_tree<T>::erase(T value){
     tree_vert<T>* pivot = this->search(value); 
     //cout<<pivot->value<<"\n";
     if(pivot->value != value) return false; 
-    vector<splay_tree<T>*> halves = split(this,value);
+    vector<splay_tree<T>*> halves = this->split(value);
     splay_tree<T>* joined = join(halves[0], halves[2]);
+    /*cout<<"Debug erase\n";
+    halves[0]->wypisz();
+    cout<<"\n lewe\n";
+    halves[1]->wypisz();
+    cout<<"\n srodek\n";
+    halves[2]->wypisz();
+    cout<<"\n prawe\n";
+    */
     this -> root = joined-> root;
+    //this->wypisz();
+    //cout<<"DEBUG ERASE\n";
     joined->root = NULL;
     if(joined != NULL) delete joined; 
+    if(halves[0] != NULL) delete halves[0];
     if(halves[1] != NULL) delete halves[1];
+    if(halves[2] != NULL) delete halves[2];
     return true;
 }

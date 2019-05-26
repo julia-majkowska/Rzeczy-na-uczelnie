@@ -47,3 +47,9 @@ time_all: time_all.o
 
 time_all.o: time_all.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
 	$(CC) time_all.cpp -c -o time_all.o
+
+time_ops: time_ops.o 
+	$(CC)  time_ops.o -o time_ops
+
+time_ops.o: time_ops.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
+	$(CC) time_ops.cpp -c -o time_ops.o

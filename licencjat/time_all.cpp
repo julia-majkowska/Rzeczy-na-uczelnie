@@ -9,7 +9,7 @@ using namespace std;
 const int qs[] = {10, 100, 1000, 10000, 100000, 1000000};
 const int num_reps = 50;
 
-vector<double> experiment(const vector<int>& queries, int n){
+vector<double> experiment(const vector<int>& queries, int n, int seed){
     splay_tree<int> d_splay;
     br_tree<int> d_br;
     set<int> d_set;
@@ -20,6 +20,7 @@ vector<double> experiment(const vector<int>& queries, int n){
     }
     tango_tree<int> d_tango(liczby);//konstruktor przyjmuje posortowane liczby;
     static_tree<int> d_static(queries);
+    srand(seed);
     random_shuffle(liczby.begin(), liczby.end());
     for(int i = 0; i<n; i++){
         d_splay.insert(liczby[i]);
@@ -83,33 +84,40 @@ vector<double> experiment_gaussian(int seed, int q, int n, double e_v){
     normal_distribution<double> distribution(((double) n)/2, ((double) n)*e_v);
     
     vector<int> queries;
-    
+   // if(q == 16) cout<<"Gaussian "<<e_v<<"\n";
     for(int i = 0; i< q; i++){
-        int val;
+        int val = distribution(generator);
+        
         while(val > n || val < 1) val = distribution(generator) ;
-        queries.push_back(i);
+       // if(q == 16) cout<<val<<" ";
+        queries.push_back(val);
         
     } 
-    
-    return experiment(queries, n);
+    //if(q == 16) cout<<"\n";
+    return experiment(queries, n, seed);
 }
 
 
-vector<double>  experiment_uniform(int seed, int q, int n){
+vector<double>  experiment_uniform(int seed, int q, int n, int precent){
     default_random_engine generator(seed);
     srand(seed);
     uniform_int_distribution<int> distribution (1, n);
     
     vector<int> queries;
-    
+    int val = 1;
+    //if(q == 16) cout<<"Uniform "<<precent<<"\n";
     for(int i = 0; i< q; i++){
-        int val;
-        while(val > n || val < 1) val = distribution(generator) ;
-        queries.push_back(i);
+        
+        int go_stop = rand()%100 + 1; 
+        if(go_stop <= precent)
+            val = distribution(generator);
+            while(val > n || val < 1) val = distribution(generator) ;
+        //if(q == 16) cout<<val<<" ";
+        queries.push_back(val);
         
     } 
-    
-    return experiment(queries, n);
+    //if(q == 16) cout<<"\n";
+    return experiment(queries, n, seed);
 }
 
 int pruf[10001];
@@ -153,7 +161,7 @@ void make_graph(int seed, int n){
 }
 
 
-vector<double> experiment_randwalk(int seed, int n, int q, int percent = 100){
+vector<double> experiment_randwalk(int seed, int q, int n, int percent){
     make_graph(seed, n);
     srand(seed);
     vector<int> queries;
@@ -163,7 +171,7 @@ vector<double> experiment_randwalk(int seed, int n, int q, int percent = 100){
         if(go_stop < percent) current = lista[current][rand()%(lista[current].size())];
         queries.push_back(current);
     } 
-    return experiment(queries, n);
+    return experiment(queries, n, seed);
 }
 
 
@@ -171,24 +179,31 @@ int main(){
     
     int q = 100;
     int n = 100; 
-    ofstream gaus01, gaus025, gaus05, gaus075, randw, randw05, randw02,  uni;
-    /*gaus01.open ("wyniki/gaus01.res");
+    int num_tests = 5; 
+    ofstream gaus01, gaus025, gaus05, gaus075, randw100, randw75, randw50, randw25, randw5, uni100, uni75, uni50, uni25, uni5;
+    gaus01.open ("wyniki/gaus01.res");
     gaus025.open ("wyniki/gaus025.res");
     gaus05.open ("wyniki/gaus05.res");
-    gaus075.open ("wyniki/gaus075.res");*/
-    randw.open ("wyniki/randwalk0.res");
-    randw05.open ("wyniki/randwalk05.res");
-    randw02.open ("wyniki/randwalk02.res");
-    //uni.open ("wyniki/uniform.res");
+    gaus075.open ("wyniki/gaus075.res");
+    randw100.open ("wyniki/randwalk100.res");
+    randw75.open ("wyniki/randwalk75.res");
+    randw50.open ("wyniki/randwalk50.res");
+    randw25.open ("wyniki/randwalk25.res");
+    randw5.open ("wyniki/randwalk5.res");
+    uni100.open ("wyniki/uniform100.res");
+    uni75.open ("wyniki/uniform75.res");
+    uni50.open ("wyniki/uniform50.res");
+    uni25.open ("wyniki/uniform25.res");
+    uni5.open ("wyniki/uniform5.res");
 
     
-    for(int n = 16; n<= 1024; n*=2){// to bedzie petla po n
+    for(int n = 16; n<= 5000; n*=2){// to bedzie petla po n
         for(int q = n/4; q<=n*8; q*=2){
             //gauss 0.1*n
             vector<double> total_secs(7, 0.0);
             vector<double> max_secs(7, 0.0);
             vector<double> min_secs(7, 1e9);
-            /*for (int j = 0; j< num_reps; j++){
+            for (int j = 0; j< num_reps; j++){
                 vector<double> cur_time = experiment_gaussian(j, q, n, 0.1); 
                 for(int k = 0; k<cur_time.size(); k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
@@ -198,7 +213,7 @@ int main(){
             }
             
             gaus01<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
                 gaus01<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
@@ -210,7 +225,7 @@ int main(){
 
             for (int j = 0; j< num_reps; j++){
                 vector<double> cur_time = experiment_gaussian(j, q, n, 0.25); 
-                for(int k = 0; k<5; k++){
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
@@ -218,7 +233,7 @@ int main(){
             }
             
             gaus025<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
                 gaus025<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
@@ -229,14 +244,14 @@ int main(){
             fill(min_secs.begin(), min_secs.end(), 1e9);
             for (int j = 0; j< num_reps; j++){
                 vector<double> cur_time = experiment_gaussian(j, q, n, 0.5); 
-                for(int k = 0; k<5; k++){
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
                 }
             }
             gaus05<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
                 gaus05<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
@@ -248,7 +263,7 @@ int main(){
             fill(min_secs.begin(), min_secs.end(), 1e9);
             for (int j = 0; j< num_reps; j++){
                 vector<double> cur_time = experiment_gaussian(j, q, n, 0.75); 
-                for(int k = 0; k<5; k++){
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
@@ -256,7 +271,7 @@ int main(){
             }
             
             gaus075<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
                 gaus075<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
@@ -268,86 +283,201 @@ int main(){
             fill(max_secs.begin(), max_secs.end(), 0.0);
             fill(min_secs.begin(), min_secs.end(), 1e9);
             for (int j = 0; j< num_reps; j++){
-                vector<double> cur_time = experiment_uniform(j, q, n); 
-                for(int k = 0; k<5; k++){
+                vector<double> cur_time = experiment_uniform(j, q, n, 100); 
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
                 }
             }
-            uni<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            uni100<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
-                uni<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+                uni100<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
-            uni<<"\n";*/
+            uni100<<"\n";
             
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_uniform(j, q, n, 75); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            uni75<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                uni75<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            uni75<<"\n";
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_uniform(j, q, n, 50); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            uni50<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                uni50<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            uni50<<"\n";
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_uniform(j, q, n, 25); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            uni25<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                uni25<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            uni25<<"\n";
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_uniform(j, q, n, 5); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            uni5<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                uni5<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            uni5<<"\n";
             //randwalk
             
             fill(total_secs.begin(), total_secs.end(), 0.0);
             fill(max_secs.begin(), max_secs.end(), 0.0);
             fill(min_secs.begin(), min_secs.end(), 1e9);
             for (int j = 0; j< num_reps; j++){
-                vector<double> cur_time = experiment_randwalk(j, q, n); 
-                for(int k = 0; k<5; k++){
+                vector<double> cur_time = experiment_randwalk(j, q, n, 100); 
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
                 }
             }
-            randw<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            randw100<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
-                randw<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+                randw100<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
-            randw<<"\n";
-            fill(total_secs.begin(), total_secs.end(), 0.0);
-            fill(max_secs.begin(), max_secs.end(), 0.0);
-            fill(min_secs.begin(), min_secs.end(), 1e9);
-            for (int j = 0; j< num_reps; j++){
-                vector<double> cur_time = experiment_randwalk(j, q, n, 50); 
-                for(int k = 0; k<5; k++){
-                    max_secs[k] = max(max_secs[k], cur_time[k]);
-                    total_secs[k]+= cur_time[k];
-                    min_secs[k] = min( min_secs[k], cur_time[k]);
-                }
-            }
-            randw05<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
-                total_secs[k]/= (double)num_reps;
-                randw05<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
-            }
-            randw05<<"\n";
+            randw100<<"\n";
             
             fill(total_secs.begin(), total_secs.end(), 0.0);
             fill(max_secs.begin(), max_secs.end(), 0.0);
             fill(min_secs.begin(), min_secs.end(), 1e9);
             for (int j = 0; j< num_reps; j++){
-                vector<double> cur_time = experiment_randwalk(j, q, n, 20); 
-                for(int k = 0; k<5; k++){
+                vector<double> cur_time = experiment_randwalk(j, q, n, 75); 
+                for(int k = 0; k<num_tests; k++){
                     max_secs[k] = max(max_secs[k], cur_time[k]);
                     total_secs[k]+= cur_time[k];
                     min_secs[k] = min( min_secs[k], cur_time[k]);
                 }
             }
-            randw02<<n<<" "<<q<<" ";
-            for(int k = 0; k<5; k++){
+            randw75<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
                 total_secs[k]/= (double)num_reps;
-                randw02<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+                randw75<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
             }
-            randw02<<"\n";
-        
+            randw75<<"\n";
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_randwalk(j, q, n, 50); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            randw50<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                randw50<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            randw50<<"\n";
+            
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_randwalk(j, q, n, 25); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            randw25<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                randw25<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            randw25<<"\n";
+            
+            fill(total_secs.begin(), total_secs.end(), 0.0);
+            fill(max_secs.begin(), max_secs.end(), 0.0);
+            fill(min_secs.begin(), min_secs.end(), 1e9);
+            for (int j = 0; j< num_reps; j++){
+                vector<double> cur_time = experiment_randwalk(j, q, n, 5); 
+                for(int k = 0; k<num_tests; k++){
+                    max_secs[k] = max(max_secs[k], cur_time[k]);
+                    total_secs[k]+= cur_time[k];
+                    min_secs[k] = min( min_secs[k], cur_time[k]);
+                }
+            }
+            randw5<<n<<" "<<q<<" ";
+            for(int k = 0; k<num_tests; k++){
+                total_secs[k]/= (double)num_reps;
+                randw5<<min_secs[k]<<" "<<total_secs[k]<<" "<<max_secs[k]<<" ";
+            }
+            randw5<<"\n";
+            
         }
         
     }
     
-    /*gaus01.close();
+    gaus01.close();
     gaus025.close();
     gaus05.close();
-    gaus075.close();*/
-    randw.close();
-    randw05.close ();
-    randw02.close ();
-    //uni.close();
+    gaus075.close();
+    randw100.close();
+    randw75.close();
+    randw50.close();
+    randw25.close();
+    randw5.close();
+    uni100.close();
+    uni75.close();
+    uni50.close();
+    uni25.close();
+    uni5.close();
     
 }

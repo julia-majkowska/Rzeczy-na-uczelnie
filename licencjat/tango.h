@@ -54,6 +54,8 @@ class tango_tree: public br_tree<T>{
             s.greater->insert_vert(s.pivot);
             tango_tree<T>* joined = (tango_tree<T>*) s.greater;//(tango_tree<T>*) join(new tango_tree<T>(), s.greater, s.pivot);
             this->root = joined->root; 
+            joined->root = NULL;
+            delete joined;
             return;
         }
         if(inter.second == NULL){
@@ -63,16 +65,23 @@ class tango_tree: public br_tree<T>{
             s.lesser->insert_vert(s.pivot);
             tango_tree<T>* joined = (tango_tree<T>*) s.lesser;//(tango_tree<T>*) join(s.lesser,new  tango_tree<T>(), s.pivot);
             this->root = joined->root; 
+            joined->root = NULL;
+            delete joined;
             return;
         }
     
         splitted_tree<T> s1 = this->split2(inter.first->value);
         splitted_tree<T> s2 = s1.greater->split2(inter.second->value);
         ((tango_tree<T>*) s2.lesser)->become_unpreferred();
-        tango_tree<T>* joined_greater = (tango_tree<T>*) join(new tango_tree<T>(), s2.greater, s2.pivot);
+        s2.greater->insert_vert(s2.pivot);
+        tango_tree<T>* joined_greater = (tango_tree<T>*) s2.greater;
+        //tango_tree<T>* joined_greater = (tango_tree<T>*) join(new tango_tree<T>(), s2.greater, s2.pivot);
         tango_tree<T>* joined = (tango_tree<T>*) join(s1.lesser, joined_greater, s1.pivot);
         this->root = joined->root; 
-        
+        delete s1.lesser;
+        delete joined_greater;
+        s1.greater->root= NULL;
+        delete s1.greater;
     }
     
     tango_vert<T>* find_father(){

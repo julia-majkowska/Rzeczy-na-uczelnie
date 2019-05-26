@@ -77,7 +77,9 @@ class tango_tree: public br_tree<T>{
         tango_tree<T>* joined_greater = (tango_tree<T>*) s2.greater;
         //tango_tree<T>* joined_greater = (tango_tree<T>*) join(new tango_tree<T>(), s2.greater, s2.pivot);
         tango_tree<T>* joined = (tango_tree<T>*) join(s1.lesser, joined_greater, s1.pivot);
-        this->root = joined->root; 
+        this->root = joined->root;
+        joined->root = NULL;
+        delete joined;
         delete s1.lesser;
         delete joined_greater;
         s1.greater->root= NULL;

@@ -43,7 +43,7 @@ static_optimal.o: static_optimal.cpp tree_vert.h static_tree.h
 time_all: time_all.o 
 	$(CC)  time_all.o -o time_all
 
-time_all.o: time_all.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
+time_all.o: time_all.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h tango.h
 	$(CC) time_all.cpp -c -o time_all.o
 
 
@@ -53,5 +53,11 @@ time_ops: time_ops.o
 time_ops.o: time_ops.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
 	$(CC) time_ops.cpp -c -o time_ops.o
 
+time3: time3.o 
+	$(CC)  time3.o -o time3
+
+time3.o: time3.cpp tree_vert.h splay.h br_tree.h br_vert.h
+	$(CC) time3.cpp -c -o time3.o
+	
 clean:
 	rm -f *.o

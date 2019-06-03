@@ -6,7 +6,7 @@ num_data = 60;
 def col(ar, i):
     return np.array([row[i] for row in ar])
 
-def make_plot(fin, qs_count, fout1, fout2, graph_label = ""):
+def make_plot(fin, qs_count, fout1, fout2, graph_label = "", num_structs = 5):
     with open(fin) as f:
         content = f.readlines()
     # you may also want to remove whitespace characters like `\n` at the end of each line
@@ -15,14 +15,17 @@ def make_plot(fin, qs_count, fout1, fout2, graph_label = ""):
     fig1 = plt.figure(figsize= (10, 15))
     for j in range(int(len(data)/qs_count)) : 
         print(j)
-        plt.subplot(5, 2, j+1)
+        ax = plt.subplot(6, 2, j+1)
+        ax.ticklabel_format(axis = 'both', style='sci', scilimits = (-3, 3))
         plt.tight_layout()
         plt.yscale("log")
+        #plt.setp(axa.xaxis.get_majorticklabels(), rotation=45)
         xs = col(data[qs_count*j : qs_count*(j+1)], 1)
         lines = [0]*5;
+        #labels = ["Splay", "Drzewo czerwono czarne", "Set"]
         labels = ["Splay", "Tango", "Drzewo czerwono czarne", "Set", "Statyczne drzewo optymalne"]
-        plt.title("Rozmiar struktury" + str(data[qs_count*j][0]))
-        for i in range(0, 5): # będzie 5
+        plt.title("Rozmiar struktury " + str(int(data[qs_count*j][0])))
+        for i in range(0, num_structs): # będzie 5
             ys = col(data[qs_count*j : qs_count*(j+1)], 3 + i * 3)*1000
             ylow = ys - col(data[qs_count*j : qs_count*(j+1)], 2 + i * 3)*1000
             yhigh = col(data[qs_count*j : qs_count*(j+1)], 4 + i * 3)*1000 - ys
@@ -44,10 +47,10 @@ def make_plot(fin, qs_count, fout1, fout2, graph_label = ""):
     
     main_data = [data[i] for i in np.arange(5, len(data), qs_count)]
     xs = col(main_data, 0)
-    
+    #labels = ["Splay", "Drzewo czerwono czarne", "Set"]
     labels = ["Splay", "Tango", "Drzewo czerwono czarne", "Set", "Statyczne drzewo optymalne"]
     plt.yscale("log")
-    for i in range(0, 5): # będzie 5
+    for i in range(0, num_structs): # będzie 5
         ys = col(main_data, 3 + i * 3)*1000;
         ylow = ys - col(main_data, 2 + i * 3)*1000
         yhigh = col(main_data, 4 + i * 3) *1000 - ys
@@ -92,19 +95,30 @@ def make_ops_plot(fin, fout, graph_label = ""):
             frameon=None, metadata=None)
     plt.close(fig1)
 
-make_plot("wyniki/gaus01.res", 6, "wykresy/gaus01", "wykresy/gaus01_main")
-make_plot("wyniki/gaus025.res", 6, "wykresy/gaus025", "wykresy/gaus025_main")
-make_plot("wyniki/gaus05.res", 6, "wykresy/gaus05", "wykresy/gaus05_main")
-make_plot("wyniki/gaus075.res", 6, "wykresy/gaus075", "wykresy/gaus075_main")
-make_plot("wyniki/randwalk5.res", 6, "wykresy/randwalk5", "wykresy/randwalk5_main")
-make_plot("wyniki/randwalk25.res", 6, "wykresy/randwalk25", "wykresy/randwalk25_main")
+make_plot("wyniki/gaus1.res", 6, "wykresy/gaus1", "wykresy/gaus1_main")
+make_plot("wyniki/gaus10.res", 6, "wykresy/gaus10", "wykresy/gaus10_main")
+make_plot("wyniki/gaus50.res", 6, "wykresy/gaus50", "wykresy/gaus50_main")
+make_plot("wyniki/randwalk1.res", 6, "wykresy/randwalk1", "wykresy/randwalk1_main")
+make_plot("wyniki/randwalk10.res", 6, "wykresy/randwalk10", "wykresy/randwalk10_main")
 make_plot("wyniki/randwalk50.res", 6, "wykresy/randwalk50", "wykresy/randwalk50_main")
-make_plot("wyniki/randwalk75.res", 6, "wykresy/randwalk75", "wykresy/randwalk75_main")
 make_plot("wyniki/randwalk100.res", 6, "wykresy/randwalk100", "wykresy/randwalk100_main")
-make_plot("wyniki/uniform5.res", 6, "wykresy/uniform5", "wykresy/uniform5_main")
-make_plot("wyniki/uniform100.res", 6, "wykresy/uniform100", "wykresy/uniform100_main")
-make_plot("wyniki/uniform75.res", 6, "wykresy/uniform75", "wykresy/uniform75_main")
+make_plot("wyniki/uniform1.res", 6, "wykresy/uniform1", "wykresy/uniform1_main")
+make_plot("wyniki/uniform10.res", 6, "wykresy/uniform10", "wykresy/uniform10_main")
 make_plot("wyniki/uniform50.res", 6, "wykresy/uniform50", "wykresy/uniform50_main")
-make_plot("wyniki/uniform25.res", 6, "wykresy/uniform25", "wykresy/uniform25_main")
-make_ops_plot("wynikiop/inserts.res", "wykresy/inserts")
+make_plot("wyniki/uniform100.res", 6, "wykresy/uniform100", "wykresy/uniform100_main")
+'''make_ops_plot("wynikiop/inserts.res", "wykresy/inserts")
 make_ops_plot("wynikiop/deletes.res", "wykresy/deletes")
+make_plot("wyniki3/gaus001.res", 3, "wykresy/gaus001", "wykresy/gaus001_main")
+make_plot("wyniki3/gaus1.res", 3, "wykresy/gaus1", "wykresy/gaus1_main")
+make_plot("wyniki3/gaus10.res", 3, "wykresy/gaus10", "wykresy/gaus10_main")
+make_plot("wyniki3/gaus50.res", 3, "wykresy/gaus50", "wykresy/gaus50_main")
+make_plot("wyniki3/randwalk001.res", 3, "wykresy/randwalk001", "wykresy/randwalk001_main")
+make_plot("wyniki3/randwalk1.res", 3, "wykresy/randwalk1", "wykresy/randwalk1_main")
+make_plot("wyniki3/randwalk10.res", 3, "wykresy/randwalk10", "wykresy/randwalk10_main")
+make_plot("wyniki3/randwalk50.res", 3, "wykresy/randwalk50", "wykresy/randwalk50_main")
+make_plot("wyniki3/randwalk100.res", 3, "wykresy/randwalk100", "wykresy/randwalk100_main")
+make_plot("wyniki3/uniform001.res", 3, "wykresy/uniform001", "wykresy/uniform001_main")
+make_plot("wyniki3/uniform1.res", 3, "wykresy/uniform1", "wykresy/uniform1_main")
+make_plot("wyniki3/uniform10.res", 3, "wykresy/uniform10", "wykresy/uniform10_main")
+make_plot("wyniki3/uniform50.res", 3, "wykresy/uniform50", "wykresy/uniform50_main")
+make_plot("wyniki3/uniform100.res", 3, "wykresy/uniform100", "wykresy/uniform100_main")'''

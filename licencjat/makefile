@@ -53,11 +53,5 @@ time_ops: time_ops.o
 time_ops.o: time_ops.cpp tree_vert.h splay.h br_tree.h br_vert.h tango_vert.h
 	$(CC) time_ops.cpp -c -o time_ops.o
 
-time3: time3.o 
-	$(CC)  time3.o -o time3
-
-time3.o: time3.cpp tree_vert.h splay.h br_tree.h br_vert.h
-	$(CC) time3.cpp -c -o time3.o
-	
 clean:
 	rm -f *.o

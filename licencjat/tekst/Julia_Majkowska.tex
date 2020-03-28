@@ -7,8 +7,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
 \usepackage{float, graphicx}
-\usepackage[backend=bibtex]{biblatex}
+\usepackage[backend=bibtex, doi=false,isbn=false,url=false]{biblatex}
 \usepackage[toc,page]{appendix}
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage[htt]{hyphenat}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 %%%%% DANE DO STRONY TYTYŁOWEJ
 % Niezaleznie od jezyka pracy wybranego w opcjach klasy, tytul i streszczenie
@@ -16,11 +21,15 @@
 % Pamietaj o madrym (zgodnym z logicznym rozbiorem zdania oraz estetyka) recznym
 % zlamaniu wierszy w temacie pracy, zwlaszcza tego w jezyku pracy. Uzyj do tego
 % polecenia \fmlinebreak.
-\polishtitle    {Analiza drzew samoorganizujących}
+\polishtitle    {Analiza samoorganizujących się drzew przeszukiwań}
 \englishtitle   {Analysis of self adjusting binary search trees}
-\polishabstract {Binarne drzewa wyszukiwań (BST) to jedna z najbardziej podstawowych struktur danych w informatyce. Struktura ta jest reprezentacją zbioru elementów i umożliwia wyszukiwanie elementów. Dla konkretnego ciągu zapytań można znaleźć optymalne drzewo BST, które zrealizuje go w minimalnym czasie. Wymaga to jednak znajomości całego ciągu zapytań przy tworzeniu struktury, przez co nie jest to praktyczne rozwiązanie. Binarne drzewa wyszukiwań mają bardzo wiele zastosowań w informatyce. Z tego powodu powstało wiele algorytmów reorganizacji tej struktury danych, umożliających efektywne wykonywanie operacji wyszukiwania bez znajomości wszystkich zapytań. Możemy wyróżnić dwa rodzaje takich algorytmów: algorytmy balansujące ograniczające pesymistyczny czas wyszukiwania (przykładami są drzewa AVL, AA oraz czerwono-czarne) oraz algorytmy samoorganizujące wykorzystujące wiedzę o obsłużonych zapytaniach do przyspieszenia obsługi następnych zapytań. W tej pracy zbadano efektywność implementacji wybranych algorytmów samoorganizujących. Porównano czasy działania samoorganizujących algorytmów Tango i Splay z własną implementacją drzewa czerwono-czarnego, implementacją drzewa czerwono-czarnego ze standardowej biblioteki C++, oraz z optymalnym drzewem statycznym.}
+\polishabstract {Binarne drzewa wyszukiwań (BST) to jedna z najbardziej podstawowych struktur danych w informatyce. Struktura ta jest reprezentacją zbioru elementów i umożliwia wyszukiwanie tych elementów. Dla konkretnego ciągu zapytań można znaleźć optymalne drzewo BST, które zrealizuje te zapytania w minimalnym czasie. Wymaga to jednak znajomości całego ciągu zapytań przy tworzeniu struktury, przez co nie jest to praktyczne rozwiązanie. 
+Powstało wiele algorytmów reorganizacji tej struktury danych, umożliwiających efektywne wykonywanie operacji wyszukiwania bez znajomości wszystkich zapytań. Możemy wyróżnić dwa rodzaje takich algorytmów: algorytmy balansujące ograniczające pesymistyczny czas wyszukiwania (przykładami są drzewa AVL, AA oraz czerwono-czarne) oraz algorytmy samoorganizujące wykorzystujące wiedzę o obsłużonych zapytaniach do przyspieszenia obsługi następnych zapytań. 
+W tej pracy zbadano efektywność implementacji wybranych algorytmów samoorganizujących. Porównano czasy działania samoorganizujących algorytmów Tango i Splay z własną implementacją drzewa czerwono-czarnego, implementacją drzewa czerwono-czarnego ze standardowej biblioteki C++ oraz z optymalnym drzewem statycznym.}
 
-\englishabstract{Binary search trees (BST) are one of the most elementary data structures in computer science. The data structure is a representation of a set of elements and supports lookup of particular element. For a defined sequence of queries it is possible to create an optimal BST, that answers the queries in minimal time. It requires, however, prior knowledge of the entire query sequence, which makes this solution impractical. Binary search trees have a multidute of applications in computer science. This prompted the invention of several algorithms for reorganising this data structure, and enabling the structure to handle queries more efficiently, without knowing the entire sequence of queries. We can destinguish two kinds of these algorithms : balancing algorithms,which limit the pessimistic of query processing (such as AVL, AA and black-red trees) and self adjusting algorithms, which use already the knowledge of already processed queries to speed up the processing of the coming queries. This paper analyses the efficiency of implementations of selected self adjusting algorithms. I will compare the runtimes of self adjusting Tang and Splay algorithms and compare them to my implementation of black-red tree, the C++ standard template library implementation of black-red tree and the optimal static binary search tree}
+\englishabstract{Binary search trees (BST) are one of the most elementary data structures in computer science. The data structure is a representation of a set of elements and supports lookup of particular element. For a defined sequence of queries it is possible to create an optimal BST, that answers the queries in minimal time. It requires, however, prior knowledge of the entire query sequence, which makes this solution impractical. 
+Binary search trees have a multitude of applications. This prompted the invention of several algorithms for reorganising this data structure, and enabling it to handle queries more efficiently, without knowing the entire sequence of queries. We can distinguish two kinds of these algorithms : balancing algorithms, which bound the pessimistic of query processing (such as AVL, AA and black-red trees) and self adjusting algorithms, which use the knowledge of already processed queries to speed up the processing of the future queries.
+This thesis analyses the efficiency of implementations of selected self adjusting algorithms. We will compare the runtimes of self adjusting Tango and Splay algorithms and compare them to my implementation of black-red tree, the C++ standard template library implementation of black-red tree and the optimal static binary search tree.}
 % w pracach wielu autorow nazwiska mozna oddzielic poleceniem \and
 \author         {Julia Majkowska}
 % w przypadku kilku promotorow, lub koniecznosci podania ich afiliacji, linie
@@ -78,129 +87,131 @@
 
 \section{Wstęp}   
 
-Binarne drzewo przeszukiwań (inaczej BST) to jedna z najbardziej podstawowych struktur danych w informatyce. Stosuje się je w wielu systemach informatycznych i algorytmach. Ideą struktury jest trzymanie elementów w wierzchołkach, zawierających wartość elementu oraz wskaźniki na lewe i prawe poddrzewo. Elementy umieszcza się w strukturze w taki sposób, aby wszystkie wartości elementów znajdujące się w lewym poddrzewie wierzchołka \(w\) były elementami mniejszymi od \(w\) w zdefiniowanym porządku. Analogicznie wszystkie elementy w prawym poddrzewie są elementy większe w tym porządku. Na tak uporządkowanych danych można wyszukiwać daną wartość \(v\) poprzez zagłębianie się w drzewo wybierając odpowiednio lewe lub prawe poddrzewo w zależności od wyniku porównania \(v\) z wartością korzenia poddrzewa. W najbardziej podstawowej formie tej struktury operacje wstawiania, wyszukiwania i usuwania wykonuje się w czasie \(O(H)\), gdzie H to wysokość drzewa. W pesymistycznym wypadku jest to czas zależny liniowo od liczby elementów w strukturze. Złożoność operacji słownikowych na drzewie BST zależy od głębokości drzewa, dlatego powstało wiele struktur danych ograniczających maksymalną głębokość drzewa. Jako przykłady można wymienić drzewa AA, AVL oraz czerwono-czarne, obsługujące operacje słownikowe w pesymistycznym czasie \(O(\log n)\).   
+Binarne drzewo przeszukiwań (inaczej BST) to jedna z najbardziej podstawowych struktur danych w informatyce. Stosuje się je w wielu systemach informatycznych i algorytmach. Ideą struktury jest trzymanie elementów w wierzchołkach, zawierających wartość elementu oraz wskaźniki na lewe i prawe poddrzewo. Elementy umieszcza się w strukturze w taki sposób, aby wszystkie wartości elementów znajdujące się w lewym poddrzewie wierzchołka \(w\) były elementami mniejszymi od \(w\) w zdefiniowanym porządku. Analogicznie wszystkie elementy w prawym poddrzewie są większe w tym porządku. Na tak uporządkowanych danych można wyszukiwać daną wartość \(v\) poprzez zagłębianie się w drzewo, wybierając odpowiednio lewe lub prawe poddrzewo w zależności od wyniku porównania \(v\) z wartością korzenia poddrzewa. W najbardziej podstawowej formie tej struktury operacje wstawiania, wyszukiwania i usuwania wykonuje się w czasie \(O(H)\), gdzie H to wysokość drzewa. W pesymistycznym wypadku jest to czas zależny liniowo od liczby elementów w strukturze. Złożoność operacji słownikowych na drzewie BST zależy od głębokości drzewa, dlatego powstało wiele struktur danych ograniczających maksymalną głębokość drzewa. Jako przykłady można wymienić drzewa AA, AVL oraz czerwono-czarne, obsługujące operacje słownikowe w pesymistycznym czasie \(O(\log n)\).   
 
  
 
 \section{Problem optymalnego drzewa binarnego}   
 
-W wielu zastosowaniach dane nie podlegają rozkładowi jednostajnemu tylko przejawiają jakąś lokalność. Przykładowo, jeśli dla drzewa 100-elementowego będą się pojawiać głównie zapytania o jeden element, można by znacząco zmniejszyć czas działania przesuwając dany element do korzenia. W takim wypadku struktura naszego drzewa zależy od zapytań. Problem znajdowania drzewa binarnego, które przy użyciu najmniejszej liczby operacji obsłuży ciąg zapytań to problem optymalnego drzewa binarnego. Możemy rozróżnić dwa warianty tego problemu: statyczny oraz dynamiczny.   
+W wielu zastosowaniach dane nie podlegają rozkładowi jednostajnemu tylko przejawiają jakąś lokalność. Przykładowo, jeśli dla drzewa 100--elementowego będą się pojawiać głównie zapytania o jeden element, można by znacząco zmniejszyć czas działania przesuwając dany element do korzenia. W takim wypadku struktura naszego drzewa zależy od zapytań. Problem znajdowania drzewa binarnego, które przy użyciu najmniejszej liczby operacji obsłuży ciąg zapytań, to problem optymalnego drzewa binarnego. Możemy rozróżnić dwa warianty tego problemu: statyczny oraz dynamiczny.   
 
 \subsection{Statyczne optymalne drzewo binarne}   
 
-Zdefiniujmy uporządkowany ciąg kluczy \(e_1...e_n\), ciąg prawdopodobieństw \(A_1...A_n\), będące prawdopodobieństwami wykonania wyszukiwania \(e_i\) i  \(B_0 … B_n\), oznaczające prawdopodobieństwa wyszukania elementu z przedziału \([e_i, e_{i+1}]\). Zgodnie z definicją Knutha \cite{knuth1971optimum} optymalne statyczne drzewo binarne to drzewo, które minimalizuje oczekiwany czas obsługi dowolnego ciągu zapytań wylosowanego zgodnie ze zdefiniowanym rozkładem.    
+Zdefiniujmy uporządkowany ciąg kluczy \(e_1...e_n\), ciąg prawdopodobieństw \(A_1...A_n\), będących prawdopodobieństwami wykonania wyszukiwania \(e_i\) oraz \(B_0 … B_n\), oznaczające prawdopodobieństwa wyszukania elementu z przedziału \([e_i, e_{i+1}]\). Zgodnie z definicją Knutha \cite{DBLP:journals/acta/Knuth71} optymalne statyczne drzewo binarne to drzewo, które minimalizuje oczekiwany czas obsługi dowolnego ciągu zapytań wylosowanego zgodnie ze zdefiniowanym rozkładem.    
 
-Wraz z definicją problemu Knuth opublikował algorytm opierający się na programowaniu dynamicznym, znajdujący optymalne drzewo binarne w czasie O(\(n^2\)), który zostanie opisany szczegółowo w dalszej części pracy. W 1975 r. Mehlhorn opublikował algorytm aproksymujący ten problem, działający w czasie \(O(n)\) \cite{mehlhorn1975nearly}. Dla wariantu, w którym \(B_i = 0\), istnieje algorytm Garsia-Wachsa, który znajduje optymalne drzewo w czasie \(O(n\log n)\) \cite{garsia1977new}.   
+Wraz z definicją problemu, Knuth opublikował algorytm opierający się na programowaniu dynamicznym, znajdujący optymalne drzewo binarne w czasie O(\(n^2\)), który zostanie opisany szczegółowo w dalszej części pracy. W 1975 r. Mehlhorn opublikował algorytm aproksymujący ten problem, działający w czasie \(O(n)\) \cite{DBLP:journals/acta/Mehlhorn75}. Dla wariantu, w którym \(B_i = 0\), istnieje algorytm Garsia-Wachsa, który znajduje optymalne drzewo w czasie \(O(n\log n)\) \cite{DBLP:journals/siamcomp/GarsiaW77}.   
 
 \subsection{Dynamiczne optymalne drzewo binarne}   
 
-W dynamicznym wariancie problemu mamy na wejściu ciąg zapytań \(X  = \{x_1,x_2,..., x_n\}\) o wyszukanie klucza \(x_i \in {1, 2, ..., n}\). Dla każdego zapytania o wartość \(w\) zaczynamy ze wskaźnikiem na korzeń drzewa i wykonując tylko niżej wymienione operacje chcemy przesunąć wskaźnik na wierzchołek zawierający klucz o wartości \(w\). Dozwolone operacje to:   
+W dynamicznym wariancie problemu \cite{DBLP:journals/siamcomp/DemaineHIP07} mamy na wejściu ciąg zapytań \(X  = \{x_1,x_2,..., x_n\}\) o wyszukanie klucza \(x_i \in {1, 2, ..., n}\). Dla każdego zapytania o wartość \(w\) zaczynamy ze wskaźnikiem na korzeń drzewa i, wykonując tylko niżej wymienione operacje, chcemy przesunąć wskaźnik na wierzchołek zawierający klucz o wartości \(w\). Dozwolone operacje to:   
 
 \begin{enumerate}   
 
-\item {Przesunąć wskaźnik na lewego syna obecnie wskazanego wierzchołka}   
+\item {Przesunąć wskaźnik na lewego syna obecnie wskazanego wierzchołka.}   
 
-\item {Przesunąć wskaźnik na prawego syna obecnie wskazanego wierzchołka}   
+\item {Przesunąć wskaźnik na prawego syna obecnie wskazanego wierzchołka.}   
 
-\item {Przesunąć wskaźnik na rodzica obecnie wskazanego wierzchołka}   
+\item {Przesunąć wskaźnik na rodzica obecnie wskazanego wierzchołka.}   
 
-\item {Wykonać pojedynczą rotację obecnie wskazywanego wierzchołka. Poniżej ilustracja pojedynczej rotacji punku p w prawo}    
+\item {Wykonać pojedynczą rotację obecnie wskazywanego wierzchołka. Poniżej ilustracja pojedynczej rotacji punktu $p$ w prawo.}    
 
 \end{enumerate}   
 \begin{figure}[H]
 \centering    
-\includegraphics[scale = 0.5]{zig.png}  
-\caption{Pojedyncza rotacja w prawo w punkcie p} 
- \label{fig:1} 
+\includegraphics[scale = 0.45]{zig.png}  
+\caption{Pojedyncza rotacja w prawo w punkcie $p$.} 
+\label{fig:1} 
 \end{figure}  
 
  
-W tym problemie chcemy znaleźć drzewo, które minimalizuje liczbę operacji konieczną do obsłużenia ciągu zapytań \(x_i\). 
+W tym problemie chcemy znaleźć drzewo, które minimalizuje liczbę operacji konieczną do obsłużenia ciągu zapytań \(X\). 
+Dla każdego takiego ciągu istnieje minimalny ciąg operacji \(OPT(X)\) odpowiadający na te zapytania. Znalezienie takiego rozwiązania wymaga znajomości całego ciągu zapytań z góry, co w wielu sytuacjach nie jest możliwe.
 
 \begin{definition}[Konkurencyjność]
-Oznaczmy wejscie dla algorytmu jako \(\sigma\), koszt algorytmu dla tego wejścia jako \(ALG(\sigma)\) i optymalny koszt jako \(OPT(\sigma)\).
-Mówimy, że algorytm jest $k$ konkurencyjny, jeśli
+Oznaczmy wejście dla algorytmu jako \(X\), koszt algorytmu dla tego wejścia jako \(ALG(X)\) i optymalny koszt jako \(OPT(X)\).
+Mówimy, że algorytm jest $k$-konkurencyjny, jeśli
 \begin{align*}
-\forall_{\sigma} ALG(\sigma) \leq k*OPT(\sigma)
+\forall_{X} ALG(X) \leq k*OPT(X)
 \end{align*}
-Liczbę $k$ będziemy nazywali współczynnikiem konkurencyjności.
+Minimalną liczbę $k$ będziemy nazywali współczynnikiem konkurencyjności.
 \end{definition}  
 
-Dla każdego ciągu zapytań istnieje minimalny ciąg operacji odpowiadający na te zapytania. Znalezienie takiego rozwiązania wymaga znajomości całego ciągu zapytań z góry, co w wielu sytuacjach nie jest możliwe. Będziemy mówić, że drzewo jest dynamicznie optymalne ma stały współczynnik konkurencyjności. Udowodnienie dynamicznej optymalności dowolnego algorytmu BST jest problemem otwartym.   
+Będziemy mówić, że drzewo jest dynamicznie optymalne jeśli ma stały współczynnik konkurencyjności. Udowodnienie dynamicznej optymalności dowolnego algorytmu BST jest problemem otwartym.   
 
 \chapter{Statyczne drzewo optymalne}
 
 \section{Opis struktury}
 
-Oznaczmy ciąg zapytań jako \( X = \{x_1, x_2, ..., x_m\}\), i zbiór elementów, które występują w tym ciągu jako \( Y = \{y_1, y_2, ..., n\}\), gdzie \(y_{i-1} < y_i < y_{i+1}\). 
+Oznaczmy ciąg zapytań jako \( X = \{x_1, x_2, ..., x_m\}\) i zbiór elementów, które występują w tym ciągu jako \( Y = \{y_1, y_2, ..., y_n\}\), gdzie \(y_{i-1} < y_i < y_{i+1}\). 
 Dodatkowo niech \(C(y)\) będzie liczbą wystąpień \(y\) w ciągu \(X\). 
 Przyjmijmy, że nasze klucze \(y_i\) umieszczamy na drzewie BST \(\mathcal{B}\). Zdefiniujmy \( d(\mathcal{B}, y_i)\) jako głębokość wierzchołka zawierającego \(y_i\) w \(\mathcal{B}\). 
 Zdefiniujmy sobie koszt obsługi zapytania na drzewie \(\mathcal{B}\) jako \(K(x_i) = d(\mathcal{B}, x_i)\).
-Statyczne drzewo optymalne to takie drzewo, które dla danego ciągu zapytań, obsługuje je minimalnym sumarycznym kosztem. 
-Na tym drzewie nie wkonujemy żadnych rotacji, a jego struktura pozostaje stała, przez cały czas obsługi zapytań. 
-Ze względu na swój statyczny charakter drzewo to obsługuje jedynie operację wyszukiwania na drzewie i jest konstruowane offline.
+Statyczne drzewo optymalne to takie drzewo, które dla danego ciągu zapytań obsługuje je minimalnym sumarycznym kosztem. 
+Na tym drzewie nie wykonujemy żadnych rotacji, a jego struktura pozostaje stała przez cały czas obsługi zapytań. 
+Ze względu na swój statyczny charakter drzewo to obsługuje jedynie operację wyszukiwania na drzewie i jest konstruowane offline, to znaczy przy znajomości całego ciągu $X$.
 
 \section{Algorytm konstrukcji drzewa} \label{static_desc}
 
-Statyczne drzewo optymalne można skonstruuować przy pomocy programowania dynamicznego. Wprowadźmy sobie następujące oznaczenia, niech \(Cost(i, j)\) będzie oznaczał minimalny koszt obsłużenia \(\{ x : x\in X \wedge x\in \{y_i, y_{i+1}, ..., y_{j}\}\}\) optymalnym drzewem BST składającym się z elementów \(\{y_i, y_{i+1}, ..., y_{j}\}\) , a \(Root(i, j)\) niech będze indeksem korzenia tego optymalnego drzewa. Dodatkowo niech \(Sum(i, j) = \sum_{k = i}^j C(y_k)\).
+Statyczne drzewo optymalne można skonstruować przy pomocy programowania dynamicznego. Wprowadźmy następujące oznaczenia: niech \(Cost(i, j)\) oznacza minimalny koszt obsłużenia \(\{ x : x\in X \wedge x\in \{y_i, y_{i+1}, ..., y_{j}\}\}\) w optymalnym drzewie BST składającym się z elementów \(\{y_i, y_{i+1}, ..., y_{j}\}\), a \(Root(i, j)\) indeks korzenia tego optymalnego drzewa. Dodatkowo niech \(Sum(i, j) = \sum_{k = i}^j C(y_k)\).
 
 Zacznijmy od zdefiniowania przypadków bazowych: 
 \begin{align*}
-Cost(i, i) = C(y_i)\\
-Root[i][i] = i
+Root[i][i] &= i\\
+Cost(i, i) &= C(y_i)
 \end{align*}
-Zauważmy, że jeśli \(Root(i, j) = r\) wtedy \(Cost(i, j) =  Cost(i, r-1) + Cost(r+1, j) + Sum(i, j)\). W takim razie możemy zapisać następujące zależności rekurencyjne:
+Zauważmy z własności drzewa BST wynika, że jeśli \(Root(i, j) = r\), to \(Cost(i, j) =  Cost(i, r-1) + Cost(r+1, j) + Sum(i, j)\).\\
+W takim razie możemy zapisać następujące zależności rekurencyjne:
 \begin{align*}
-Root(i, j) = argmin_r Cost(i, r-1) + Cost(r+1, j) + Sum(i, j)\\
-Cost(i, j) =  Cost(i, Root(i, j)-1) + Cost(Root(i, j)+1, j) + Sum(i, j)\\
+Root(i, j) &= \argmin_r Cost(i, r-1) + Cost(r+1, j) + Sum(i, j)\\
+Cost(i, j) &=  Cost(i, Root(i, j)-1) + Cost(Root(i, j)+1, j) + Sum(i, j)\\
 \end{align*}
 
 W ten sposób otrzymujemy algorytm tworzenia drzewa o złożoności \(O(n^3)\). 
 
-\begin{theorem}\cite{knuth1971optimum}
+\begin{theorem}\cite{DBLP:journals/acta/Knuth71}
 \label{root_constr}
+Dla każdego \(1 \leq i \leq n-1\) oraz \(2 \leq j \leq n\) zachodzi : 
 \(Root(i, j-1) \leq Root(i, j) \leq Root(i+1, j)\)
 \end{theorem}
 
-\begin{remark}
-Korzystając z \ref{root_constr} możemy ograniczyć koszt działania tworzenia optymalnego drzewa BST do \( 0(n^2)\)
-\end{remark}
+\begin{lemma}
+Korzystając z Twierdzenia \ref{root_constr} możemy ograniczyć koszt działania tworzenia optymalnego drzewa BST do \( O(n^2)\).
+\end{lemma}
 \begin{proof}
-Policzmy sumarycznyczny koszt działania algorytmu.
+Policzmy sumaryczny koszt działania algorytmu.
 \begin{align*}
 &\sum_{i=1}^n \sum_{j = i}^n Root(i+1, j) - Root(i, j-1) + 1 \\
-&\leq  n^2 + \sum_{i=1}^n \sum_{j = 1}^n Root(i+1, j) - \sum_{i=1}^n \sum_{j = 1}^n Root(i, j -1) \\
+&= n^2 + \sum_{i=1}^n \sum_{j = 1}^n Root(i+1, j) - \sum_{i=1}^n \sum_{j = 1}^n Root(i, j -1) \\
 &= n^2 + \sum_{i=2}^{n+1} \sum_{j = 1}^n Root(i, j) - \sum_{i=1}^n \sum_{j = 0}^{n-1} Root(i, j) \\
 &\leq n^2 + \sum_{i=1}^{n+1} \sum_{j = 1}^n Root(i, j) - \sum_{i=1}^n \sum_{j = 1}^{n-1} Root(i, j) \\
-&= n^2 + ( \sum_{i=1}^{n} \sum_{j = 1}^n Root(i, j) - \sum_{j=1}^n Root(n+1, j) ) - ( \sum_{i=1}^{n} \sum_{j = 1}^n Root(i, j) - \sum_{i=1}^n Root(i, n) )\\
-&= n^2 + \sum_{i=1}^n Root(i, n) - \sum_{j=1}^n Root(n+1, j)\\
+&= n^2 + ( \sum_{i=1}^{n} \sum_{j = 1}^n Root(i, j) + \sum_{j=1}^n Root(n+1, j) ) - ( \sum_{i=1}^{n} \sum_{j = 1}^n Root(i, j) - \sum_{i=1}^n Root(i, n) )\\
+&= n^2 + \sum_{i=1}^n Root(i, n) + \sum_{j=1}^n Root(n+1, j)\\
 &= O(n^2)
 \end{align*}
 \end{proof}
 
 \section{Opis implementacji}
 
-Implementacja statycznego drzewa optymalnego składa się z dwóch klas \texttt{static\_tree} i \texttt{tree\_vert}. Klasa \texttt{tree\_vert} zostanie opisana w kolejnym rozdziale. 
+Implementacja statycznego drzewa optymalnego składa się z dwóch klas \\\texttt{static\_tree} i \texttt{tree\_vert}. Klasa \texttt{tree\_vert} zostanie opisana w rozdziale \ref{tree_vert_imp}
 \subsection{static\_tree}
 Klasa \texttt{static\_tree<T>} udostępnia następujące metody:
 \begin{itemize}
-\item{ Konstruktor \texttt{static\_tree(const vector<int>\&)} - konstruuje drzewo korzystając z listy zapytań do obsłużenia. Zakłada się, że wyszystkie elementy z zapytań występują w strukturze.}
-\item{ \texttt{bool find(T)} - wykonuje wyszukiwanie na optymalnym drzewie binarnym i zwraca czy element znajduje się w strukturze.}
+\item{ Konstruktor \texttt{static\_tree(const vector<int>\& list)} --- konstruuje drzewo korzystając z listy zapytań $list$ do obsłużenia. Zakłada się, że wszystkie elementy z zapytań występują w strukturze.}
+\item{ \texttt{bool find(T val)} --- wykonuje wyszukiwanie na optymalnym drzewie binarnym i zwraca czy element $val$ znajduje się w strukturze.}
 \item{ Destruktor niszczący całą strukturę.}
 \end{itemize}
-Z racji, że struktura ta jest statyczna operacje wstawiania oraz usuwania elementów nie są obsługiwane. 
+Z racji, że struktura ta jest statyczna, operacje wstawiania oraz usuwania elementów nie są obsługiwane. 
 
 \chapter{Drzewa Splay}   
 
 \section{Opis struktury}  
 
-Drzewo Splay zostało stworzone w 1985 przez Sleatora i Trajana \cite{DBLP:journals/jacm/SleatorT85}.
-
-Drzewo Splay jest drzewem samoorganizującym się. Podstawą działania tej struktury jest operacja splay, polegająca na przesunięciu odpowiedniego wierzchołka do korzenia, korzystając z rotacji.   
+Drzewa Splay zostały stworzone w 1985 przez Sleatora i Tarjana \cite{DBLP:journals/jacm/SleatorT85}.
+Jest to struktura samoorganizująca, której podstawą działania jest operacja \texttt{splay}, polegająca na przesunięciu odpowiedniego wierzchołka do korzenia, korzystając z rotacji.   
 
 \subsection{Splay}  
 
-Operacja splay dla danego wierzchołka odbywa się w krokach, do momentu, kiedy wierzchołek nie stanie się korzeniem.Oznaczmy interesujący nasz wierzchołek jako $x$, niech $p$ będzie ojcem, a $g$ dziadkiem $x$ na początku kroku. Możemy wyróżnić 3 przypadki kroków operacji splay: 
+Operacja \texttt{splay} dla danego wierzchołka odbywa się w krokach, do momentu, kiedy wierzchołek nie stanie się korzeniem. Oznaczmy interesujący nasz wierzchołek jako $x$. Niech $p$ będzie ojcem $x$, a $g$ dziadkiem $x$ na początku kroku. Możemy wyróżnić 3 przypadki kroków: 
 \begin{enumerate}  
 
 \item{ZIG - Jeśli $x$ jest lewym synem korzenia wykonujemy pojedynczą rotację korzenia w prawo. Analogicznie kiedy $x$ jest prawym synem korzenia wykonujemy rotację korzenia w lewo.\\  
@@ -211,7 +222,7 @@ Operacja splay dla danego wierzchołka odbywa się w krokach, do momentu, kiedy 
 \label{fig:zig} 
 \end{figure}}   
 
-\item{ZIGZIG - Jeśli zarówno $x$ i $p$ są lewymi synami wykonujemy u $g$ rotację w prawo, a następnie rotujemy w prawo $p$. Analogicznie postępujemy kiedy $x$ i $p$ są prawymi synami.\\  
+\item{ZIGZIG - Jeśli zarówno $x$ jak i $p$ są lewymi synami wykonujemy w $g$ rotację w prawo, a następnie rotujemy $p$ w prawo. Analogicznie postępujemy kiedy $x$ i $p$ są prawymi synami.\\  
 
 \begin{figure}[H]  
 \centering
@@ -230,19 +241,19 @@ Operacja splay dla danego wierzchołka odbywa się w krokach, do momentu, kiedy 
 \end{enumerate}    
 
 \subsection{Wyszukiwanie}
-Drzewo splay spełnia zależność BST, więc można wyszukiwać w nim elementy jak w normalnym drzewnie BST. Po znalezieniu odpowiedniego wierzchołka wykonujemy na nim operację splay przenosząc go do korzenia.  
+Drzewo Splay spełnia zależność BST, więc można wyszukiwać w nim elementy jak w normalnym drzewnie BST. Po znalezieniu odpowiedniego wierzchołka wykonujemy na nim operację \texttt{splay} przenosząc go do korzenia.  
 
 \subsection{Rozdzielanie drzewa względem elementu} 
-Aby rozdzielić drzewo względem danego elementu, wyszukujemy go w drzewie i wykonujemy operację splay na elemencie, na którym zakończyliśmy poszukiwanie. Wynikiem będą lewe i prawe poddrzewo korzenia zmodyfikowanego drzewa.  
+Aby rozdzielić drzewo względem danego elementu, wyszukujemy ten element w drzewie i wykonujemy operację \texttt{splay} na elemencie, na którym zakończyliśmy poszukiwanie. Wynikiem będą lewe i prawe poddrzewo korzenia zmodyfikowanego drzewa.  
 
 \subsection{Łączenie dwóch drzew} 
-Będziemy łączyć drzewa \(d_1\) i \( d_2\) o własności, że \(\forall_{k_1 \in d_1, k_2 \in d_2} k_1 < k_2\). Aby to zrobić wykonujemy operację splay na wierzchołku zawierającym minimalny element \(d_2\). Następnie podłączamy \(d_1\) jako lewe poddrzewo zmodyfikowanego \(d_2\).  
+Będziemy łączyć drzewa \(d_1\) i \( d_2\) takie, że \(\forall_{k_1 \in d_1, k_2 \in d_2} k_1 < k_2\). Aby to zrobić wykonujemy operację \texttt{splay} na wierzchołku zawierającym minimalny element \(d_2\). Następnie podłączamy \(d_1\) jako lewe poddrzewo zmodyfikowanego \(d_2\).  
 
 \subsection{Wstawianie} 
-Aby wstawić element \(e\) do drzewa najpierw wyszukujemy go w drzewie, jeśli element już znajduje się w drzewie to wykonujemy operację splay na odpowiadającym mu wierzchołku. Jeśli elementu nie ma w drzewie, wtedy rozdzielamy drzewo względem \(e\) na drzewa \(d_1\) i \( d_2\). Następnie podłączamy \(d_1\) jako lewe poddrzewo elementu  \(e\), a \(d_2\) jako prawe poddrzewo.  
+Aby wstawić element \(e\) do drzewa najpierw wyszukujemy ten element w drzewie. Jeśli element już znajduje się w drzewie, wykonujemy operację \texttt{splay} na odpowiadającym mu wierzchołku. Jeśli elementu nie ma w drzewie, wtedy rozdzielamy drzewo względem \(e\) na drzewa \(d_1\) i \( d_2\). Następnie podłączamy \(d_1\) jako lewe poddrzewo elementu  \(e\), a \(d_2\) jako prawe poddrzewo.  
 
 \subsection{Usuwanie} 
-Aby usunąć element, wyszukujemy go w drzewie i wykonujemy na odpowiadającym wierzchołku operację splay. Następnie łączymy lewe i prawe poddrzewo w jedną strukturę.  
+Aby usunąć element, wyszukujemy go w drzewie i wykonujemy na odpowiadającym wierzchołku operację \texttt{splay}. Następnie łączymy lewe i prawe poddrzewo w jedną strukturę.  
 
 \section{Analiza złożoności}  
 
@@ -251,199 +262,235 @@ W każdym węźle trzymamy dwa wskaźniki na synów oraz wartość klucza. Cała
 
 \subsection{Analiza zamortyzowana złożoności czasowej} 
 \begin{theorem} 
-Dla ciągu zapytań $X = \{ x_1, x_2, ..., x_m\}$, gdzie \( \forall_{1\leq i \leq m} x_i \in \{1, 2,...,n\}\), drzewo splay działa w czasie \( O((m+n)logn)\). 
+Dla ciągu zapytań $X = \{ x_1, x_2, ..., x_m\}$, gdzie \\\( \forall_{1\leq i \leq m} x_i \in \{1, 2,...,n\}\), drzewo Splay działa w czasie \( O((m+n)\log n)\). 
 \end{theorem} 
-\begin{proof} Zauważmy, że główną składową kosztu operacji słownikowych jest operacja splay. Pozostałe części operacji można wykonać w czasie stałym. Przeprowadzimy analizę zamortyzowaną kosztu wykonywania operacji splay. Wprowadźmy następujące oznaczenia : 
+\begin{proof} Zauważmy, że główną składową kosztu operacji słownikowych jest wyszukiwanie oraz operacja \texttt{splay}. Pozostałe części operacji można wykonać w czasie stałym. Zauważmy dodatkowo, że każdy wierzchołek na ścieżce wyszukiwania, będzie uczestniczył w rotacji przy operacji \texttt{splay}. Możemy zatem koszt wyszukiwania rozpatrywać razem z kosztem rotacji. Przeprowadzimy analizę zamortyzowaną kosztu wykonywania operacji \texttt{splay}. Wprowadźmy następujące oznaczenia : 
 \begin{itemize} 
-\item{\(s(w)\) - liczba wierzchołków w poddrzewie wierzchołka \(w\)} 
-\item{\(r(w) = \lfloor log(s(w)) \rfloor\)} 
-\item{Funkcja potencjału \(\Phi = \sum_w r(w)\)} 
-\end{itemize}  
+\item{\(s(w)\) --- liczba wierzchołków w poddrzewie wierzchołka \(w\) razem z $w$.} 
+\item{\(r(w) = \lfloor \log(s(w)) \rfloor\).} 
+\item{\(r_p(w), r_k(w)\) --- początkowa i końcowa wartość \(r(w)\).}
+\item{Funkcja potencjału \(\Phi = \sum_w r(w)\).} 
+\end{itemize}   
+\begin{lemma}
+\label{log_convex}
+Jeżeli \(s(a) \geq s(b) + s(c)\), to zachodzi \(2r(a) - r(b) - r(c) \geq 2\).
+\end{lemma}
+\begin{proof}
+Pomnóżmy obustronnie tezę przez $-1$.
+\begin{align*}
+r(b) + r(c) - 2r(a) &= \lfloor \log(s(b)) \rfloor\ + \lfloor \log(s(c)) \rfloor\ - 2\lfloor \log(s(a)) \rfloor\\\
+&\leq \log(s(b)) + \log(s(c)) - 2\log(s(a))\\
+&= \log(\frac{s(b)}{s(a)}) + \log(\frac{s(c)}{s(a)}) && \text{z własności logarytmu}\\
+&\leq -2
+\end{align*}
+W ostatnim przejściu $-2$ jest ekstremum funkcji \(\log u + \log w\) dla $u$, $w > 0$ i $u + w \leq 1$. 
+\end{proof}
 
-Przeanalizujmy najpierw zmianę potencjału \(\Phi\) przy poszczególnych krokach operacji Splay. Będziemy korzystali z notacji na schematach \ref{fig:zig}, \ref{fig:zigzig}, \ref{fig:zigzag} \\ 
+Oznaczymy $s'(w)$, $r'(w)$ i $\Phi'$ jako wartości odpowiednich funkcji po wykonaniu kroku.
+Zdefiniujmy zamortyzowany koszt operacji \(a = \Phi' - \Phi + t\), gdzie $t$ to liczba operacji wykonanych przy kroku.
+ 
+Przeanalizujemy zamortyzowany koszt poszczególnych kroków operacji \texttt{splay}. Będziemy korzystali z notacji z Rysunków \ref{fig:zig}, \ref{fig:zigzig}, \ref{fig:zigzag}. 
 \begin{enumerate} 
-\item{\textbf{ZIG} : Zmienia się tylko potencjał $x$ i $p$
+\item{\textbf{ZIG} : Zmienia się tylko potencjał $x$ i $p$.
 \begin{align*} 
-\Delta \Phi & = 1 + \Delta r(x) + \Delta r(p) \\
+a & = 1 + \Delta r(x) + \Delta r(p) && \text{wykonujemy 1 rotację}\\
  & = 1 + r'(x) - r(x) + r'(p) - r(p) \\ 
  & = 1 + r'(p) - r(x) && \text{ ponieważ }r'(x) = r(p)\\ 
  \end{align*}} 
-\item{\textbf{ZIGZIG} : Zmienia się potencjał $x$, $p$ i $g$ 
+\item{\textbf{ZIGZIG} : Zmienia się potencjał $x$, $p$ i $g$. 
 \begin{align*} 
-\Delta \Phi & = 2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g)\\ 
-& =2 - r(x) + r'(p) - r(p) + r(g)   && \text{ ponieważ } r'(x) = r(g)\\ 
-& \leq 2 + r'(g) + r'(x) - 2r(x) && \text{ ponieważ } r(x) < r(p) \text{ i } r'(x) > r(p)\\ 
-& \leq 3(r'(x) - r(x)) && \text{ z wypukłości funkcji logarytmicznej}\\ 
-\end{align*}} 
-\item{\textbf{ZIGZAG} : Zmienia się potencjał $x$, $p$ i $g$ 
+a & = 2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g) && \text{wykonujemy 2 rotacje}\\ 
+& =2 - r(x) + r'(p) - r(p) + r'(g)   && \text{ bo } r'(x) = r(g)\\ 
+& \leq 2 + r'(g) + r'(x) - 2r(x) && \text{ bo } r(x) < r(p) \text{ i } r'(x) > r'(p)\\ 
+& \leq 3(r'(x) - r(x))
+\end{align*}
+Ostatnie przejście wynika z Lematu \ref{log_convex} dla $s'(x)$, $s(x)$ i $s'(g)$.}
+\item{\textbf{ZIGZAG} : Zmienia się potencjał $x$, $p$ i $g$.
 \begin{align*} 
-\Delta \Phi & =  2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g)\\ 
-& = 2 - r(x) + r'(p) - r(p) + r(g)   && \text{ ponieważ } r'(x) = r(g)\\ 
-& \leq 2 + r'(g) + r'(p) - 2r(x) && \text{ ponieważ }r(x) < r(p)\\ 
-& \leq 2(r'(x) -2r(x)) && \text{ ponieważ } 2r'(x) - r'(p) - r'(g) \geq 2\\ 
-\end{align*}} 
+a &=  2 + r'(x) - r(x) + r'(p) - r(p) + r'(g) - r(g) && \text{wykonujemy 2 rotacje}\\ 
+& = 2 - r(x) + r'(p) - r(p) + r'(g)   && \text{ bo } r'(x) = r(g)\\ 
+& \leq 2 + r'(g) + r'(p) - 2r(x) && \text{ bo }r(x) < r(p)\\ 
+& \leq 2(r'(x) -2r(x)) \\
+& \leq 3(r'(x) -2r(x))
+\end{align*}
+Przedostatnie przejście wynika z Lematu \ref{log_convex} dla $s'(x)$, $s'(p)$ i $s'(g)$.
+} 
 \end{enumerate} 
-We wszystkich przypadkach koszt operacji jest zatem nie większy niż \( 3(r'(x) - r(x)) + 1\), gdzie czynnik 1 występuje tylko przy operacji ZIG, a zatem tylko raz przy każdej operacji Splay. Dla całej operacji Splay(\(x_i\)) musimy zsumować zmianę potencjału wszytkich kroków. Otrzymujemy w ten sposób sumę teleskopową skracającą się do \(3(r(\text{korzeń}) - r(x_i)) + 1 \leq logn\). Aby otrzymać oszacowanie całego czasu działania na całej sekwencji $X$, musimy jeszcze uwzględnić zmianę potencjału pomiędzy stanem początkowym a końcowym : \( \sum_x r'(x) - r(x) \leq \sum_x O(logn) = O(nlogn)\). Zatem sumaryczny czas działania to \( O((m+n)logn)\).  
+We wszystkich przypadkach koszt operacji jest zatem nie większy niż \( 3(r'(x) - r(x)) + 1\), gdzie składnik $1$ występuje tylko przy operacji ZIG, a zatem tylko raz przy każdej operacji \texttt{splay}. Dla całej operacji \texttt{splay}(\(x_i\)) musimy zsumować zmianę potencjału wszystkich kroków. Otrzymujemy w ten sposób sumę teleskopową skracającą się do \(3(r(\text{korzeń}) - r(x_i)) + 1 \leq \log n\). 
+
+Aby otrzymać oszacowanie czasu działania na całej sekwencji $X$, musimy jeszcze uwzględnić zmianę potencjału pomiędzy stanem początkowym a końcowym : \( \sum_x r_k(x) - r_0(x) \leq \sum_x O(\log n) = O(n\log n)\). Zatem sumaryczny czas działania to \( O((m+n)\log n)\).  
 
 \end{proof}  
 
 \section{Konkurencyjność} 
 \begin{hypothesis} 
-Drzewo splay jest dynamicznie optymalne tzn. \(SPLAY(X) = O(OPT(X)\) gdzie \(SPLAY(X)\) to koszt obsłużenia ciągu zapytań \(X\) przez drzewo splay, a \(OPT(X)\) przez optymalne dynamiczne drzewo działające offline. 
+Drzewo Splay jest dynamicznie optymalne tzn. dla każdego ciągu zapytań $X$ zachodzi \(SPLAY(X) = O(OPT(X)\),  gdzie \(SPLAY(X)\) to koszt obsłużenia \(X\) przez drzewo Splay, a \(OPT(X)\) to koszt obsłużenia $X$ przez optymalne dynamiczne drzewo działające offline. 
 \end{hypothesis}  
+
+W 2008 roku opublikowano algorytm chain-splay, opierający się na zmodyfikowanej operacji \texttt{splay}, dla którego udowodniono \(O(\log \log n) \)-konkurencyjność \cite{DBLP:journals/ipl/Georgakopoulos08}.
 
 \section{Opis implementacji}  
 
 Implementacja składa się z dwóch klas \texttt{splay\_tree} i \texttt{tree\_vert}. 
 
-\subsection{tree\_vert}
+\subsection{tree\_vert} \label{tree_vert_imp}
 
 Ta klasa reprezentuje wierzchołek drzewa binarnego oraz jego poddrzewo. Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{tree\_vert(T val, tree\_vert<T>*f = NULL, tree\_vert<T>*l = NULL, tree\_vert<T>*r = NULL, bool is\_null = false)} tworzący wierzchołek trzymający wartość. Umożliwia ustawienie ojca wierzchołka (f), lewego syna (l), prawego syna (r) oraz wartość oznaczającą czy wartość w wierzchołku ma być traktowana jako cześć drzewa (is\_null)}
-\item{Konstruktor \texttt{tree\_vert()} tworzący pusty wierzchołek którego wartość nie jest częścią drzewa.}
+\item{Konstruktory \texttt{tree\_vert(T val, tree\_vert<T>*f = NULL, tree\_vert<T>*l = NULL, tree\_vert<T>*r = NULL, bool is\_null = false)} --- tworzy wierzchołek zawierający wartość $val$. Umożliwia ustawienie ojca wierzchołka ($f$), lewego syna ($l$), prawego syna ($r$) oraz flagę oznaczającą czy wartość w wierzchołku ma być traktowana jako cześć drzewa (is\_null)}
+\item{Konstruktor \texttt{tree\_vert()} --- tworzy pusty wierzchołek, którego wartość nie jest częścią drzewa.}
 
-\item{Desktruktor zwalniający wszystkie wskaźniki w poddrzewie.}
+\item{Desktruktor --- zwalnia wszystkie wskaźniki w poddrzewie.}
 
-\item{\texttt{void disown\_left()} i \texttt{void disown\_right()} - obcinają odpowiednio lewego i prawego syna wierzchołka.}
+\item{\texttt{void disown\_left()} i \texttt{void disown\_right()} --- obcinają odpowiednio lewego i prawego syna wierzchołka.}
     
-\item{\texttt{bool hook\_up\_left(tree\_vert<T>*)} i \texttt{bool hook\_up\_right(tree\_vert<T>*)} - podpinają wierzchołek z argumentu jako odpowiednio lewego i prawego syna wierzchołka.}
+\item{\texttt{bool hook\_up\_left(tree\_vert<T>* v)} i \texttt{bool hook\_up\_right(tree\_vert<T>* v)} --- podpinają wierzchołek $v$ jako odpowiednio lewego i prawego syna wierzchołka.}
 
-\item{\texttt{bool get\_disowned()} - rozcina krawędź pomiędzy wierzchołkiem a jego ojcem.}
+\item{\texttt{bool get\_disowned()} --- rozcina krawędź pomiędzy wierzchołkiem a jego ojcem.}
 
-\item{\texttt{bool is\_root(), bool is\_left(),  bool is\_right()} - sprawdzają czy wierzchołek jest korzeniem, lewym synem czy prawym synem.}
+\item{\texttt{bool is\_root(), bool is\_left(),  bool is\_right()} --- sprawdzają, czy \\wierzchołek jest korzeniem, lewym synem czy prawym synem.}
 
-\item{\texttt{void rotate\_left(), void rotate\_right()} - wykonują rotację ojca wierzchołka.}
+\item{\texttt{void rotate\_left(), void rotate\_right()} --- wykonują rotację ojca wierzchołka.}
     
-\item{\texttt{void splay()} - wykonuje operację splay na danym wierzchołku.}
+\item{\texttt{void splay()} --- wykonuje operację splay na danym wierzchołku.}
     
-\item{\texttt{tree\_vert<T>* search( T )} - wyszukuje klucza danego jako argument w poddrzewie wierzchołka i zwraca ostatni napotkany wierzchołek.}
+\item{\texttt{tree\_vert<T>* search(T val)} --- wyszukuje klucz $val$ w poddrzewie wierzchołka i zwraca ostatni napotkany wierzchołek.}
    
-\item{\texttt{tree\_vert<T>* next() ,  tree\_vert<T>* prev()} - zwracają natępnika oraz poprzednika wierzchołka w drzewie.}
+\item{\texttt{tree\_vert<T>* next(), tree\_vert<T>* prev()} --- zwracają następnika oraz poprzednika wierzchołka w drzewie.}
 \end{itemize}
 
-\section{splay\_tree}
+\subsection{splay\_tree}
 
-Ta klasa reprezentuje całe drzewo splay. Udostępnia następujące metody: 
+Ta klasa reprezentuje całe drzewo Splay. Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{splay\_tree(),splay\_tree(tree\_vert<T>*) } tworzące puste drzewo i drzewo danym korzeniu. }
+\item{Konstruktory \texttt{splay\_tree(),splay\_tree(tree\_vert<T>* r) } --- tworzą puste drzewo i drzewo o korzeniu $r$. }
 
-\item{Desktruktor zwalniający wszystkie wskaźniki w drzewie.}
+\item{Desktruktor --- zwalnia wszystkie wskaźniki w drzewie.}
 
-\item{\texttt{void splay(T)} - wykonuje operację splay na ostatnim wierzchołku na ścieżce wyszukiwania klucza podanego jako argument.}
+\item{\texttt{void splay(T val)} --- wykonuje operację \texttt{splay} na ostatnim wierzchołku na ścieżce wyszukiwania klucza $val$.}
 
-\item{\texttt{bool find(T)} - sprawdza czy element znajduje się w drzewie.}
+\item{\texttt{bool find(T val)} --- sprawdza, czy element $val$ znajduje się w drzewie.}
     
-\item{\texttt{tree\_vert<T>* lower\_bound( T ), tree\_vert<T>* upper\_bound( T ) } - wyszukują klucza danego jako argument w drzewie i zwraca wskażniki na odpowiednio najmniejszy element większy równy i najmniejszy element mniejszy równy. Gdy wynik nie istnieje zwraca NULL. }
+\item{\texttt{tree\_vert<T>* lower\_bound(T val), tree\_vert<T>* upper\_bound(T val) } --- wyszukują klucz $val$ w drzewie i zwracają wskaźniki na odpowiednio największy element mniejszy równy i najmniejszy element większy równy. Gdy wynik nie istnieje metody zwracają NULL. }
    
-\item{\texttt{bool insert(T)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
-\item{\texttt{bool erase(T)} - wstawia element do drzewa zwraca \texttt{true} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku.}
-\item{\texttt{vector<splay\_tree<T>* > split(splay\_tree<T>* tree, T searched)} - rozdziela drzewo tree na drzewa z elementami mniejszymi, równymi i większymi od podanej wartości.}
+\item{\texttt{bool insert(T val)} --- wstawia element $val$ do drzewa oraz zwraca \texttt{false}, jeśli element znajdował się wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
+\item{\texttt{bool erase(T val)} --- usuwa element $val$ z drzewa oraz zwraca \texttt{true}, jeśli element znajdował się wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku.}
+\item{\texttt{vector<splay\_tree<T>*> split(splay\_tree<T>* tree, T val)} --- rozdziela drzewo tree na drzewa z elementami mniejszymi, równymi i większymi od $val$.}
 
 \end{itemize}
 
-Dodatkowo na drzewach splay są dostępne następujące funkcje : 
+Dodatkowo na drzewach Splay dostępna jest funkcja : 
 
 \begin{itemize}
-
-
-\item{\texttt{splay\_tree<T>* join( splay\_tree<T>* lesser, splay\_tree<T>* greater)} - wykonuje operację join na dwóch drzewach}
+\item{\texttt{splay\_tree<T>* join(splay\_tree<T>* lesser, splay\_tree<T>* greater)} --- łączy dwa drzewa. Drzewo $lesser$ ma wszystkie klucze mniejsze niż $greater$.}
 
 \end{itemize}
 
 \chapter{ Drzewo Tango}
  \section{Opis struktury} 
-Drzewo Tango jest strukturą samoorganizującą, symulującą działanie zbilansowanego drzewa BST, w której wyróżniamy ścieżkę od korzenia do ostatnio odwiedzonego elementu. Opublikowane zostało w 2004 roku przez  Demaine'a, Harmona, John Iacono'a, and Mihai Patraşcu \cite{doi:10.1137/S0097539705447347}. Jako że symulowana struktura jest statyczna, drzewo Tango nie wspiera operacji wstawiania ani usuwania elementów, a konstrukcja struktury odbywa się offline. W 2006 roku opublikowany został algorytm struktura multi-splay, który opiera się na podobnej koncepcji, a wspiera operacje wstawiania i usuwania \cite{wang2006multi}. Do opisu działania algorytmu Tango wprowadźmy następujące pojęcia : 
+Drzewo Tango jest strukturą samoorganizującą, symulującą działanie pełnego statycznego drzewa BST, w której wyróżniamy ścieżkę od korzenia do ostatnio odwiedzonego elementu. 
+Jego konstrukcja opublikowana została w 2004 roku przez  Demaine'a, Harmona, Iacono'a i Patraşcu \cite{DBLP:journals/siamcomp/DemaineHIP07}. Ponieważ symulowana struktura jest statyczna, drzewo Tango nie wspiera operacji wstawiania ani usuwania elementów, a konstrukcja struktury odbywa się offline. W 2006 roku opublikowany został algorytm multi-splay, który opiera się na podobnej koncepcji, a wspiera operacje wstawiania i usuwania \cite{DBLP:conf/soda/WangDS06}. Do opisu działania algorytmu Tango wprowadźmy następujące pojęcia: 
  \begin{itemize} 
- \item{Drzewo referencyjne - zbilansowane drzewo BST zawierające wszystkie te same elementy co nasza struktura. Jeśli liczba elementów nie jest potęgą dwójki, w ostatniej warstwie może brakować liści z prawej strony drzewa.} 
- \item{Preferowana ścieżka wierzchołka– ścieżka prowadząca od wierzchołka (korzenia poddrzewa) do wyróżnionego elementu, w naszym wypadku będzie to najpóźniej  żądany element w poddrzewie.} 
- \item{Preferowany syn – syn wierzchołka leżący na preferowanej ścieżce wierzchołka. Jeżeli ostatnim odwiedzonym wierzchołkiem poddrzewa jest korzeń, wtedy korzeń nie ma preferowanego syna.} 
- \item{Krawędź preferowana – krawędź pomiędzy wierzchołkiem a preferowanym synem} 
- \item{Drzewo pomocnicze -- drzewo czerwono-czarne \cite{Cormen:2009:IAT:1614191} zawierające wierzchołki ścieżki preferowanej.} 
- \item{Niepreferowany syn – syn wierzchołka nie leżący na preferowanej ścieżce} 
- \item{Niepreferowana krawędź – krawędź prowadząca do nie preferowanego syna} 
- \item{Głębokość wierzchołka \(\mathcal{D}(w)\) -- odległość wierzchołka w od korzenia drzewa} 
- \item{Maksymalna i minimalna głębokość wierzchołka -- maksimum i minimum głębokości w poddrzewie wierzchołka w w drzewie pomocniczym.} 
+ \item{Drzewo referencyjne --- pełne drzewo BST zawierające wszystkie te same elementy co nasza struktura. Jeśli liczba elementów nie jest równa \(2^k -1\), w ostatniej warstwie może brakować liści na najgłębszym poziomie.} 
+ \item{Preferowana ścieżka wierzchołka --- ścieżka prowadząca od wierzchołka (korzenia poddrzewa) do wyróżnionego elementu, w naszym wypadku będzie to najpóźniej  żądany element w poddrzewie.} 
+ \item{Preferowany syn --- syn wierzchołka leżący na preferowanej ścieżce wierzchołka. Jeżeli nie odwiedzono żadnego wierzchołka w poddrzewie oprócz korzenia, wtedy korzeń nie ma preferowanego syna.} 
+ \item{Krawędź preferowana --- krawędź pomiędzy wierzchołkiem a preferowanym synem.} 
+ \item{Drzewo pomocnicze --- drzewo czerwono-czarne \cite{Cormen:2009:IAT:1614191} zawierające wierzchołki ścieżki preferowanej.} 
+ \item{Niepreferowany syn --- syn wierzchołka nieleżący na preferowanej ścieżce.} 
+ \item{Niepreferowana krawędź --- krawędź prowadząca do niepreferowanego syna.} 
+ \item{Głębokość wierzchołka \(\mathcal{D}(w)\) --- odległość wierzchołka w od korzenia drzewa.} 
+ \item{Maksymalna i minimalna głębokość wierzchołka --- maksimum i minimum głębokości w poddrzewie wierzchołka w drzewie pomocniczym.} 
  \end{itemize} 
  \subsection{Konstrukcja struktury}  
 
-Oznaczmy zbiór elementów w naszym drzewie jako \(\mathcal{E}\). Analogicznie niech \(\mathcal{E}(v)\) będzie zbiorem elementów. Rozpatrzmy drzewo BST \(\mathcal{B}\) zawierające elementy \(\mathcal{E}\). Niech \( \mathcal{S}\) będzie zbiorem wierzchołków preferowanej ścieżki w \(\mathcal{B}\). Wierzchołki \(\mathcal{S}\) umieszczamy na drzewie czerwono czarnym. Niepreferowanych synów podpinamy pod odpowiadających ojców z preferowanej ścieżki dodatkowymi krawędziami. Dodane krawędzie nie są częścią drzewa czerwono czarnego. Powtarzamy procedurę dla poddrzew, w którym korzeniami są niepreferowani synowie wierzchołków z \(\mathcal{S}\).  
+Oznaczmy zbiór elementów w naszym drzewie jako \(\mathcal{E}\). Rozpatrzmy drzewo referencyjne \(B\) zawierające elementy \(\mathcal{E}\). Niech \( \mathcal{S}\) będzie zbiorem wierzchołków preferowanej ścieżki w \(B\). Wierzchołki \(\mathcal{S}\) umieszczamy na drzewie czerwono czarnym. Niepreferowanych synów podpinamy pod odpowiadających ojców z preferowanej ścieżki dodatkowymi krawędziami. Dodane krawędzie nie są częścią drzewa czerwono czarnego. Powtarzamy procedurę dla poddrzew, w którym korzeniami są niepreferowani synowie wierzchołków z \(\mathcal{S}\).  
 
-\includegraphics[scale=0.5]{Tango_path2.png}  
+\includegraphics[scale=0.45]{Tango_path2.png}  
 
 \subsection{Operacje na drzewie pomocniczym} Do zdefiniowania operacji słownikowych na drzewie Tango będziemy korzystali z następujących operacji na drzewie czerwono-czarnym. 
 \begin{enumerate} 
-\item{Split- Rozdzielenie drzewa czerwono-czarnego na dwa osobne zbilansowane drzewa, zawierające klucze mniejsze i większe od danego} 
-\item{Join- Połączenie dwóch drzew czerwono-czarnych w jedno} 
+\item{Split --- Rozdzielenie drzewa czerwono-czarnego na dwa osobne zbalansowane drzewa, zawierające klucze mniejsze i większe od danego.} 
+\item{Join --- Połączenie dwóch drzew czerwono-czarnych w jedno.} 
 \end{enumerate} 
 \subsection{Łączenie i rozdzielanie drzew preferowanych ścieżek} 
-Aby aktualizować preferowane ścieżki, potrzebujemy umieć połączyć dwa drzewa preferowanych ścieżek oraz rozdzielić drzewo preferowanej ścieżki. Do połączenia dwóch drzew wystarczy wykorzystać operację join. Aby rozdzielić ścieżkę w danym wierzchołku $w$, potrzebujemy znaleźć w drzewie pomocniczym wszystkie wierzchołki o głębokości większej niż \(\mathcal{D}(w)\) i zrobić z nich osobne drzewo pomocnicze. Zauważmy, że istnieje przedział kluczy, dla których wszystkie wierzchołki w drzewie pomocniczym są głębokości większej niż \(\mathcal{D}(w)\). Korzystając z maksymalnej głębokości, możemy znaleźć minimalny i maksymalny klucz o głębokości większej niż \(\mathcal{D}(w)\). Następnie przy pomocy dwóch operacji Split wydzielamy dolną część ścieżki do osobnego drzewa pomocniczego i łączymy z powrotem pozostałe klucze przy pomocy operacji join.\\ 
-\includegraphics[scale=0.5]{rozdzielanie.png} 
-\subsection{Aktualizacja preferowanych ścieżek} Mając wierzchołek $v$ chcemy zaktualizować drzewo w taki sposób, aby ścieżka do wierzchołka $v$ była ścieżką preferowaną całego drzewa. Niech wierzchołek $v$ będzie częścią preferowanej ścieżki \(\mathcal{P}\), jakiegoś poddrzewa drzewa referencyjnego. \(\mathcal{P}\) może być pojedynczym wierzchołkiem. Zaczynamy od rozdzielenia \(\mathcal{P}\) w wierzchołku $v$. Preferowany syn wierzchołka, jeżeli istnieje, staje się nie preferowanym synem. Następnie wykonujemy poniższe kroki, tak długo, aż nie dotrzemy do korzenia całego drzewa. 
+Aby aktualizować preferowane ścieżki, musimy umieć połączyć dwa drzewa preferowanych ścieżek oraz rozdzielić drzewo preferowanej ścieżki. Do połączenia dwóch drzew wystarczy wykorzystać operację join. Aby rozdzielić ścieżkę w danym wierzchołku $w$, potrzebujemy znaleźć w drzewie pomocniczym wszystkie wierzchołki o głębokości większej niż \(\mathcal{D}(w)\) i zrobić z nich osobne drzewo pomocnicze. Zauważmy, że istnieje przedział kluczy, dla których wszystkie wierzchołki w drzewie pomocniczym mają głębokość większą niż \(\mathcal{D}(w)\). Korzystając z maksymalnej głębokości, możemy znaleźć minimalny i maksymalny klucz o głębokości większej niż \(\mathcal{D}(w)\). Następnie przy pomocy dwóch operacji Split wydzielamy dolną część ścieżki do osobnego drzewa pomocniczego i łączymy z powrotem pozostałe klucze przy pomocy operacji join.\\ 
+\includegraphics[scale=0.45]{rozdzielanie.png} 
+\subsection{Aktualizacja preferowanych ścieżek} Mając wierzchołek $v$ chcemy zaktualizować drzewo w taki sposób, aby ścieżka do wierzchołka $v$ była ścieżką preferowaną całego drzewa. Niech wierzchołek $v$ będzie częścią preferowanej ścieżki \(\mathcal{P}\) jakiegoś poddrzewa drzewa referencyjnego. \(\mathcal{P}\) może być pojedynczym wierzchołkiem. Zaczynamy od rozdzielenia \(\mathcal{P}\) w wierzchołku $v$. Preferowany syn wierzchołka, jeżeli istnieje, staje się niepreferowanym synem. Następnie wykonujemy poniższe kroki, tak długo, aż dotrzemy do korzenia całego drzewa. 
 \begin{enumerate} 
 \item{Niech $v$ będzie ostatnim elementem preferowanej ścieżki z wierzchołka $r$. Znajdujemy ojca $o$ wierzchołka $r$.} 
-\item{Rozdzielamy ścieżkę preferowaną do której należy $o$ w wierzchołku $o$. Preferowany syn wierzchołka staje się nie preferowanym.} 
+\item{Rozdzielamy ścieżkę preferowaną, do której należy $o$ w wierzchołku $o$. Preferowany syn wierzchołka staje się niepreferowanym.} 
 \item{Do górnej części ścieżki preferowanej dołączamy ścieżkę z $r$ do $v$.} 
 \end{enumerate} 
-\subsection{Wyszukiwanie} Do wyszukiwania klucza $k$ będziemy symulować wyszukiwanie na drzewie referencyjnym. Najpierw wyszukujemy $k$ w drzewie pomocniczym. Jeśli nie znaleźliśmy klucza $k$ w ścieżce preferowanej, wtedy kontynuujemy wyszukiwanie w poddrzewie niepreferowanego syna ostatniego wierzchołka, na którym zakończyliśmy wyszukiwanie. Na koniec aktualizujemy preferowane ścieżki. 
+\subsection{Wyszukiwanie} Do wyszukiwania klucza $k$ będziemy symulować wyszukiwanie na drzewie referencyjnym. Najpierw wyszukujemy $k$ w drzewie pomocniczym. Jeśli nie znaleźliśmy klucza $k$ w ścieżce preferowanej, wtedy kontynuujemy wyszukiwanie w poddrzewie niepreferowanego syna ostatniego wierzchołka, na którym zakończyliśmy wyszukiwanie. Jeśli ten wierzchołek nie ma odpowiedniego niepreferowanego syna, należy sprawdzić jego następnika lub poprzednika w zależności od wartości porównania z $k$. Na koniec aktualizujemy preferowane ścieżki. 
 \section{Analiza złożoności} 
 \subsection{Złożoność czasowa} Oszacujmy złożoność operacji na drzewach pomocniczych. 
 \begin{lemma} 
 \label{Pref_cost} 
-Złożoność dowolnej operacji na drzewie pomocniczym to \( O(\log \log n)\) gdzie $n$ to liczba elementów w strukturze. 
+Złożoność dowolnej operacji na drzewie pomocniczym to \( O(\log \log n)\), gdzie $n$ to liczba elementów w strukturze. 
 \end{lemma} 
 \begin{proof} 
-Preferowane ścieżki, są ścieżkami zbilansowanego drzewa binarnego, zatem ich długość jest nie większa niż \(\lceil \log n \rceil\). Operacje na drzewach pomocniczych są implementowane przy pomocy drzewa czerwono-czarnego i są wykonywane w czasie logarytmicznym od rozmiaru drzewa. Zatem koszt operacji to \( O(\log\log n)\). 
+Preferowane ścieżki są ścieżkami zbalansowanego drzewa binarnego, zatem ich długość jest nie większa niż \(\lceil \log n \rceil\). Operacje na drzewach pomocniczych są implementowane przy pomocy drzewa czerwono-czarnego i są wykonywane w czasie logarytmicznym od rozmiaru drzewa. Zatem koszt operacji to \( O(\log\log n)\). 
 \end{proof}  
 
 Następnie oszacujmy koszt pojedynczego dostępu do elementu w drzewie Tango.
 \begin{lemma} 
-\label{Tango_cost} Złożoność pojedynczego dostępu do elementu \(x_i\) w drzewie Tango to \(O((k+1)(1+\log \log n))\), gdzie $n$ to liczba elementów w strukturze, a $k$ liczba nie preferowanych krawędzi na ścieżce z korzenia do \(x_i\). 
+\label{Tango_cost} Złożoność pojedynczego dostępu do elementu \(x_i\) w drzewie Tango to \(O((k+1)(1+\log \log n))\), gdzie $n$ to liczba elementów w strukturze, a $k$ liczba niepreferowanych krawędzi na ścieżce z korzenia do \(x_i\). 
 \end{lemma} 
-\begin{proof} Koszt dostępu można rozdzielić na koszt wyszukiwania i koszt aktualizacji preferowanych ścieżek w drzewie. Przy wyszukiwaniu odwiedzimy nie więcej niż $k+1$ drzew pomocniczych. Z \ref{Pref_cost} wynika, że wyszukiwanie w drzewie pomocniczym ma złożoność \(O(\log \log n)\). Zatem sumaryczny koszty wyszukania to \(O((k+1)(1+\log \log n))\). Analogicznie przy aktualizacji dla każdego odwiedzonego drzewa pomocniczego wykonujemy jedna operację Split i dwie operacje Join, wiec sumaryczny koszt to również\(O((k+1)(1+\log \log n))\). 
+\begin{proof} Koszt dostępu można rozdzielić na koszt wyszukiwania i koszt aktualizacji preferowanych ścieżek w drzewie. Przy wyszukiwaniu odwiedzimy nie więcej niż $k+1$ drzew pomocniczych. Z Lematu \ref{Pref_cost} wynika, że wyszukiwanie w drzewie pomocniczym ma złożoność \(O(\log \log n)\). Zatem sumaryczny koszt wyszukania to \(O((k+1)(1+\log \log n))\). Analogicznie przy aktualizacji dla każdego odwiedzonego drzewa pomocniczego wykonujemy jedną operację split i dwie operacje join, więc sumaryczny koszt to również \(O((k+1)(1+\log \log n))\). 
 \end{proof} 
 %\begin{theorem} Pesymistyczny koszt pojedynczego dostępu to \(O(log(n)log(log(n)))\). 
 %\end{theorem} 
 
-\subsection{Złożoność pamięciowa} Dla każdego wierzchołka będziemy pamiętać maksymalnie dwa wskaźniki na synów w drzewie pomocniczym, dwa wskaźniki na nie preferowanych synów w drzewie referencyjnym, jeden wskaźnik na ojca w drzewie pomocniczym, oraz klucz. Zatem złożoność pamięciowa to \( O (n)\). 
+\subsection{Złożoność pamięciowa} Dla każdego wierzchołka będziemy pamiętać maksymalnie dwa wskaźniki na synów w drzewie pomocniczym, dwa wskaźniki na niepreferowanych synów w drzewie referencyjnym, jeden wskaźnik na ojca w drzewie pomocniczym oraz klucz. Zatem złożoność pamięciowa to \( O (n)\). 
 
 \section{Konkurencyjność}   
 
-\subsection{Przeplotowe ograniczenie dolne} Zdefiniujemy sobie model do szacowania ograniczenia dolnego na liczbę operacji na optymalnym drzewie binarnym. Stwórzmy na kluczach $x_i \in \{1, ..., n\}$ idealne drzewo binarne \(B\). Jeśli \( n \neq 2^k -1\) wtedy nasze drzewo będzie pełne, a nie idealne. Struktura drzewa nie będzie się zmieniać w czasie.  
+\subsection{Przeplotowe ograniczenie dolne} 
+Zdefiniujemy model do szacowania ograniczenia dolnego na liczbę operacji na optymalnym drzewie binarnym. Niech \(B\) będzie drzewem referencyjnym dla naszego zbioru elementów. 
 
 \begin{definition}[Lewy i prawy obszar] 
-Dla danego wierzchołka \(y\) i drzewa \(B\) jego lewym obszarem \(L(y)\) będzie lewe poddrzewo \(y\) oraz \(y\), a prawy obszar \(P(y)\) to prawe poddrzewo \(y\).
+Dla danego wierzchołka \(y\) i drzewa referencyjnego \(B\) lewym obszarem \(L(y)\) będzie lewe poddrzewo \(y\) w $B$ oraz \(y\), a prawym obszarem \(P(y)\) prawe poddrzewo \(y\) w $B$.
 \end{definition}  
 
-Przy każdym zapytaniu \(x_i\) dla wszystkich wierzchołków na ścieżce od korzenia do \(x_i\) odnotowujemy czy \(x_i\) znajduje się w jego prawym czy lewym poddrzewie.  
+\begin{figure}[H]  
+\centering
+\includegraphics[scale = 0.3]{lr_area.png}
+\caption{Lewy i prawy obszar w drzewie}  
+\end{figure} 
 
-\begin{definition}[Przeplot] 
-Dla danego wierzchołka \(y\), drzewa \(B\) i ciągu zapytań \(X\), przeplotem nazwiemy parę zapytań \((x_i, x_j)\) spełniającą następujące warunki : \\ 
-\begin{enumerate} 
-\item{\( ( x_i \in P(y) \wedge x_j \in L(y)) \vee ( x_i \in L(y) \wedge x_j \in P(y))\)} 
-\item{\( \neg \exists_{k \in [i, j]}( x_k \in  L(y) \vee x_k \in P(y) \)} 
-\end{enumerate}  
 
-Zdefiniujmy, także funkcję \(IB(X, i)\) jako liczbę przeplotów wprowadzonych przez i-te zapytanie, w ciągu zapytań $X$, a \(IB(X) = \sum_i IB(X, i)\). \end{definition}  
+Przy każdym zapytaniu \(x_i\) dla każdego wierzchołka $y$ na ścieżce od korzenia do \(x_i\) odnotowujemy, czy \(x_i\) znajduje się w prawym czy lewym poddrzewie $y$.  
 
-Będziemy starali oszacować liczbę operacji w optymalnym algorytmie BST, korzystając z liczby przeplotów. Niech \(T_i\) będzie stanem drzewa binarnego po wykonaniu zapytań \( x_1, x_2, ..., x_i\), przez dowolny deterministyczny algorytm wyszukiwania i reorganizacji.  
+\begin{definition}[Ciąg przeplotów] 
+Dla danego wierzchołka \(y\), drzewa referencyjnego \(B\) i ciągu zapytań \(X\), ciągiem przeplotów $P = \{p_1, p_2,..., p_k\}$ nazwiemy najdłuższy podciąg $X$ spełniający : \\ 
+\begin{align*}
+\forall_i (p_i \in P(y) \rightarrow p_{i+1} \in L(y)) \wedge (p_i \in L(y) \rightarrow p_{i+1} \in P(y))
+\end{align*}
+Długość tego ciągu będziemy nazywali liczbą przeplotów w wierzchołku $y$.\\
+Zdefiniujmy także funkcję \(IB(X, i)\) jako liczbę wierzchołków $y$ dla których ciąg przeplotów przedłużył się po zapytaniu $x_i$. Niech \(IB(X) = \sum_i IB(X, i)\). 
+\end{definition}  
 
-\begin{definition} Punkt przejściowy wierzchołka $y$ w momencie $i$ to wierzchołek $z$ , o najmniejszej  głębokości w \( T_i\), taki że ścieżka z korzenia $T_i$ przechodzi przez jakiś wierzchołek zarówno z $L(y)$ jaki i $P(y)$ w pełnym drzewie $B$. \end{definition}  
+Będziemy starali się oszacować liczbę operacji w optymalnym algorytmie BST korzystając z liczby przeplotów. Niech \(T_i\) będzie stanem drzewa binarnego po wykonaniu zapytań \( x_1, x_2, ..., x_i\), przez dowolny deterministyczny algorytm wyszukiwania i reorganizacji.  
+
+\begin{definition} 
+Punkt przejściowy wierzchołka $y$ w momencie $i$ to wierzchołek $z$ o najmniejszej głębokości w \( T_i\), taki że ścieżka z korzenia $T_i$ do $z$ przechodzi przez jakiś wierzchołek zarówno z $L(y)$ jak i $P(y)$.
+\end{definition}  
 
 \begin{lemma} 
-Dla każdego wierzchołka $y$ i momentu $i$ istnieje dokładnie jeden punkt przejściowy. 
+Dla każdego wierzchołka $y$ oraz momentu $i$ istnieje dokładnie jeden punkt przejściowy. 
 \end{lemma} 
 \begin{proof} 
-Niech $l$ i $r$ będą najniższymi wspólnymi przodkami odpowiednio wierzchołków z $L(y)$ i  z $P(y)$ w $T_i$ . Ponieważ klucze w lewym obszarze stanowią spójny przedział posortowanego ciągu wszystkich kluczy, a w drzewie BST wspólny przodek dwóch wierzchołków ma wartość klucza pomiędzy wartościami synów, w takim razie $l$ jest elementem lewego poddrzewa. Analogicznie $r$ jest elementem prawego poddrzewa. Zauważmy również, że klucze całego poddrzewa $y$ w $B$ stanowią spójny przedział posortowanego ciągu wszystkich kluczy, zatem najniższy wspólny przodek należy albo do lewego albo do prawego obszaru. Z tego wynika, że $l$ lub $r$ jest najniższym wspólnym przodkiem całego poddrzewa. Załóżmy bez straty ogólności, że jest to $l$. Zauważmy, że $r$ będzie punktem przejściowym dla $y$ w momencie $i$. Z definicji, najniższego wspólnego przodka, jest jedynym wierzchołkiem o najmniejszej głębokości, którego ścieżka przechodzi przez wierzchołek z $R(y)$. Ścieżka do $r$ przechodzi też przez $l$, które jest elementem $L(y)$. \end{proof}  
+Niech $l$ i $r$ będą najniższymi wspólnymi przodkami odpowiednio wierzchołków z $L(y)$ i z $P(y)$ w $T_i$ . Klucze w lewym obszarze stanowią spójny przedział posortowanego ciągu wszystkich kluczy, a w drzewie BST wspólny przodek dwóch wierzchołków ma wartość klucza pomiędzy ich wartościami, w takim razie $l$ jest elementem lewego poddrzewa. Analogicznie $r$ jest elementem prawego poddrzewa. Zauważmy również, że klucze całego poddrzewa $y$ w $B$ stanowią spójny przedział posortowanego ciągu wszystkich kluczy, zatem najniższy wspólny przodek należy albo do lewego albo do prawego obszaru. Z tego wynika, że $l$ lub $r$ jest najniższym wspólnym przodkiem całego poddrzewa. Załóżmy bez straty ogólności, że jest to $l$. Zauważmy, że $r$ będzie punktem przejściowym dla $y$ w momencie $i$. Z definicji najniższego wspólnego przodka, $r$ jest jedynym wierzchołkiem o najmniejszej głębokości, którego ścieżka przechodzi przez wierzchołek z $P(y)$. Ścieżka do $r$ przechodzi też przez $l$, które jest elementem $L(y)$. 
+\end{proof}  
 
 \begin{lemma} 
-Jeśli w momencie $i$ $z$ był punktem przejściowym wierzchołka $y$ i algorytm BST obsługując zapytania $x_j, ..., x_k$  nie przechodzi przez $z$, ani nie wykonuje rotacji, która by zmniejszyła głębokość $z$, to $z$ jest punktem przejściowym w każdym momencie z przedziału \([j, k]\). 
+Jeśli w momencie $j$ $z$ był punktem przejściowym wierzchołka $y$ i algorytm BST obsługując zapytania $x_j, ..., x_k$  nie przechodzi przez $z$, ani nie wykonuje rotacji z udziałem $z$, to $z$ jest punktem przejściowym w każdym momencie z przedziału \([j, k]\). 
 \end{lemma}
-\begin{proof} Zdefiniujmy $l$ i $r$ jak w poprzednim dowodzie i załóżmy bez straty ogólności, że $l$ jest wspólnym przodkiem wszystkich wierzchołków z $L(y)$ i $P(y)$ w momencie $j$. Zatem $r$ jest punktem przejściowym $y$ w momencie $j$. Skoro algorytm BST nie przechodzi w zapytaniach przez $r$ to $r$ pozostaje najniższym wspólnym przodkiem wierzchołków $P(Y)$ w $T_i$. Dodatkowo, skoro nie została wykonana, żadna rotacja zmniejszająca  głębokość $r$ to poddrzewo $r$ w \(T_i\) pozostaje niezmienne. W czasie wykonywania zapytań \( x_j,..., x_k\) , żaden element z $L(y)$ nie stał się synem $r$, zatem jakiś element $L(Y)$ musi być wspólnym przodkiem wszystkich wierzchołków z $L(y)$ i $P(y)$. Z tego wynika, że $r$ pozostaje punktem przejściowym $y$. 
+\begin{proof} Zdefiniujmy $l$ i $r$ jak w poprzednim dowodzie i załóżmy bez straty ogólności, że $l$ jest wspólnym przodkiem wszystkich wierzchołków z $L(y)$ i $P(y)$ w momencie $j$. Zatem $r$ jest punktem przejściowym $y$ w momencie $j$. Skoro algorytm BST nie przechodzi w zapytaniach przez $r$ to $r$ pozostaje najniższym wspólnym przodkiem wierzchołków $P(Y)$ w $T_k$. Dodatkowo, skoro nie została wykonana żadna rotacja z udziałem $r$ to w czasie wykonywania zapytań \( x_j,..., x_k\), żaden element z $L(y)$ nie stał się synem $r$, zatem jakiś element $L(y)$ musi być wspólnym przodkiem wszystkich wierzchołków z $L(y)$ i $P(y)$. Z tego wynika, że $r$ pozostaje punktem przejściowym $y$. 
 \end{proof}  
 
 \begin{lemma} 
@@ -451,90 +498,102 @@ Jeśli w momencie $i$ $z$ był punktem przejściowym wierzchołka $y$ i algorytm
 Każdy wierzchołek $z$ może być w momencie $i$ punktem przejściowym co najwyżej jednego wierzchołka $y$. 
 \end{lemma} 
 \begin{proof} 
-Weźmy dowolne dwa wierzchołki $y_1$ i $y_2$, pokażemy, że ich punkty przejściowe w momencie $i$ są różne. Zdefiniujmy dla nich podobnie jak w dowodach poprzednich lematów odpowiednio $l_1, r_1$ i $l_2, r_2$. Jeśli $y_1$ i $y_2$ nie znajdują się na jednej ścieżce do korzenia ( żaden nie jest przodkiem drugiego), to ich lewe i prawe obszary są rozłączne, a zatem ich punkty przejściowe muszą być różne. Jeśli tak nie jest to załóżmy bez straty ogólności, że $y_1$, jest przodkiem $y_2$. Jeśli punkt przejściowy $y_1$ znajduje się w innym obszarze $y_1$ niż $y_2$, wtedy punkty przejściowe muszą być różne. W przeciwnym wypadku punkt przejściowy $y_1$ musi być wspólnym przodkiem elementów z $L(y_2)$ i $R(y_2)$. Zatem głębokość punktu przejściowego $y_1$ będzie nie większa niż głębokość $l_2$ i $r_2$. Z kolei punkt przejściowy $y_2$ ma głębokość nie mniejszą niż głębokości $l_2$ i $r_2$. Skoro $l_2$ i $r_2$ muszą mieć różne głębokości, to punkty przejściowe $y_1$ i $y_2$ muszą być różne.  
+Weźmy dowolne dwa wierzchołki $y_1$ i $y_2$. Pokażemy, że ich punkty przejściowe w momencie $i$ są różne. Zdefiniujmy dla nich, podobnie jak w dowodach poprzednich lematów, odpowiednio $l_1, r_1$ i $l_2, r_2$. Jeśli $y_1$ i $y_2$ nie znajdują się na jednej ścieżce do korzenia (żaden nie jest przodkiem drugiego w drzewie referencyjnym), to ich lewe i prawe obszary są rozłączne, a zatem ich punkty przejściowe muszą być różne. Jeśli tak nie jest, to załóżmy bez straty ogólności, że $y_1$, jest przodkiem $y_2$. Jeśli punkt przejściowy $y_1$ znajduje się w innym obszarze $y_1$ niż $y_2$, wtedy punkty przejściowe muszą być różne. W przeciwnym wypadku punkt przejściowy $y_1$ musi być wspólnym przodkiem elementów z $L(y_2)$ i $P(y_2)$. Zatem głębokość punktu przejściowego $y_1$ będzie nie większa niż głębokość $l_2$ i $r_2$. Z kolei punkt przejściowy $y_2$ ma głębokość nie mniejszą niż głębokości $l_2$ i $r_2$. Skoro $l_2$ i $r_2$ muszą mieć różne głębokości, to punkty przejściowe $y_1$ i $y_2$ muszą być różne.  
 \end{proof} 
 \begin{theorem} 
 \label{low_bound} 
 \(OPT(X) \geq \frac{IB(X)}{2} - n\), gdzie $OPT$ to koszt działania optymalnego algorytmu BST na ciagu zapytań $X$. 
 \end{theorem} 
 \begin{proof} 
-Będziemy szacować z dołu liczbę operacji wykonywanych przez optymalny algorytm przez liczbę punktów przejściowych odwiedzonych (przechodzi przez nie ścieżka z korzenia do $x_i$ lub wykonuje się na nich rotacje zmniejszające ich głębokość) w trakcie wykonywania zapytań. Korzystając z \ref{eig_trans_point} będziemy zliczać te wydarzenia dla każdego wierzchołka $y$ osobno, a następnie je zsumujemy. Niech \( x_{a_1}, x{a_2}, ..., x{a_k}\) będzie maksymalnym podciągiem zapytań, w którym każde dwa kolejne zapytania są o elementy w różnych obszarach $y$. $p$ będzie liczbą przeplotów w $y$. Załóżmy bez straty ogólności, że zapytania \(x_{a_{2i}}\) będą zapytaniami a elementy lewego obszary, \(x_{a_{2i+1}}\) prawego. Rozpatrzmy $l$ i $r$ takie jak w poprzednich dowodach. Wszystkie zapytania o prawy obszar $y$ odwiedzają $r$, a o lewy odwiedzają $l$. Zatem przy dwóch kolejnych zapytaniach albo algorytm albo będzie przechodził przez punkt przejściowy przy wyszukiwaniu, albo punkt przejściowy się zmieni, co również wymaga odwiedzenia punktu przejściowego. Zatem dla dwóch kolejnych zapytań z naszego podciągu algorytm przynajmniej raz odwiedza punkt przejściowy $y$. Dla danego wierzchołla otrzymujemy odwiedzamy \(\lfloor \frac{p}{2} \rfloor \geq \frac{p}{2} -1\).  Sumując po wszystkich $y$ otrzymujemy \(OPT(X) \geq \frac{IB(X)}{2} - n\). 
+Będziemy szacować z dołu liczbę operacji wykonywanych przez optymalny algorytm przez liczbę punktów przejściowych odwiedzonych w trakcie wykonywania zapytań (przechodzi przez nie ścieżka z korzenia do $x_i$ lub wykonuje się na nich rotacje zmniejszające ich głębokość). Korzystając z Lematu \ref{eig_trans_point} będziemy zliczać te wydarzenia dla każdego wierzchołka $y$ osobno, a następnie je zsumujemy. Niech \( x_{a_1}, x_{a_2}, ..., x_{a_k}\) będzie ciągiem przeplotów wierzchołka $y$. Niech $p$ będzie liczbą przeplotów w $y$. Załóżmy bez straty ogólności, że zapytania \(x_{a_{2i}}\) będą zapytaniami o elementy lewego obszaru, a \(x_{a_{2i+1}}\) prawego. Rozpatrzmy $l$ i $r$ takie jak w poprzednich dowodach. Wszystkie zapytania o prawy obszar $y$ odwiedzają $r$, a o lewy odwiedzają $l$. Zatem przy dwóch kolejnych zapytaniach albo algorytm będzie przechodził przez punkt przejściowy przy wyszukiwaniu, albo punkt przejściowy się zmieni, co również wymaga odwiedzenia punktu przejściowego. Zatem dla dwóch kolejnych zapytań z naszego podciągu algorytm przynajmniej raz odwiedza punkt przejściowy $y$. Dla danego wierzchołka odwiedzamy \(\lfloor \frac{p}{2} \rfloor \geq \frac{p}{2} -1\) punktów przejściowych. Sumując po wszystkich $y$ otrzymujemy \(OPT(X) \geq \frac{IB(X)}{2} - n\). 
 \end{proof}  
 
 
 \subsection{Zastosowanie przeplotów w oszacowaniu konkurencyjności} 
 \begin{lemma}
 \label{num_switch} 
-Liczba nie preferowanych krawędzi na ścieżce z korzenia do \(x_i\) jest równa \(IB(X, i)\). 
+Liczba niepreferowanych krawędzi na ścieżce z korzenia do \(x_i\) jest równa \(IB(X, i)\). 
 \end{lemma} 
 \begin{proof} 
-Obecność niepreferowanej krawędzi \( \{a, b\}\) na ścieżce oznacza, że ostatnie zapytanie o element w poddrzewie wierzchołka $y$ w innym poddrzewie niż \(x_i\). To odpowiada przeplotowi. 
+Obecność niepreferowanej krawędzi \( \{a, b\}\) na ścieżce oznacza, że ostatnie zapytanie było o element w poddrzewie wierzchołka $a$ w innym obszarze niż \(x_i\). To odpowiada przedłużeniu ciągu przeplotów. 
 \end{proof}  
 
 \begin{theorem} 
-Dla ciągu zapytań \(X = \{x_1, x_2,..., x_m\}\), takich że \( \forall_i x_i \in \{1, 2, ..., n\}\) sumaryczny koszt działania drzewa Tango to \( O((OPT(X) + n)(1 + loglogn))\), gdzie \(OPT(X)\) to koszt optymalnego dynamicznego drzewa BST działającego offline. 
+Drzewa Tango są \( O(\log \log n)\) - konkurencyjne. 
 \end{theorem} 
 \begin{proof} 
-Z \ref{num_switch} i \ref{Tango_cost} wynika, że koszt obsługi pojedynczego zapytania na drzewie Tango to \(O((IB(X, i)+1)(1+loglogn))\).Dodatkowo, dla każdego wierzchołka co najwyżej raz będziemy zmieniać jego stan z nie posiadania preferowanego syna na posiadanie jednego. Zatem sumaryczny koszt zapytania to \(O((IB(X)+m +n )(1+loglogn))\). Z \ref{low_bound} wiemy, że \(OPT(X) \geq IB(X) - n\). Oczywiste też jest, że \(OPT(X) \geq m\). Z tego wynika, że koszt algorytmu to \(O(OPT(X)+n )(1+loglogn))\). 
+Pokażemy, że dla ciągu zapytań \(X = \{x_1, x_2,..., x_m\}\), takich że \( \forall_i x_i \in \{1, 2, ..., n\}\) sumaryczny koszt działania drzewa Tango to \( O((OPT(X) + n)(1 + \log \log n))\), gdzie \(OPT(X)\) to koszt optymalnego dynamicznego drzewa BST działającego offline. 
+
+Z Lematów \ref{num_switch} i \ref{Tango_cost} wynika, że koszt obsługi pojedynczego zapytania na drzewie Tango to \(O((IB(X, i)+1)(1+\log \log n))\). Dodatkowo, dla każdego wierzchołka co najwyżej raz będziemy zmieniać jego stan z nieposiadania preferowanego syna na posiadanie jednego. Zatem sumaryczny koszt zapytania to \(O((IB(X)+m +n )(1+\log \log n))\). Z Lematu \ref{low_bound} wiemy, że \(OPT(X) \geq IB(X) - n\). Oczywiste też jest, że \(OPT(X) \geq m\). Zatem koszt algorytmu to \(O(OPT(X)+n )(1+\log \log n))\). 
 \end{proof}  
 
 \section{Opis implementacji} 
 
-Implementacja składa się z czterech klas \texttt{br\_tree}, \texttt{br\_vert}, \texttt{tango\_tree} i \texttt{tango\_vert}. Dodatkowo funkcja split zwraca klasę pomocniczą  \texttt{splitted\_tree}.
+Implementacja składa się z czterech klas \texttt{br\_tree}, \texttt{br\_vert}, \texttt{tango\_tree} i \\\texttt{tango\_vert}. Dodatkowo funkcja split zwraca obiekt klasy pomocniczej  \texttt{splitted\_tree}.
 
+\subsection{splitted\_tree}
+Klasa reprezentuje drzewo referencyjne rozdzielone w kluczu $k$. Klasa ma trzy pola : 
+\begin{itemize}
+\item{\texttt{br\_tree<T>* lesser} --- reprezentuje drzewo składające się z elemetnów mniejszych od $k$.}
+\item{\texttt{br\_vert<T>* pivot} --- reprezentuje wierzchołek o kluczu $k$. Jeśli $k$ nie znajdowało się w drzewie może mieć wartość NULL}
+\item{\texttt{br\_tree<T>* greater} --- reprezentuje drzewo składające się z elemetnów większych od $k$.}
+\end{itemize}
 
 \subsection{br\_vert}
 
-Ta klasa reprezentuje wierzchołek drzewa czerwono-czarnego oraz jego poddrzewo. Poza standardowymi właściwościami drzewa czerwono czarnego, wierzchołek utrzymuje minimalną i maksymalną głębokość potrzebne do wykonywania operacji na drzewach pomocniczych. Ta klasa dziedziczy po wcześniej wymienionej klasie \texttt{tree\_vert}. Rozszerza funkcjonalność klasy bazowej o aktualizowanie czarnej wysokości przy zmianach w strukturze drzewa oraz o następujące metody:
+Ta klasa reprezentuje wierzchołek drzewa czerwono-czarnego oraz jego poddrzewo. 
+Poza standardowymi właściwościami drzewa czerwono czarnego, wierzchołek utrzymuje minimalną i maksymalną głębokość potrzebne do wykonywania operacji na drzewach pomocniczych. 
+Ta klasa dziedziczy po wcześniej wymienionej klasie \texttt{tree\_vert}. 
+Rozszerza ona funkcjonalność klasy bazowej o aktualizowanie czarnej wysokości przy zmianach w strukturze drzewa oraz o następujące metody:
 
 \begin{itemize}
 
-\item{Konstruktor \texttt{tree\_vert(T val, tree\_vert<T>*f = NULL, tree\_vert<T>*l = NULL, tree\_vert<T>*r = NULL, bool is\_null = false)} tworzący wierzchołek trzymający wartość. Umożliwia ustawienie ojca wierzchołka (f), lewego syna (l), prawego syna (r) oraz wartość oznaczającą czy wartość w wierzchołku ma być traktowana jako cześć drzewa (is\_null).}
+\item{Konstruktor \texttt{br\_vert(T val, int d, bool is\_null = false, bool col = RED, br\_vert<T>*f = NULL, br\_vert<T>*l = NULL, br\_vert<T>*r = NULL)} --- tworzy wierzchołek zawierający wartość $val$. Umożliwia ustawienie głębokości wierzchołka ($d$) oraz koloru ($col$).}
 
-\item{\texttt{  br\_vert<T>* left\_son(), br\_vert<T>* right\_son(),br\_vert<T>* parent(), br\_vert<T>* grandparent(),br\_vert<T>* uncle(),br\_vert<T>* brother()} - zwracają odpowiednio synów, ojca, dziadka, drugiego syna dziadka oraz drugiego syna ojca wierzchołka. }
+\item{\texttt{br\_vert<T>* left\_son(), br\_vert<T>* right\_son(),br\_vert<T>* parent(), br\_vert<T>* grandparent(),br\_vert<T>* uncle(),br\_vert<T>* brother()} --- zwracają odpowiednio synów, ojca, dziadka, drugiego syna dziadka oraz drugiego syna ojca wierzchołka. }
     
-\item{\texttt{ void update\_black\_height()} - aktualizuje czarną wysokość wierzchołka oraz minimalną oraz maksymalną głębokość poddrzewa.}
+\item{\texttt{void update\_black\_height()} --- aktualizuje czarną wysokość wierzchołka oraz minimalną oraz maksymalną głębokość poddrzewa.}
 
 \end{itemize}
 
-\section{br\_tree}
+\subsection{br\_tree}
 
-Ta klasa reprezentuje całe drzewo czerwono-czarne. Aby zachować poprawne własności maksymalnej i minimalnej głębokości przy wstawianiu i łączeniu drzew aktualizacja głębokości musi się odbyć na całej ścieżce do korzenia, a nie do pierwszego czerwonego wierzchołka jak w normalnym drzewie czerwono czarnym. Udostępnia następujące metody: 
+Ta klasa reprezentuje całe drzewo czerwono-czarne. Aby zachować poprawność wartości maksymalnej i minimalnej głębokości przy wstawianiu i łączeniu drzew, aktualizacja głębokości musi się odbyć na całej ścieżce do korzenia, a nie do pierwszego czerwonego wierzchołka jak w normalnym drzewie czerwono-czarnym. Klasa ta udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{br\_tree(),splay\_tree(br\_vert<T>*) } tworzące puste drzewo i drzewo danym korzeniu.}
+\item{Konstruktory \texttt{br\_tree(), br\_tree(br\_vert<T>* r) } --- tworzą puste drzewo i drzewo o korzeniu $r$.}
 
-\item{\texttt{void destroy()} - zwalnia pamięć zajmowana przez wszystkie wierzchołki w drzewie. Destruktor nie zwalnia wierzchołków.}
+\item{\texttt{void destroy()} --- zwalnia pamięć zajmowaną przez wszystkie wierzchołki w drzewie. Destruktor nie zwalnia wierzchołków.}
 
-\item{\texttt{void join\_right(br\_tree<T>* r, br\_vert<T>* pivot)} - łączy drzewo z drzewem $r$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $r$ i klucz wierzchołka $pivot$ muszą być większe niż wszystkie klucze w drzewie. Operacja niszczy strukturę drzewa $r$, ale nie zwalnia pamięci obiektu.}
+\item{\texttt{void join\_right(br\_tree<T>* r, br\_vert<T>* pivot)} --- łączy drzewo z drzewem $r$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $r$ i klucz wierzchołka $pivot$ muszą być większe niż wszystkie klucze w drzewie. Operacja opróżnia strukturę pod wskaźnikiem $r$, ale nie zwalnia pamięci wierzchołków.}
 
-\item{\texttt{void join\_right(br\_tree<T>* l, br\_vert<T>* pivot)} - łączy drzewo z drzewem $l$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $l$ i klucz wierzchołka $pivot$ muszą być mniejsze niż wszystkie klucze w drzewie. Operacja niszczy strukturę drzewa $l$, ale nie zwalnia pamięci obiektu.}
+\item{\texttt{void join\_right(br\_tree<T>* l, br\_vert<T>* pivot)} --- łączy drzewo z drzewem $l$ i wierzchołkiem $pivot$. Wszystkie klucze drzewa $l$ i klucz wierzchołka $pivot$ muszą być mniejsze niż wszystkie klucze w drzewie. Operacja opróżnia strukturę pod wskaźnikiem $l$, ale nie zwalnia pamięci wierzchołków.}
 
-\item{\texttt{int height()} - zwraca czarną wysokość drzewa.}
+\item{\texttt{int height()} --- zwraca czarną wysokość drzewa.}
  
-\item{\texttt{bool empty()} - sprawdza czy drzewo jest puste.}
+\item{\texttt{bool empty()} --- sprawdza, czy drzewo jest puste.}
 
-\item{\texttt{br\_tree<T>* tree\_union(br\_tree<T>* A).} - dołącza do drzewa wszystkie wierzchołki z drzewa $A$.}
+\item{\texttt{br\_tree<T>* tree\_union(br\_tree<T>* A)} --- dołącza do drzewa wszystkie wierzchołki z drzewa $A$.}
 
-\item{\texttt{pair<br\_tree<T>*,br\_tree<T>* > split(T).} - rozdziela drzewo na elementy mniejsze i większe równe od argumentu. Operacja niszczy strukturę drzewa, ale nie zwalnia pamięci obiektu.}
+\item{\texttt{pair<br\_tree<T>*,br\_tree<T>* > split(T val)} --- rozdziela drzewo na elementy mniejsze i większe równe od $val$. Operacja opróżnia strukturę wywołującą metodę, ale nie zwalnia pamięci jej wierzchołków.}
 
-\item{\texttt{splitted\_tree<T> split2(T)} - rozdziela drzewo na elementy mniejsze, większe i wydziela element równy kluczowi (jeśli taki istnieje). Operacja niszczy strukturę drzewa, ale nie zwalnia pamięci obiektu.}
+\item{\texttt{splitted\_tree<T> split2(T val)} --- rozdziela drzewo na elementy mniejsze, większe i wydziela element o kluczu równym $val$ (jeśli taki istnieje). Operacja opróżnia strukturę wywołującą metodę, ale nie zwalnia pamięci jej wierzchołków.}
 
-\item{\texttt{bool find(T)} - sprawdza czy element znajduje się w drzewie.}
+\item{\texttt{bool find(T val)} --- sprawdza, czy element $val$ znajduje się w drzewie.}
     
-\item{\texttt{tree\_vert<T>* lower\_bound( T ), tree\_vert<T>* upper\_bound( T ) } - wyszukują klucza danego jako argument w drzewie i zwraca wskażniki na odpowiednio najmniejszy element większy równy i najmniejszy element mniejszy równy. Gdy wynik nie istnieje zwraca NULL.}
+\item{\texttt{br\_vert<T>* lower\_bound(T val), br\_vert<T>* upper\_bound(T val)} --- wyszukują klucz $val$ w drzewie i zwracają wskaźniki na odpowiednio  największy element mniejszy równy i najmniejszy element większy równy. Gdy wynik nie istnieje metody zwracają NULL.}
    
-\item{\texttt{bool insert(T)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
-\item{\texttt{bool insert\_vert(br\_vert<T>*)} - wstawia element do drzewa zwraca \texttt{false} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
-\item{\texttt{bool erase(T)} - wstawia element do drzewa zwraca \texttt{true} jeśli element znajdował sie wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku.}
+\item{\texttt{bool insert(T val)} --- wstawia element $val$ do drzewa oraz zwraca \texttt{false}, jeśli element znajdował się wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
+\item{\texttt{bool insert\_vert(br\_vert<T>* v)} --- wstawia wierzchołek $v$ do drzewa zwraca \texttt{false}, jeśli element znajdował się wcześniej w drzewie oraz \texttt{true} w przeciwnym wypadku.}
+\item{\texttt{bool erase(T val)} --- usuwa element z drzewa oraz zwraca \texttt{true}, jeśli element znajdował się wcześniej w drzewie oraz \texttt{false} w przeciwnym wypadku.}
 
 \end{itemize}
 
 Dodatkowo na drzewach pomocniczych jest dostępna funkcja : 
 
 \begin{itemize}
-\item{\texttt{br\_tree<T>* join( br\_tree<T>* lesser, br\_tree<T>* greater)} - łączy dwa drzewa. Pierwszy argument ma wszystkie klucze mniejsze niż drugi argument}
+\item{\texttt{br\_tree<T>* join(br\_tree<T>* lesser, br\_tree<T>* greater)} --- łączy dwa drzewa. Drzewo $lesser$ ma wszystkie klucze mniejsze niż $greater$.}
 
 \end{itemize}
 
@@ -542,44 +601,43 @@ Dodatkowo na drzewach pomocniczych jest dostępna funkcja :
 
 \subsection{tango\_vert}
 
-Ta klasa reprezentuje wierzchołek drzewa tango oraz jego poddrzewo. Ta klasa dziedziczy po klasie \texttt{br\_vert} i jest odpowiedzialna za obsługiwanie operacji na niepreferowanych krawędziach. Udostępnia następujące metody: 
+Ta klasa reprezentuje wierzchołek drzewa Tango oraz jego poddrzewo. Ta klasa dziedziczy po klasie \texttt{br\_vert} i jest odpowiedzialna za obsługiwanie operacji na niepreferowanych krawędziach. Klasa udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktor \texttt{tango\_vert(T val, int d, tango\_tree<T> * npls = NULL, tango\_tree<T> * nprs = NULL, tango\_vert<T>* ps = NULL)} tworzący wierzchołek trzymający wartość $val$. Umożliwia ustawienie niepreferowanych ojca wierzchołka (ps), lewego syna (npls), prawego syna (nprs)}
+\item{Konstruktor \texttt{tango\_vert(T val, int d, tango\_tree<T> * npls = NULL, \\tango\_tree<T> * nprs = NULL, tango\_vert<T>* ps = NULL)} --- tworzą \\wierzchołek zawierający wartość $val$. Ten konstruktor umożliwia ustawienie niepreferowanych ojca wierzchołka ($ps$), lewego syna ($npls$), prawego syna ($nprs$)}
 
-\item{Destruktor zwalniający wszystkie wierzchołki w poddrzewie wierzchołka}
+\item{Destruktor --- zwalnia wszystkie wierzchołki w poddrzewie wierzchołka}
 
-\item{\texttt{  tango\_vert<T>* left\_son(), tango\_vert<T>* right\_son()} - zwracają odpowiednio lewego i prawego syna wierzchołka. }
+\item{\texttt{tango\_vert<T>* left\_son(), tango\_vert<T>* right\_son()} --- zwracają odpowiednio lewego i prawego syna wierzchołka. }
     
-\item{\texttt{  bool has\_left(), bool has\_right()} - sprawdzają czy wierzchołek ma niepreferowane lewe i prawe poddrzewo. }
+\item{\texttt{bool has\_left(), bool has\_right()} --- sprawdzają, czy wierzchołek ma niepreferowane lewe i prawe poddrzewo. }
 
-\item{\texttt{  bool add\_left(tango\_tree<T>* ), bool add\_right(tango\_tree<T>*)} - dodają drzewo jako niepreferowane lewe i prawe poddrzewo. }
+\item{\texttt{bool add\_left(tango\_tree<T>* t), bool add\_right(tango\_tree<T>* t)} --- dodają drzewo $t$ jako niepreferowane lewe i prawe poddrzewo. }
 
-\item{\texttt{  void remove\_left(), void add\_right()} - usuwają niepreferowane lewe i prawe poddrzewo. }
+\item{\texttt{void remove\_left(), void add\_right()} --- usuwają niepreferowane lewe i prawe poddrzewo. }
 
-
-\item{\texttt{ bool reorganize\_left(T), bool reorganize\_right(T)} - wywołują reorganizację względem klucza na lewym i prawym niepreferowanym poddrzewie (jeśli istnieje). }
+\item{\texttt{bool reorganize\_left(T), bool reorganize\_right(T)} --- wywołują reorganizację względem klucza na lewym i prawym niepreferowanym poddrzewie (jeśli istnieje). }
 
 \end{itemize}
 
-\section{tango\_tree}
+\subsection{tango\_tree}
 
-Ta klasa reprezentuje całe tango.  Udostępnia następujące metody: 
+Ta klasa reprezentuje całe drzewo Tango.  Udostępnia następujące metody: 
 
 \begin{itemize}
 
-\item{Konstruktory \texttt{tango\_tree(vector<T>),tango\_tree(const tango\_tree<T> \&) } tworzące nowe drzewo o danych kluczach i kopiujący.}
+\item{Konstruktor \texttt{tango\_tree(vector<T> elems)} --- tworzy nowe drzewo o kluczach z $elems$.}
 
-\item{Deskturktor zwalniający pamięć zajmowana przez wszystkie wierzchołki w drzewie.}
+\item{Destruktor zwalniający pamięć zajmowaną przez wszystkie wierzchołki w drzewie.}
 
-\item{\texttt{tango\_vert<T>* Root()} - zwraca korzeń drzewa.}
+\item{\texttt{tango\_vert<T>* Root()} --- zwraca korzeń drzewa.}
 
-\item{\texttt{void become\_unpreferred()} - podpina drzewo pod ojca korzenia w drzewie referencyjnym.}
+\item{\texttt{void become\_unpreferred()} --- podpina drzewo pod ojca korzenia w drzewie referencyjnym.}
 
-\item{\texttt{bool reorganize(T)} - wyszukuje wartości w drzewie i wykonuje reorganizacje, aby ostatni element na ścieżce wyszukiwania był na ścieżce preferowanej całego drzewa.}
+\item{\texttt{bool reorganize(T)} --- wyszukuje wartości w drzewie i wykonuje reorganizację, aby ostatni element na ścieżce wyszukiwania był na ścieżce preferowanej całego drzewa.}
 
-\item{\texttt{bool find(T)} - sprawdza czy element znajduje się w drzewie.}
+\item{\texttt{bool find(T val)} --- sprawdza, czy element $val$ znajduje się w drzewie.}
        
 
 \end{itemize}
@@ -589,143 +647,198 @@ Ta klasa reprezentuje całe tango.  Udostępnia następujące metody:
 \section{Generowanie danych}
 W niżej wymienionych eksperymentach drzewa są testowane na danych losowych typu \texttt{int}. Każda struktura jest testowana na tym samym zestawie danych.
 
-
 \section{Testowanie dla problemu dynamicznej optymalności}
-Zbadamy w jakim czasie obsługują zapytania implementacji poszczególnych struktur. Porównuję czasu działania drzew: Tango, Splay, czerwono-czarnego, statycznego drzewa optymalnego oraz standardowej struktury set. W tym eksperymencie nie bierzemy pod uwagę czasu budowania struktury. Wszystkie struktury zawierają elementy \(e_i \in [1, ..., n]\). Do struktury, do których elementy dodaje sie pojedynczo, czyli drzewa Tango, drzewa Splay oraz set, wstawiałam elementy w kolejności losowej (takiej samej dla wszystkich struktur). Zapytania są losowane tak aby \(\forall_i x_i \in [1, ..., n]\). Eksperyment powtarzam dla rosnących geometrycznie danych \( n = \{16, 32, 64, ..., 1024\}\) wykonując po 50 losowych prób. W tym rozdziale przedstawione są wyniki dla liczby zapytań równej rozmiarowi struktury. Bardziej szczegółowe wyniki znajdują się w \ref{app1}.
+Celem eksperymentu jest zbadanie w jakim czasie obsługują zapytania implementacje poszczególnych struktur. Porównywane są czasy działania drzew: Tango, Splay, czerwono-czarnego, statycznego drzewa optymalnego oraz standardowej struktury \texttt{set}. W tym eksperymencie nie bierzemy pod uwagę czasu budowania struktury. Wszystkie struktury zawierają elementy \(e_i \in [1, ..., n]\). Do struktur, do których elementy dodaje się pojedynczo, czyli drzewa Tango, drzewa Splay oraz \texttt{set}, wstawiamy elementy w kolejności losowej (takiej samej dla wszystkich struktur). Zapytania są losowane tak, aby \(\forall_i x_i \in [1, ..., n]\). Eksperyment powtarzamy dla rosnących geometrycznie danych \( n = \{16, 32, 64, ...\}\) wykonując po 50 losowych prób dla każdego $n$. W tym rozdziale przedstawione są wyniki dla liczby zapytań równej rozmiarowi struktury. Bardziej szczegółowe wyniki znajdują się w Dodatku \ref{app1}.
  
 \subsection{Rozkład Gaussa}
-Dane generowane są z rozkładem zbliżonym do rozkładu normalnego nakładając podłogę na wynik funkcji \texttt{normal\_distribution} i powtarzając losowania jeśli wynik wychodzi poza porządany przedział.
-\begin{figure}[ht]
+Dane generowane są z rozkładem zbliżonym do rozkładu normalnego nakładając podłogę na wynik funkcji \texttt{normal\_distribution} i powtarzając losowania jeśli wynik wychodzi poza pożądany przedział.
+\begin{figure}[H]
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/gaus01_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{10})\). }
-%\label{fig:HOG_resolution}
+\includegraphics[width=1\textwidth]{wykresy5/gaus50_main.png}
 \end{minipage}
 \hfill
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/gaus025_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{4})\).}
-%\label{fig:block_overlap}
+\includegraphics[width=1\textwidth]{wykresy3/gaus50_main.png}
 \end{minipage}
-\end{figure}\\
-\begin{figure}[ht]
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{2})\).}
+\end{figure}
+
+\begin{figure}[H]
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/gaus05_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{2})\) . }
-%\label{fig:HOG_resolution}
+\includegraphics[width=1\textwidth]{wykresy5/gaus10_main.png}
 \end{minipage}
 \hfill
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/gaus075_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{3n}{4})\).}
-%\label{fig:block_overlap}
+\includegraphics[width=1\textwidth]{wykresy3/gaus10_main.png}
 \end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{10})\).}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/gaus1_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/gaus1_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{100})\).}
 \end{figure}
 
 \subsection{Rozkład jednostajny z prawdopodobieństwem powtórzenia wierzchołka}
-Zapytania są generowane w dwóch krokach. Najpierw losowany jest z określonym prawdopodobieństwem czy zostanie powtórzone poprzednie zapytanie. Jeśli, nie kolejne zapytanie jest losowane z rozkładem jednostajnym korzystając ze funkcji \texttt{uniform\_int\_distribution} ze standardowej biblioteki \texttt{random}. 
+Zapytania są generowane w dwóch krokach. Najpierw losowane jest z określonym prawdopodobieństwem czy poprzednie zapytanie zostanie powtórzone. Jeśli nie, to kolejne zapytanie jest losowane z rozkładem jednostajnym korzystając ze funkcji \texttt{uniform\_int\_distribution} ze standardowej biblioteki \texttt{random}. 
+
+\begin{figure}[ht]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/uniform100_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/uniform100_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/uniform50_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/uniform50_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/uniform10_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/uniform10_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/uniform1_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/uniform1_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka.}
+\end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/uniform5_main.png}
-      \caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(95\%\) powtórzenia wierzchołka.}  
-\end{figure}
-\begin{figure}[ht]
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/uniform25_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(75\%\) powtórzenia wierzchołka.}
-%\label{fig:HOG_resolution}
-\end{minipage}
-\hfill
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/uniform50_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka.}
-%\label{fig:block_overlap}
-\end{minipage}
-\end{figure}
-
-\begin{figure}[ht]
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/uniform75_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(25\%\) powtórzenia wierzchołka. }
-%\label{fig:HOG_resolution}
-\end{minipage}
-\hfill
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/uniform100_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka.}
-%\label{fig:block_overlap}
-\end{minipage}
+    \includegraphics[scale=0.45]{wykresy3/uniform001_main.png}
+      \caption{Wykres zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(99,99\%\) powtórzenia wierzchołka.}  
 \end{figure}
 
 \subsection{Losowanie ścieżki w grafie losowym z prawdopodobieństwem zmiany wierzchołka}
-Zapytania są generowane przy pomocy symulacji przechodzenia po losowym drzewie nieskierowanym. Najpierw tworzone jest losowe drzewo przy pomocy kodów Prüfera i kolejne zapytania odpowiadają kolejnym wierzchołkom na losowej ścieżce (nie musi być do ścieżka właściwa).
+Zapytania są generowane przy pomocy symulacji przechodzenia po losowym drzewie nieskierowanym. Najpierw tworzone jest losowe drzewo przy pomocy kodów Prüfera \cite{Prufer_codes} i kolejne zapytania odpowiadają kolejnym wierzchołkom na losowej ścieżce (nie musi być to ścieżka właściwa).
+
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/randwalk100_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/randwalk100_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/randwalk50_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/randwalk50_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/randwalk10_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/randwalk10_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka.}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy5/randwalk1_main.png}
+\end{minipage}
+\hfill
+\begin{minipage}[b]{.45\textwidth}
+\centering
+\includegraphics[width=1\textwidth]{wykresy3/randwalk1_main.png}
+\end{minipage}
+\caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka.}
+\end{figure}
+
 \begin{figure}[H]  
 
 \centering
-    \includegraphics[scale=0.5]{wykresy/randwalk5_main.png}
-      \caption{Wykresy zależności czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(95\%\) powtórzenia wierzchołka.}  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy3/randwalk001_main.png}
+      \caption{Wykresy zależności czasu działania od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(99,99\%\) powtórzenia wierzchołka.}  
 \end{figure}
-
-\begin{figure}[ht]
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/randwalk25_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(75\%\) powtórzenia wierzchołka.}
-%\label{fig:HOG_resolution}
-\end{minipage}
-\hfill
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/randwalk50_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka.}
-%\label{fig:block_overlap}
-\end{minipage}
-\end{figure}
-
-\begin{figure}[ht]
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/randwalk75_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(25\%\) powtórzenia wierzchołka. }
-%\label{fig:HOG_resolution}
-\end{minipage}
-\hfill
-\begin{minipage}[b]{.45\textwidth}
-\centering
-\includegraphics[width=1\textwidth]{wykresy/randwalk100_main.png}
-\caption{Wykresy zależności czasu od rozmiaru struktury, przy liczbie zapytań równej rozmiarowi struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka.}
-%\label{fig:block_overlap}
-\end{minipage}
-\end{figure}
-
 
 \section{Testowanie wydajności wstawiania i usuwania elementów}
-Porównamy czasy obsługi wstawiania i usuwania elementów dla drzew Splay, czerwono-czarnego i struktury set. W tym eksperymencie do struktur są wstawiane elementy \(e_i \in [1, ..., n]\) w losowej kolejności. Mierzony jest sumaryczny czas realizacji wszystkich operacji insert. Następnie ze struktury usuwane są wszystkie elementy również w losowej kolejność, mierząc czas wykonania wszystkich operacji delete dla danej struktury. Eksperyment powtarzam dla rosnących geometrycznie danych \( n = \{16, 32, 64, ..., 1024\}\) wykonując po 50 losowych prób. \\
-\begin{figure}[ht]
+Na końcu porównywane są czasy obsługi wstawiania i usuwania elementów dla drzew Splay, czerwono-czarnego i struktury set. Drzewo Tango nie jest obecne w tym porównaniu, ponieważ nie obsługuje operacji wstawiania oraz usuwania elementów. W tym eksperymencie do struktur są wstawiane elementy \(e_i \in [1, ..., n]\) w losowej kolejności. Mierzony jest sumaryczny czas realizacji wszystkich operacji insert. Następnie ze struktury usuwane są wszystkie elementy również w losowej kolejność, mierząc czas wykonania wszystkich operacji delete dla danej struktury. Eksperyment powtarzamy dla rosnących geometrycznie danych \( n = \{16, 32, 64, ...\}\) wykonując po 50 losowych prób dla każdego $n$. \\
+\begin{figure}[H]
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/inserts.png}
+\includegraphics[width=1\textwidth]{wykresy3/inserts.png}
 \caption{Wykresy zależności czasu wstawienia wszystkich elementów od liczby elementów. }
 %\label{fig:HOG_resolution}
 \end{minipage}
 \hfill
 \begin{minipage}[b]{.45\textwidth}
 \centering
-\includegraphics[width=1\textwidth]{wykresy/deletes.png}
+\includegraphics[width=1\textwidth]{wykresy3/deletes.png}
 \caption{Wykresy zależności czasu usunięcia wszystkich elementów od liczby elementów. }
 %\label{fig:block_overlap}
 \end{minipage}
 \end{figure}
+
+\section{Wnioski}
+Na podstawie przeprowadzonych eksperymentów można zauważyć, że przy danych losowych, które nie charakteryzują się bardzo dużą lokalnością, drzewa zbalansowane radzą sobie zdecydowanie lepiej niż samoorganizujące. Ponadto stała złożoności operacji na drzewie Tango jest tak duża, że struktura ta jest zdecydowanie mniej wydajna od pozostałych przetestowanych. Przy dużym prawdopodobieństwie powtórzeń drzewa Splay i Tango stają się relatywnie wydajniejsze. Dla $99\%$ prawdopodobieństwa powtórzeń drzewo Splay staje się wydajniejsze od drzewo czerwono-czarnego i podobnie wydajne jak statyczne drzewo optymalne, a drzewo Tango zbliża się do wydajności \texttt{seta}. Z kolei losowanie danych z rozkładem normalnym oraz przez losowanie ścieżki w drzewie losowym bez powtórzeń nie powoduje tak znaczącego wzrostu wydajności drzew samoorganizującyh poza małymi danymi, gdzie taki sposób losowania skutkuje powtarzaniem się zapytań.
+
+Zapytania w większości przypadków testowych najszybciej obsługuje statyczne drzewo optymalne. Jego struktura jest lepiej dostosowana do zapytań niż struktura \texttt{set} i drzewa czerwono-czarnego. Ponadto statyczne drzewo nie wykonuje kosztownej aktualizacji swojej struktury w tracie działania. Należy wziąć jednak pod uwagę, że jest to struktura działająca offline, co zmniejsza jej walory praktyczne.
+  
+Choć implementacja drzewa pomocniczego obsługuje pojedyncze zapytania szybciej niż standardowa struktura \texttt{set}, to konieczność aktualizowania maksymalnych i minimalnych wysokości dla wierzchołka powoduje, że wstawianie i usuwanie elementów z tej struktury jest wolniejsze. Drzewo Splay obsługuje wstawiania i usuwania najwolniej co można przypisać losowej kolejności danych na wejściu oraz brakowi powtórzeń. 
 
 %%%%% BIBLIOGRAFIA
 \printbibliography
@@ -735,111 +848,156 @@ Porównamy czasy obsługi wstawiania i usuwania elementów dla drzew Splay, czer
 
 \section{Testowanie dla problemu dynamicznej optymalności}
 \subsection{Rozkład Gaussa}
+
 \begin{figure}[H]  
 
 \centering
-    \includegraphics[scale=0.5]{wykresy/gaus01.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{10})\). }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.3]{wykresy5/gaus50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{2})\). }  
+\end{figure}
+\begin{figure}[H]  
+
+\centering
+    \includegraphics[scale=0.45]{wykresy3/gaus50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{2})\). }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/gaus025.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{4})\). }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy5/gaus10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{10})\). }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy3/gaus10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{10})\). }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy5/gaus1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{100})\). }  
 \end{figure}
 
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/gaus05.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{2})\). }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy3/gaus1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{n}{100})\). }  
 \end{figure}
-
-\begin{figure}[H]  
-\centering
-    \includegraphics[scale=0.5]{wykresy/gaus075.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem \(\mathcal{N}(\frac{n}{2}, \frac{3n}{3})\). }  
-    \label{fig:zigzig} 
-\end{figure}
-
 
 \subsection{Rozkład jednostajny z prawdopodobieństwem powtórzenia wierzchołka}
-\begin{figure}[H]  
-
-\centering
-    \includegraphics[scale=0.5]{wykresy/uniform5.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(95\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
-\end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/uniform25.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(75\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy5/uniform100.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/uniform50.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy3/uniform100.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/uniform75.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(25\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy5/uniform50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/uniform100.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane rozkładem jednostajnym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy3/uniform50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy5/uniform10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy3/uniform10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy5/uniform1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy3/uniform1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.45]{wykresy3/uniform001.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane z rozkładem jednostajnym z prawdopodobieństwem  \(99,99\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \subsection{Losowanie ścieżki w grafie losowym z prawdopodobieństwem zmiany wierzchołka}
-\begin{figure}[H]  
 
+\begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/randwalk5.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(95\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.45]{wykresy5/randwalk100.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/randwalk25.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(75\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
-\end{figure}
-
-
-\begin{figure}[H]  
-\centering
-    \includegraphics[scale=0.5]{wykresy/randwalk50.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.5]{wykresy3/randwalk100.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/randwalk75.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(25\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.5]{wykresy5/randwalk50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 \begin{figure}[H]  
 \centering
-    \includegraphics[scale=0.5]{wykresy/randwalk100.png}
-      \caption{Wykresy zależności od czasu liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(0\%\) powtórzenia wierzchołka. }  
-    \label{fig:zigzig} 
+    \includegraphics[scale=0.5]{wykresy3/randwalk50.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(50\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.5]{wykresy5/randwalk10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.5]{wykresy3/randwalk10.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(90\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.5]{wykresy5/randwalk1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.5]{wykresy3/randwalk1.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(99\%\) powtórzenia wierzchołka. }  
+\end{figure}
+
+\begin{figure}[H]  
+\centering
+    \includegraphics[scale=0.5]{wykresy3/randwalk001.png}
+      \caption{Wykresy zależności czasu działania od liczby zapytań przy danym rozmiarze struktury - dane generowane przez symulowanie przechodzenia po grafie losowym z prawdopodobieństwem  \(99,99\%\) powtórzenia wierzchołka. }  
 \end{figure}
 
 

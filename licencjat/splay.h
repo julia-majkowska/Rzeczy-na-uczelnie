@@ -15,7 +15,6 @@ public:
     
     ~splay_tree(){
         if(this->root != NULL){
-            //cerr<<"Deleting a vertex\n";
             delete this->root;
         }
     }
@@ -180,7 +179,6 @@ splay_tree<T>* join( splay_tree<T>* lesser, splay_tree<T>* greater){
     }
     greater->root = NULL;
     lesser->root = NULL;
-    //delete greater;
     return res;
 }
 template<class T>
@@ -193,7 +191,6 @@ bool splay_tree<T>::insert(T value){
     T pivot = this->find1(value); 
     if(pivot == value) return false; 
     vector<splay_tree<T>*> halves = this->split(value);
-    //if(halves.size()>=3) return false;
     new_root->hook_up_left(halves[0]->root); 
     new_root-> hook_up_right(halves[1]->root);
     this -> root = new_root;
@@ -207,22 +204,11 @@ bool splay_tree<T>::insert(T value){
 template<class T>
 bool splay_tree<T>::erase(T value){
     if(this->root == NULL) return false;
-    tree_vert<T>* pivot = this->search(value); 
-    //cout<<pivot->value<<"\n";
+    tree_vert<T>* pivot = this->search(value);
     if(pivot->value != value) return false; 
     vector<splay_tree<T>*> halves = this->split(value);
     splay_tree<T>* joined = join(halves[0], halves[2]);
-    /*cout<<"Debug erase\n";
-    halves[0]->wypisz();
-    cout<<"\n lewe\n";
-    halves[1]->wypisz();
-    cout<<"\n srodek\n";
-    halves[2]->wypisz();
-    cout<<"\n prawe\n";
-    */
     this -> root = joined-> root;
-    //this->wypisz();
-    //cout<<"DEBUG ERASE\n";
     joined->root = NULL;
     if(joined != NULL) delete joined; 
     if(halves[0] != NULL) delete halves[0];

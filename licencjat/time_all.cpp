@@ -21,7 +21,7 @@ vector<double> experiment(const vector<int>& queries, int n, int seed){
     for(int i = 1; i<=n; i++){
         liczby.push_back(i);       
     }
-    tango_tree<int> d_tango(liczby);//konstruktor przyjmuje posortowane liczby;
+    tango_tree<int> d_tango(liczby);
     static_tree<int> d_static(queries);
     srand(seed);
     random_shuffle(liczby.begin(), liczby.end());
@@ -87,16 +87,13 @@ vector<double> experiment_gaussian(int seed, int q, int n, double e_v){
     normal_distribution<double> distribution(((double) n)/2, ((double) n)*e_v);
     
     vector<int> queries;
-   // if(q == 16) cout<<"Gaussian "<<e_v<<"\n";
     for(int i = 0; i< q; i++){
         int val = distribution(generator);
         
         while(val > n || val < 1) val = distribution(generator) ;
-       // if(q == 16) cout<<val<<" ";
         queries.push_back(val);
         
     } 
-    //if(q == 16) cout<<"\n";
     return experiment(queries, n, seed);
 }
 
@@ -108,18 +105,15 @@ vector<double> experiment_uniform(int seed, int q, int n, int of_mil){
     
     vector<int> queries;
     int val = 1;
-    //if(q == 16) cout<<"Uniform "<<precent<<"\n";
     for(int i = 0; i< q; i++){
         
         int go_stop = rand()%1000000 + 1; 
         if(go_stop <= of_mil)
             val = distribution(generator);
             while(val > n || val < 1) val = distribution(generator) ;
-        //if(q == 16) cout<<val<<" ";
         queries.push_back(val);
         
     } 
-    //if(q == 16) cout<<"\n";
     return experiment(queries, n, seed);
 }
 
@@ -178,7 +172,6 @@ vector<double> experiment_randwalk(int seed, int q, int n, int of_mil){
 }
 
 void all_exp_randwalk(ofstream files[num_randws], vector<int> stop){
-//gauss 0.1*n
     vector<double> total_secs(7, 0.0);
     vector<double> max_secs(7, 0.0);
     vector<double> min_secs(7, 1e9);

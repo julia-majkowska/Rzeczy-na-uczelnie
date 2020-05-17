@@ -79,7 +79,25 @@ def rank_document(query_tok, tekst):
     return goodness
 
 def my_highlight(q, L): 
-    return highlight2(q, L, lambda x, y :match_tokens(x, y))
+    
+    last_dot = 0
+    first_dot = 0
+    found = False
+    found2 = False
+    for i in range(len(L)): 
+        if '.' in L[i] : 
+            if not found : 
+                first_dot = i
+            elif found2 : 
+                last_dot = i
+            found2 = False
+            continue
+        for qt in q : 
+            if match_tokens(L[i], qt) : 
+                found = True
+                found2 = True
+    print(first_dot, last_dot)
+    return highlight2(q, L[first_dot+1:last_dot+1], lambda x, y :match_tokens(x, y))
 
 
 print("Ready for input\n")

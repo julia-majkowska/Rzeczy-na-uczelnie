@@ -328,9 +328,9 @@ def find_cands(query_tokens, K = 10) :
         token_indices = set()
         for lem in lems: 
             token_indices|= get_indeks(lem)
-            if len(token_indices) >= 200: 
+            if len(token_indices) >= 300: 
                 break
-        if(len(token_indices) < 200) : 
+        if(len(token_indices) < 300 : 
             lemats_count.append((token, token_indices))
             
     lemats_count = sorted(list(lemats_count), key = lambda x : len(x[1]))

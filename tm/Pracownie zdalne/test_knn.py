@@ -5,3 +5,5 @@ vector_matrix = np.array([[4.0, 4.0, 3.0], [2.0, 7.0, 43153.], [312513., 41354, 
 knn = NearestNeighbors(n_neighbors = 2) #tutaj definiujemy k
 knn.fit(vector_matrix)
 print(knn.kneighbors(np.array([6, 5, 6]).reshape(1, -1), return_distance=False))
+
+vector = 

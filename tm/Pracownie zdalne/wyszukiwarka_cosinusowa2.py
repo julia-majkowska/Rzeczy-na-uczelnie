@@ -11,6 +11,9 @@ from collections import defaultdict as dd
 from nltk.tokenize import word_tokenize
 import editdistance
 import heapq
+from sklearn.preprocessing import normalize
+import numpy as np
+import scipy.sparse as sp
 keyboard = ['qwertyuiop[]', 'asdfghjkl;\'', '<zxcvbnm,./']
 coords  = { keyboard[a][b] : (a, b) for a in range(len(keyboard)) for b in range(len(keyboard[a]))}
 mistakes = [('ę', 'e'), ('u', 'ó'), ('ó', 'o'),('ą', 'a'), ('ś', 's'),('ł', 'l'), ('ł', 'u'), ('ż', 'z'), ('ź', 'z'), ('ch', 'h'), ('rz', 'ż'), ('ć', 'c'), ('ń', 'n')]
@@ -195,11 +198,6 @@ def ed_dist(w1, w2) : #w1 słowo, w2 wzór
                             dist[i][j] = min(dist[i][j], dist[i-3][j-3] + operation_cost)
                             solution[i][j] = solution[i-3][j-3] + ['next neighbour swap ' + w1[i] + " na " + w2[j]] 
             
-    #for i in range(len(dist)): 
-    #    print(dist[i])
-        #print(solution[i])
-    #print(dist)
-    #print(solution[len(w1)-1][len(w2)-1])
     return dist[len(w1)-1][len(w2)-1], solution[len(w1)-1][len(w2)-1]
 
 def almost_same_title(w1, w2) : 
@@ -262,66 +260,9 @@ def correct_word(word1, ans = '') :
             elif len(title_content[cand[0]]) == len(w) and wi < cand[0]: 
                 cand = [wi]
                 min_dist = dist
-
-            
-    #if not ans_in_search : 
-    #    print("Nie mam w przesrzeni odpowiedzi " + word1 + " " + ans)
     return cand
 
-'''def read_dictionary() :
-    titles = dd(lambda: set())
-    artykuly = {}
-    title_cont = {}
-    size_of_window = 5
-    with open('fp_wiki.txt', 'r') as f:
-        first_line = ""
-        i = 0
-        line = f.readline()
-        current_article=line
-        while line :
-            if line.startswith("TITLE:"): 
-                #artykuly[i] = current_article
-                current_article = ""
-                i+=1
-                title_cont[i] = line[7:]
-                
-                for ii in range(len(line) - size_of_window+1): 
-                    titles[polskawa(line)[ii:ii+size_of_window]].add(i)
-                if  len(line)>=2 : 
-                    titles[line[0:2]].add(i)
-                else: 
-                    titles[line[0]].add(i)
-        
-            current_article+=line
-            line = f.readline()
-            
-    #return titles, artykuly, title_cont
-    return title_cont
-
-#onegrams, articles, title_content = read_dictionary()
-title_content = read_dictionary()'''
-
-def read_lemats() : 
-    res = dd(lambda:set())
-    with open('polimorfologik-2.1.txt') as f:
-        l = f.readline()
-        while l: 
-            words = l.split(';')[:2]
-            res[words[1]].add(words[0])
-            l= f.readline()
-    return res
-
-lemats = read_lemats()
 conn = psycopg2.connect("dbname=indeks user=julia")
-
-def get_indeks(slowo): 
-    cur = conn.cursor()
-    cur.execute('''SELECT indeks FROM postlist where lemat = \'%s\''''%slowo)
-    lista = cur.fetchall()
-    #print(lista)
-    cur.close()
-    conn.commit()
-    return jsonpickle.decode(lista[0][0])
 
 def get_dokument(indeks): 
     cur = conn.cursor()
@@ -331,114 +272,22 @@ def get_dokument(indeks):
     conn.commit()
     return dokument[0][0]
 
-def get_idf(lemat): 
-    cur = conn.cursor()
-    if lemat[-1] == '\'': 
-        return 1
-    cur.execute('''SELECT idf FROM lemat_idf where lemat = \'%s\''''%lemat)
-    dokument = cur.fetchall()
-    cur.close()
-    conn.commit()
-    return float(dokument[0][0])
-
-def get_vector(doc_id): 
-    cur = conn.cursor()
-    cur.execute('''SELECT vect FROM sparse_tf_idf where id = \'%s\''''%doc_id)
-    lista = cur.fetchall()
-    #print(lista)
-    cur.close()
-    conn.commit()
-    return jsonpickle.decode(lista[0][0])
+my_matrix= []
+with open('indeksy/sparse_matrix.txt', 'r') as f:
+    my_matrix = jsonpickle.decode(f.read())
     
-def find_cands(query_tokens, K = 10) : 
-    '''quote_indices= None
-    lemats_count = set()
-    for token in query_tokens: 
-        lems = lemats[token]
-        if len(lems) == 0: 
-            lemd = [token]
-        token_indices = set()
-        for lem in lems: 
-            lemats_count.add(lem)
-            
-    lemats_count = sorted([(lem, get_indeks(lem)) for lem in lemats_count], key = lambda x : len(x[1]))
-    lemats_count = lemats_count
-    cand_docs = lemats_count[0][1]
-    if len(cand_docs) > 5*K : 
-        for lem, docs in lemats_count[1:]: 
-            cand_docs&= set(docs)
-            if len(cand_docs) <= 5*K:
-                break
-    elif len(cand_docs) < K : 
-        for lem, docs in lemats_count[1:]: 
-            cand_docs|= set(docs)
-            if len(cand_docs) >= K:
-                break
-    #    if len(cand_docs) >= K : 
-    #        break
-    #if len(cand_docs) > 5*k: 
+#print("diffing rows")
+#print(my_matrix.getrow(22547) - my_matrix.getrow(801626))
         
-    return cand_docs'''
-    quote_indices= None
-    lemats_count = []
-    for token in query_tokens: 
-        lems = lemats[token]
-        if len(lems) == 0: 
-            lemd = [token]
-        token_indices = set()
-        for lem in lems: 
-            token_indices|= get_indeks(lem)
-            if len(token_indices) >= 200: 
-                break
-        if(len(token_indices) < 200) : 
-            lemats_count.append((token, token_indices))
-            
-    lemats_count = sorted(list(lemats_count), key = lambda x : len(x[1]))
-    cand_docs = lemats_count[0][1]
     
-    #if len(cand_docs) > 5*K : 
-    #    cand_docs&= set(lemats_count[1][1])
-    if len(cand_docs) < K : 
-        for lem, docs in lemats_count[1:]: 
-            cand_docs|= set(docs)
-            if len(cand_docs) >= K:
-                break
-    #    if len(cand_docs) >= K : 
-    #        break
-    #if len(cand_docs) > 5*k: 
-        
-    return cand_docs
-
-def len_vector(x) : 
-    lenv = 0
-    for key in x.keys():
-        lenv+= (x[key]*get_idf(key))**2
-    return lenv
-
-def rare_cosine(v_query, v2): 
-    len2 = len_vector(v2)
-    common_lemats = set(v_query.keys())&set(v2.keys())
-    res = 0
-    for l in common_lemats: 
-        res+=v_query[l]*v2[l]
-    return res/len2
-
-def closest_K_document(query_doc_id):
-    v_query = get_vector(query_doc_id)
-    first_part = get_dokument(query_doc_id)#.split('\n')
-    #if len(first_part) > 3 : 
-    #    first_part = first_part[:3]
-    #first_part = ' '.join(first_part)
-    query_toks = word_tokenize(first_part)[:20]
-    K = 10
-    candidates = find_cands(query_toks, K)
-    print([title_content[i]+"\n" for i in candidates])
-    print(len(candidates))
-    if len(candidates) <= K : 
-        return candidates
-    
-    #my_vects = sorted([(i, rare_cosine(v_query, get_vector(i))) for i in candidates], key = lambda x: x[1], reverse = True)
-    return [i[0] for i in my_vects[:10]]
+def closest_K_document(query_doc_id, K = 20):
+    #print(query_doc_id)
+    coll = my_matrix.getrow(query_doc_id)
+    #print(my_matrix.get_shape(), coll.get_shape())
+    dists = -1.0 *(my_matrix.dot(coll.T)).toarray()
+    #print(dists.shape)
+    #print(np.partition(dists, K, axis = None)[:K])
+    return np.argpartition(dists, K, axis = None)[:K]
 
 print("Ready for input\n")
 for query in fileinput.input():
@@ -448,6 +297,7 @@ for query in fileinput.input():
     matched = True
     print("Found a matched title")
     print(get_dokument(i))
+    print('_______________________________________\nResults:')
     close_docs = closest_K_document(i)
     for doc_id in close_docs : 
         print(get_dokument(doc_id))

@@ -11,7 +11,7 @@ import bisect
 
 def read_clusters(): 
     cluster_lemats = dd(lambda:-1)
-    with open("indeksy/lemat_to_cluster2.txt", 'r')as f: 
+    with open("indeksy/lemat_to_cluster10.txt", 'r')as f: 
         line = f.readline()
         while line : 
             lemat = line.split(" ")[0]

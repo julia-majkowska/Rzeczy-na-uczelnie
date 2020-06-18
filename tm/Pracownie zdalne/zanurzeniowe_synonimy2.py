@@ -3,6 +3,7 @@ import unicodedata
 from gensim.models import KeyedVectors
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import RegexpTokenizer
+import scipy
 import numpy as np
 model = KeyedVectors.load_word2vec_format("indeksy/wiki-forms-all-100-cbow-hs.txt", binary = False)
 print("Model read")
@@ -71,11 +72,12 @@ def count_dist(va, vb):
         return 1e6
     try: 
         return np.linalg.norm(get_title_vector(va)-get_title_vector(vb))  <= epsilon
+        #return scipy.spatial.distance.cosine(get_title_vector(va), get_title_vector(vb))
     except : 
         return 1e6
     
 with open('poczatki_wikipediowe.txt') as f:
-    with open ('zanurzeniowe_synonimy2.txt', 'a') as out : 
+    with open ('zanurzeniowe_synonimy3.txt', 'a') as out : 
         linie = f.readlines()
         epsilon  = 15.
         tokenizer = RegexpTokenizer(r'\w+')

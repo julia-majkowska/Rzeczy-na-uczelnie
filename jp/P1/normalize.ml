@@ -77,7 +77,7 @@ let rec print (e : expr)  : string=
         
 let rec print_stack (s:frame list)  : string= 
     match s with 
-        |Frame (e, s2)::tail -> String.concat "" ["<"; print e; ","; print_stack s2; ">::"; print_stack tail]
+        |Frame (e, s2)::tail -> String.concat "" ["<"; print e;(* ","; print_stack s2; *)">::"; print_stack tail]
         |[] -> "<>"
 
 let rec reduce (e:expr) (s:frame list) (env:frame list) (cont: continuation) : expr = 

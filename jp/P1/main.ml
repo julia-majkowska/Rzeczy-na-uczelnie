@@ -9,7 +9,7 @@ open Format
 open Support.Pervasive
 open Support.Error
 open Syntax
-(*open Core*)
+open Core
 
 let searchpath = ref [""]
 
@@ -54,7 +54,11 @@ let alreadyImported = ref ([] : string list)
 let process_file f ctx =
   alreadyImported := f :: !alreadyImported;
   let cmds,_ = parseFile f ctx in
-  Printf.printf "%s" (print cmds);;
+  let _ = Printf.printf "%s\n" (print cmds) in
+  let trans_cmds = translate cmds in
+  let _ = Printf.printf "%s\n" (print_e trans_cmds) in 
+  let reduced = reduce trans_cmds [] in
+  Printf.printf "%s\n" (print_e reduced);;
   (*let cmds,_ = parseFile f ctx in
   let g ctx c =  
     open_hvbox 0;

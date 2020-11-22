@@ -128,7 +128,7 @@ Term :
   | LAMBDA LCID DOT Term 
       { fun ctx ->
           let ctx1 = addname ctx $2.v in
-          TmLambda($1, $2.v, $4 ctx1)}
+          TmLambda($1, $4 ctx1)}
 
 
 AppTerm :
@@ -174,7 +174,12 @@ ATerm :
       { fun ctx -> TmFalse($1) }
   | LCID 
       { fun ctx -> 
-        TmVar ($1.i, $1.v) }
+        if isnamebound ctx $1.v 
+        then 
+            TmVarB($1.i, name2index $1.i ctx $1.v)
+        else
+            TmVarF($1.i, $1.v)
+      }
   | NILL
       { fun ctx -> TmNill($1) }
   | INTV

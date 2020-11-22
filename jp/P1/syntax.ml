@@ -5,10 +5,11 @@ open Support.Pervasive
 exception NoRuleApplies
 type term =
     | None
-    | TmVar of info * string
+    | TmVarF of info * string
+    | TmVarB of info * int
     | TmTrue of info
     | TmFalse of info
-    | TmLambda of info * string * term
+    | TmLambda of info * term
     | TmApp of info * term * term
     | TmSucc of info * term
     | TmZero of info
@@ -26,6 +27,13 @@ type term =
     | TmHead of info * term
     | TmTail of info * term
     | TmIsNill of info * term
+
+  type expr =
+    | None
+    | TsVarF of string
+    | TsVarB of int
+    | TsLambda of expr
+    | TsApp of expr * expr
 
 (* Datatypes *)
 
@@ -56,6 +64,7 @@ let rec pickfreshname ctx x =
   if isnamebound ctx x then pickfreshname ctx (x^"'")
   else ((x,NameBind)::ctx), x
 
+
 let index2name fi ctx x =
   try
     let (xn,_) = List.nth ctx x in
@@ -76,9 +85,10 @@ let rec name2index fi ctx x =
 
 let rec print (e : term)  : string= 
     match e with 
-        | TmLambda (_, s, e1) -> String.concat "" ["λ"; s; ".("; (print e1); ")"]
+        | TmLambda (_, e1) -> String.concat "" ["λ.("; (print e1); ")"]
         | TmApp (_, e1, e2) -> String.concat "" [(print e1); (print e2)]
-        | TmVar (_,s) -> s
+        | TmVarF (_,s) -> s
+        | TmVarB (_,i) -> String.concat "" ["v"; string_of_int i ]
         | TmTrue _-> "True"
         | TmFalse _-> "False"
         | TmZero _-> "Zero"
@@ -99,40 +109,265 @@ let rec print (e : term)  : string=
         | TmIsNill  (_, e1) -> String.concat "" ["isnill("; (print e1);")"]
         | None -> ""
 
-    (*let rec translate (e : term) : expr = 
+let rec print_e (e : expr)  : string= 
+  match e with 
+      | TsLambda e1 -> String.concat "" ["λ ("; (print_e e1); ")"]
+      | TsApp (e1, e2) -> String.concat "" ["("; (print_e e1); (print_e e2); ")"]
+      | TsVarF i -> i
+      | TsVarB i -> string_of_int i
+      | None -> "没"
+
+
+let rec translate (e : term) : expr = 
     match e with 
-        | Lambda e -> 
-            Lambda (translate e)
-        | Appl -> 
-            Appl ((translate term), (translate term))
-        | V v-> V v  
-        | Zero -> Lambda (Lambda (Varb 0))
-        | Succ of term
-        | Add of term * term
-        | Mul of term * term
-        | Sub of term * term
-        | Eq of term * term
-        | True  -> Lambda (Lambda (Varb 1))
-        | False -> Lambda (Lambda (Varb 0))
-        | If of term * term * term
-        | Fix of term
-        | Pair (e1, e2) -> Apply(Lambda (Lambda (Lambda (Appl (Varb 0, Appl ( Varb 0, Varb 1))))), translate(
-        | Fst -> 
-            
-        | Snd of term 
-        | Nill -> Lambda (Lambda (Varb 0))
-        | Cons of term * term
-        | Head of term
-        | Tail of term
-        | IsNil of term*)
+        | TmLambda (i, e) -> 
+            TsLambda (translate e)
+        | TmApp (i, e1, e2) -> 
+            TsApp ((translate e1), (translate e2))
+        | TmVarB (i, id) -> TsVarB id
+        | TmVarF (i, id) -> TsVarF id
+        | None -> None
+        | TmZero i -> TsLambda (TsLambda (TsVarB 0))
+        | TmSucc (i, e1) -> 
+          TsApp (
+            TsLambda (
+              TsLambda (
+                TsLambda (
+                  TsApp (
+                    TsVarB 1, 
+                    TsApp(
+                      TsApp (
+                        TsVarB 2,
+                        TsVarB 1),  
+                      TsVarB 0)
+                    )
+                  )
+              )
+           ),
+          translate e1)
+        | TmAdd (i, e1, e2) -> 
+          TsApp(
+            TsApp (
+              TsLambda (
+                TsLambda (
+                  TsLambda (
+                    TsLambda (
+                      TsApp (
+                        TsApp (TsVarB 3, TsVarB 1), 
+                        TsApp(
+                          TsApp (TsVarB 2, TsVarB 1), 
+                          TsVarB 0)
+                      )
+                    )
+                  )
+                )
+              ), 
+            translate e1), 
+          translate e2)
+        | TmMul (i, e1, e2) -> 
+          TsApp(
+            TsApp (
+              TsLambda (
+                TsLambda (
+                  TsLambda (
+                    TsLambda (
+                      TsApp (
+                        TsApp (
+                          TsVarB 3, 
+                          TsApp (
+                            TsVarB 2, 
+                            TsVarB 1)),  
+                        TsVarB 0)
+                    )
+                  )
+                )
+              ), 
+            translate e1),
+          translate e2)
+        | TmSub (i, e1, e2)->
+          let zz = TmPair(i, TmZero i , TmZero i ) in
+          let ss = TmLambda(i, 
+            TmPair(i,
+              TmSnd(i,
+                TmVarB(i, 0)
+              ), 
+              TmSucc(i, 
+                TmSnd(i,
+                  TmVarB(i, 0)
+                )
+              )
+            )
+          ) in 
+          let prd = TmLambda(i, 
+            TmFst(i, 
+              TmApp(i,
+                TmApp(i,
+                  TmVarB(i ,0),
+                  ss
+                  ),
+                  zz
+                )
+              )
+            )in 
+          let sub = TmLambda(i,
+            TmLambda(i, 
+              TmApp(i, 
+                TmApp(i, 
+                  TmVarB (i, 0), 
+                  prd
+                ), 
+                TmVarB(i, 1)
+              )
+            )
+          )in
+          translate(TmApp(i, TmApp(i, sub, e1), e2))
+        | TmEq (i, e1, e2)-> 
+          let iszero = TmLambda(i,
+            TmApp(i,
+              TmApp(i,
+                TmVarB (i,0), 
+                TmLambda(i,
+                  TmFalse(i)
+                )
+              ), 
+              TmTrue(i)
+            )
+          )in 
+          let andd = TmLambda(i, 
+            TmLambda(i,
+              TmApp(i, 
+                TmApp(i, 
+                  TmVarB(i, 1), 
+                  TmVarB(i, 0)
+                ),
+                TmFalse(i)
+              )
+            )
+          )in
+          translate(
+            TmApp(i,
+              TmApp(i,
+                TmLambda(i,
+                  TmLambda(i, 
+                    TmApp(i,
+                      TmApp(i, 
+                        andd,
+                        TmApp(i, 
+                          iszero,
+                          TmSub(i, TmVarB(i, 0), TmVarB(i, 1))
+                        )
+                      ), 
+                      TmApp(i, 
+                          iszero,
+                          TmSub(i, TmVarB(i, 0), TmVarB(i, 1))
+                      )
+                    )
+                  ) 
+                ),
+              e1), 
+              e2)
+          )
+        | TmTrue _ -> TsLambda (TsLambda (TsVarB 1))
+        | TmFalse _-> TsLambda (TsLambda (TsVarB 0))
+        | TmIf (i, e1, e2, e3) ->
+          TsApp(
+            TsApp(
+              TsApp(
+                TsLambda(
+                  TsLambda(
+                    TsLambda(
+                      TsApp(
+                        TsApp(
+                          TsVarB 2, TsVarB 1
+                        ), 
+                        TsVarB 0
+                      )
+                    )
+                  )
+                ), 
+                translate(e1)
+              ), 
+              translate(e2)
+            ), 
+            translate(e3)
+          )
+        | TmFix (i, e1)-> 
+          TsApp(
+            TsLambda(
+              TsApp(
+                TsLambda(
+                  TsApp(
+                    TsVarB 1, 
+                    TsApp(
+                      TsVarB 0, 
+                      TsVarB 0
+                    )
+                  )
+                ), 
+                TsLambda(
+                  TsApp(
+                    TsVarB 1, 
+                    TsApp(
+                      TsVarB 0, 
+                      TsVarB 0
+                    )
+                  )
+                )
+              )
+            ), 
+            translate(e1)
+          )
+        | TmPair (i, e1, e2) -> 
+          TsApp(
+            TsApp(
+              TsLambda (
+                TsLambda (
+                  TsLambda (TsApp ( TsApp ( TsVarB 0, TsVarB 2), TsVarB 1)))), translate(e1)), translate(e2))
+        | TmFst (i, e1)-> 
+          TsApp(
+            TsLambda(
+              TsApp(
+                TsVarB 0, TsLambda (TsLambda (TsVarB 1))
+              )
+            ), 
+            translate e1
+          )
+        | TmSnd (i, e1)-> 
+          TsApp(
+            TsLambda(
+              TsApp(
+                TsVarB 0, TsLambda (TsLambda (TsVarB 0))
+              )
+            ), 
+            translate e1
+          )
+        | TmNill i -> translate(TmPair(i, TmTrue(i), TmTrue(i)))
+        | TmCons (i, e1, e2)-> translate(
+          (*TmLambda(i, 
+            TmLambda(i, *)
+              TmPair(i, 
+                TmFalse(i), 
+                TmPair(i, 
+                  (*TmVarB (i, 1), 
+                  TmVarB (i, 0)*)
+                  e1, e2
+                )
+              )
+          (*  )
+          )*)
+        )
+        | TmHead (i, e)-> translate(TmLambda(i, TmFst(i, TmSnd(i, TmVarB(i, 0)))))
+        | TmTail (i, e)-> translate(TmLambda(i, TmSnd(i, TmSnd(i, TmVarB(i, 0)))))
+        | TmIsNill (i, e) -> translate(TmFst(i, e))
 
         (* ---------------------------------------------------------------------- *)
 (* Extracting file info *)
 
 let tmInfo e = match e with
-  | TmLambda (fi,_,_) -> fi
+  | TmLambda (fi,_) -> fi
   | TmApp (fi,_,_) -> fi
-  | TmVar (fi,_) -> fi
+  | TmVarB (fi,_) -> fi
+  | TmVarF (fi,_) -> fi
   | TmTrue fi-> fi
   | TmFalse fi-> fi
   | TmZero fi-> fi

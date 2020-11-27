@@ -4,7 +4,6 @@ open Support.Pervasive
 
 exception NoRuleApplies
 type term =
-    | None
     | TmVarF of info * string
     | TmVarB of info * int
     | TmTrue of info
@@ -28,12 +27,16 @@ type term =
     | TmTail of info * term
     | TmIsNill of info * term
 
-  type expr =
-    | None
+type expr =
     | TsVarF of string
     | TsVarB of int
     | TsLambda of expr
     | TsApp of expr * expr
+
+type res_exp = 
+    | RsLambda of string * res_exp
+    | RsApp of res_exp * res_exp
+    | RsVar of string
 
 (* Datatypes *)
 
@@ -107,7 +110,6 @@ let rec print (e : term)  : string=
         | TmHead  (_, e1) -> String.concat "" ["head("; (print e1);")"]
         | TmTail  (_, e1) -> String.concat "" ["tail("; (print e1);")"]
         | TmIsNill  (_, e1) -> String.concat "" ["isnill("; (print e1);")"]
-        | None -> ""
 
 let rec print_e (e : expr)  : string= 
   match e with 
@@ -115,7 +117,13 @@ let rec print_e (e : expr)  : string=
       | TsApp (e1, e2) -> String.concat "" ["("; (print_e e1); (print_e e2); ")"]
       | TsVarF i -> i
       | TsVarB i -> string_of_int i
-      | None -> "没"
+
+
+let rec print_r (e : res_exp)  : string= 
+match e with 
+    | RsLambda (v, e1) -> String.concat "" ["(λ "; v; "." ; (print_r e1); ")"]
+    | RsApp (e1, e2) -> String.concat "" ["("; (print_r e1); (print_r e2); ")"]
+    | RsVar i -> i
 
 
 let rec translate (e : term) : expr = 
@@ -126,7 +134,6 @@ let rec translate (e : term) : expr =
             TsApp ((translate e1), (translate e2))
         | TmVarB (i, id) -> TsVarB id
         | TmVarF (i, id) -> TsVarF id
-        | None -> None
         | TmZero i -> TsLambda (TsLambda (TsVarB 0))
         | TmSucc (i, e1) -> 
           TsApp (
@@ -356,9 +363,9 @@ let rec translate (e : term) : expr =
           (*  )
           )*)
         )
-        | TmHead (i, e)-> translate(TmLambda(i, TmFst(i, TmSnd(i, TmVarB(i, 0)))))
-        | TmTail (i, e)-> translate(TmLambda(i, TmSnd(i, TmSnd(i, TmVarB(i, 0)))))
-        | TmIsNill (i, e) -> translate(TmFst(i, e))
+        | TmHead (i, e1)-> translate(TmFst(i, TmSnd(i, e1)))
+        | TmTail (i, e1)-> translate(TmSnd(i, TmSnd(i, e1)))
+        | TmIsNill (i, e1) -> translate(TmFst(i, e1))
 
         (* ---------------------------------------------------------------------- *)
 (* Extracting file info *)
@@ -386,4 +393,3 @@ let tmInfo e = match e with
   | TmHead  (fi,_) -> fi
   | TmTail  (fi,_) -> fi
   | TmIsNill  (fi,_) -> fi
-  | None -> dummyinfo

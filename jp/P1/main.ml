@@ -53,12 +53,25 @@ let alreadyImported = ref ([] : string list)
   
 let process_file f ctx =
   alreadyImported := f :: !alreadyImported;
-  let cmds,_ = parseFile f ctx in
-  let _ = Printf.printf "%s\n" (print cmds) in
-  let trans_cmds = translate cmds in
-  let _ = Printf.printf "%s\n" (print_e trans_cmds) in 
-  let reduced = reduce trans_cmds [] in
-  Printf.printf "%s\n" (print_e reduced);;
+  let cmds = parseFile f ctx in
+  match cmds with 
+  | [] -> Printf.printf "No expression given\n"
+  | e1::e2::t -> 
+    let _ = Printf.printf "Compariring two first expressions\n" in 
+    let _ = Printf.printf "%s\n%s\n" (print e1) (print e2) in
+    let t1 = translate e1 in 
+    let t2 = translate e2 in 
+    let _ = Printf.printf "%s\n%s" (print_e t1) (print_e t2) in 
+    let same, _, _ = compare t1 [] t2 [] [] [] in 
+    if same 
+      then Printf.printf "Termy są równoważne"
+      else Printf.printf "Termy nie są równoważne"
+  | e1::t -> 
+    let _ = Printf.printf "%s\n" (print e1) in
+    let trans_cmds = translate e1 in
+    let _ = Printf.printf "%s\n" (print_e trans_cmds) in 
+    let reduced = reduce trans_cmds [] (get_free_var_names trans_cmds) in
+    Printf.printf "%s\n" (print_r reduced);;
   (*let cmds,_ = parseFile f ctx in
   let g ctx c =  
     open_hvbox 0;

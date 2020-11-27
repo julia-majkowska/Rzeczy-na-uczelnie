@@ -105,7 +105,7 @@ open Syntax
 */
 
 %start toplevel
-%type < Syntax.context -> (Syntax.term * Syntax.context) > toplevel
+%type < Syntax.context -> ((Syntax.term list)) > toplevel
 %%
 
 /* ---------------------------------------------------------------------- */
@@ -114,10 +114,13 @@ open Syntax
 /* The top level of a file is a sequence of commands, each terminated
    by a semicolon. */
 toplevel :
-    EOF
-      { fun ctx -> None,ctx }
-  | Term
-      { fun ctx ->$1 ctx, ctx}
+  | EOF
+    { fun ctx -> [] }
+  | Term SEMI toplevel
+    { fun ctx ->
+        let cmd = $1 ctx in
+        let cmds = $3 ctx in
+        (cmd::cmds) }
 
 
 Term :

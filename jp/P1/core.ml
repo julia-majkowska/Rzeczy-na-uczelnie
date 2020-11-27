@@ -42,9 +42,9 @@ let rec print_stack (s:frame list)  : string=
 
   
 let rec reduce_head (e:expr) (s:frame list) (env:frame list) : wnf = 
-      let _ = Printf.printf "%s\n" (print_e e) in
+     (* let _ = Printf.printf "%s\n" (print_e e) in
       let _ = Printf.printf "%s\n" (print_stack s) in
-      let _ = Printf.printf "%s\n______________\n" (print_stack env) in
+      let _ = Printf.printf "%s\n______________\n" (print_stack env) in*)
       match e with 
       | TsApp (e1, e2) -> reduce_head e1 (Frame(e2, env)::s) env
       | TsLambda e1 ->(
@@ -92,7 +92,7 @@ let rec get_fresh_name (used_names : string list) (name : string) : string =
     name
             
 let rec reduce (e : expr) (env : frame list) (used_names : string list) : res_exp =
-  let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e) in
+  (*let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e) in*)
     let r = reduce_head e [] env
     in match r with
         | WLambda (e', env1) -> 
@@ -113,24 +113,29 @@ let rec reduce (e : expr) (env : frame list) (used_names : string list) : res_ex
 let rec update_free_vars n names = 
   match names with
   | [] -> [n]
-  | n :: t -> n :: t
-  | h :: t -> h :: (update_free_vars n t) 
+  | h :: t -> 
+    if h == n 
+      then  
+        n :: t
+      else
+        h :: (update_free_vars n t) 
 
 let rec compare_vars name1 name2 free_vars1 free_vars2 : bool = 
   (*Fcja sprawdza czy występujące zmienne wolne wystąpiły na po raz pierwszy w tym samym miejscu*)
+  (*let _ = Printf.printf "Szukam %s w %s oraz %s w %s\n" name1 (String.concat ", " free_vars1) name2 (String.concat ", " free_vars2) in*)
   match (free_vars1, free_vars2) with 
   | ([], []) -> true
-  | (name1 :: t1, name2 :: t2) -> true
-  | (name1 :: t1, _ :: t2) -> false
-  | (_ :: t1, name2 :: t2) -> false
-  | (h1 :: t1, h2 :: t2) -> compare_vars name1 name2 t1 t2
+  | (n1 :: t1, n2 :: t2) -> 
+      if (n1 = name1) && (n2 = name2) then true
+      else if (n1 == name1) || (n2 = name2) then false
+      else compare_vars name1 name2 t1 t2
   | _ -> false
 
 
 let rec reduce_head_cmp (e:expr) (s:frame list) (env:frame list) : wnf_comp = 
-  let _ = Printf.printf "%s\n" (print_e e) in
+  (*let _ = Printf.printf "%s\n" (print_e e) in
   let _ = Printf.printf "%s\n" (print_stack s) in
-  let _ = Printf.printf "%s\n______________\n" (print_stack env) in
+  let _ = Printf.printf "%s\n______________\n" (print_stack env) in*)
   match e with 
   | TsApp (e1, e2) -> reduce_head_cmp e1 (Frame(e2, env)::s) env
   | TsLambda e1 ->(
@@ -155,8 +160,8 @@ let rec compare (e1 : expr) (env1 : frame list)
                 (e2 : expr) (env2 : frame list) 
                 (free_vars1 : string list) (free_vars2 : string list)
                 : (bool * string list * string list)  =(*zwracam środowisko zmiennych wolnych*)
-  let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e1) in
-  let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e2) in
+  (*let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e1) in
+  let _ = Printf.printf " Wywołanie dla %s \n ~~~~~~~~~~~~~\n" (print_e e2) in*)
     let r1 = reduce_head_cmp e1 [] env1 in
     let r2 = reduce_head_cmp e2 [] env2 in
     match (r1, r2) with
@@ -182,6 +187,7 @@ let rec compare (e1 : expr) (env1 : frame list)
             then 
               check_stack stack1 stack2 (updated_free_vars1) (updated_free_vars2)
             else
+              let _ = Printf.printf " wywalam na zmiennej wolnej%s %s" name1 name2 in
               false, updated_free_vars1, updated_free_vars2
 
         )
@@ -202,6 +208,7 @@ let rec compare (e1 : expr) (env1 : frame list)
             then 
               check_stack stack1 stack2 (free_vars1) (free_vars2)
             else
+              let _ = Printf.printf " wywalam na zmiennej związanej" in
               false, free_vars1, free_vars2
 
         )

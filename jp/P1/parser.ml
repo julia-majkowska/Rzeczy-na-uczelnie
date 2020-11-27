@@ -422,7 +422,7 @@ let yyact = [|
     let _3 = (Parsing.peek_val __caml_parser_env 0 : 'ATerm) in
     Obj.repr(
 # 150 "parser.mly"
-        ( fun ctx -> TmAdd(_1, _2 ctx, _3 ctx) )
+        ( fun ctx -> TmMul (_1, _2 ctx, _3 ctx) )
 # 427 "parser.ml"
                : 'AppTerm))
 ; (fun __caml_parser_env ->

@@ -266,7 +266,7 @@ let rec translate (e : term) : expr =
                       ), 
                       TmApp(i, 
                           iszero,
-                          TmSub(i, TmVarB(i, 0), TmVarB(i, 1))
+                          TmSub(i, TmVarB(i, 1), TmVarB(i, 0))
                       )
                     )
                   ) 

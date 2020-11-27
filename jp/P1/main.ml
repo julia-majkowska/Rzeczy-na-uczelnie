@@ -61,11 +61,12 @@ let process_file f ctx =
     let _ = Printf.printf "%s\n%s\n" (print e1) (print e2) in
     let t1 = translate e1 in 
     let t2 = translate e2 in 
-    let _ = Printf.printf "%s\n%s" (print_e t1) (print_e t2) in 
+    let _ = Printf.printf "%s\n%s\n" (print_e t1) (print_e t2) in 
     let same, _, _ = compare t1 [] t2 [] [] [] in 
     if same 
       then Printf.printf "Termy są równoważne"
-      else Printf.printf "Termy nie są równoważne"
+      else 
+        Printf.printf "Termy nie są równoważne\n %s \n %s\n" (print_r(reduce t1 [] (get_free_var_names t1))) (print_r(reduce t2 [] (get_free_var_names t2)))
   | e1::t -> 
     let _ = Printf.printf "%s\n" (print e1) in
     let trans_cmds = translate e1 in

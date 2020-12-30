@@ -18,21 +18,16 @@ let reservedWords = [
   ("false", fun i -> Parser.FALSE i);
   ("lambda", fun i -> Parser.LAMBDA i);
   ("Nat", fun i -> Parser.NAT i);
-  ("add", fun i -> Parser.ADD i);
+  ("add", fun i -> Parser.ADD i);./f
   ("sub", fun i -> Parser.SUB i);
   ("mul", fun i -> Parser.MUL i);
   ("eq", fun i -> Parser.EQ i);
   ("fix", fun i -> Parser.FIX i);
-  ("pair", fun i -> Parser.PAIR i);
-  ("fst", fun i -> Parser.FST i);
-  ("snd", fun i -> Parser.SND i);
-  ("nill", fun i -> Parser.NILL i);
-  ("cons", fun i -> Parser.CONS i);
-  ("head", fun i -> Parser.HEAD i);
-  ("tail", fun i -> Parser.TAIL i);
-  ("isnill", fun i -> Parser.ISNILL i);
   ("exception", fun i -> Parser.EXCEPTION i);
+  ("in", fun i -> Parser.IN i);
+  ("as", fun i -> Parser.AS i);
   ("throw", fun i -> Parser.THROW i);
+  ("of", fun i -> Parser.OF i);
   ("try", fun i -> Parser.TRY i);
   ("catch", fun i -> Parser.CATCH i);
   ("TNum", fun i -> Parser.TNUM i);

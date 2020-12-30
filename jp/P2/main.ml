@@ -61,35 +61,19 @@ let print_to_file file message=
   
 let process_input f f_out ctx =
   alreadyImported := f :: !alreadyImported;
-  (*let cmds = parseFile f ctx in
+  let cmds = parseFile f ctx in
   match cmds with 
   | [] -> 
-      Printf.printf "Brak wyrażeń na wejściu\n";
+      Printf.printf "Empty input\n";
       ()
-  | e1::e2::t -> 
-    Printf.printf "Porównuje dwa pierwsze wyrażenia\n";
-    (*let _ = Printf.printf "%s\n%s\n" (print e1) (print e2) in*)
-    let t1 = translate e1 in 
-    let t2 = translate e2 in 
-    Printf.printf "Odcukrzone wyrażenia:\n%s\n%s\n" (print_e t1) (print_e t2);
-    let same, _, _ = compare t1 [] t2 [] [] [] in 
-    if same 
-      then (
-        Printf.printf "Termy są równoważne";
-        print_to_file f_out "true")
-      else( 
-        Printf.printf "Termy nie są równoważne\n %s \n %s\n" (print_r(reduce t1 [] (get_free_var_names t1))) (print_r(reduce t2 [] (get_free_var_names t2)));
-        print_to_file f_out "false")
-       
   | e1::t ->
-    Printf.printf "Redukuję wyrażenie\n"; 
-    (*let _ = Printf.printf "%s\n" (print e1) in*)
-    let t = translate e1 in
-    Printf.printf "Odcukrzone wyrażenie :\n %s\n" (print_e t);
-    let reduced = reduce t [] (get_free_var_names t) in
-    Printf.printf "Zredukowane wyrażenie :\n %s\n" (print_r reduced);*)
-    
-    print_to_file f_out (print_r reduced);;
+    Printf.printf "Type checking\n"; 
+    let _ = Printf.printf "%s\n" (print e1) in
+    let t = get_type e1 [] [] in
+    Printf.printf "Expression of type :\n %s\n" (print_type t);
+    let reduced = reduce_head e1 ([], []) in
+    Printf.printf "Result :\n %s\n" (print_result reduced);
+    print_to_file f_out (print_result reduced);;
 
     
 let main () = 

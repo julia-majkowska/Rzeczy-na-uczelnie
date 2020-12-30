@@ -6,8 +6,5 @@
 
 open Syntax
 open Support.Error
-type frame = 
-  | Frame of expr * (frame list);;
-val get_free_var_names : expr -> string list;;
-val reduce : expr -> frame list -> string list -> res_exp ;;
-val compare : expr -> frame list -> expr -> frame list -> string list -> string list ->  (bool * string list * string list);;(*zwracam środowisko zmiennych wolnych*);;
+val reduce_head : term -> (result list * string list) -> result ;;
+val get_type : term -> (etype list) -> (etype list) ->etype;;

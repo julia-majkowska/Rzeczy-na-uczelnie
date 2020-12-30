@@ -36,7 +36,10 @@ open Syntax
 %token <Support.Error.info> FIX
 %token <Support.Error.info> NAT
 %token <Support.Error.info> EXCEPTION
+%token <Support.Error.info> IN
 %token <Support.Error.info> THROW
+%token <Support.Error.info> OF
+%token <Support.Error.info> AS
 %token <Support.Error.info> TRY
 %token <Support.Error.info> CATCH
 %token <Support.Error.info> TNUM
@@ -126,14 +129,15 @@ Type :
 | TARROW AtomicType AtomicType 
   {TyArrow ($2, $3)}
 | AtomicType
+  {$1}
 
 AtomicType : 
 | TBOOL 
   {TyBool}
 | TNUM
   {TyNum}
-| (Type)
-  {$1}
+| LPAREN Type RPAREN
+  {$2}
 
 
 Term :
@@ -144,7 +148,7 @@ Term :
   | LAMBDA LCID COLON Type DOT Term 
       { fun ctx ->
           let ctx1 = addname ctx $2.v in
-          TmLambda($1, $3,  $5 ctx1)}
+          TmLambda($1, $4,  $6 ctx1)}
 
 
 AppTerm :
@@ -165,28 +169,30 @@ AppTerm :
       { fun ctx -> TmEq($1, $2 ctx, $3 ctx) }
     | FIX ATerm
       { fun ctx -> TmFix($1, $2 ctx) }
-    | EXCEPTION LCID OF Type IN Term 
+    | EXCEPTION LCID OF Type IN ATerm 
       { fun ctx -> 
-        let ctx' = add_exception $2.v ctx
+        let ctx' = addexception ctx $2.v  in
         TmException($1, $2.v, $4, $6 ctx')}
-    | THROW LCID Term AS Type 
+    | THROW LCID ATerm AS Type 
       { fun ctx -> 
-        if isexceptionbound ctx $2.value
+        if isexceptionbound ctx $2.v
         then
-          TmThrow($1, exceptionnametoindex $2.v, $3 ctx, $5)}
-    | TRY Term CATCH LCURLY ErrorCases RCURLY
+          TmThrow($1, (exceptionname2index $1 ctx $2.v), $3 ctx, $5)
+        else error $1 "unbound exception identifier"}
+    | TRY ATerm CATCH LCURLY ErrorCases RCURLY
       { fun ctx -> TmTry($1, $2 ctx, $5 ctx)}
 
 ErrorCases :
     ErrorCase
       { fun ctx -> [$1 ctx] }
-  | ErrorCase COLON ErrorCases
+  | ErrorCase VBAR ErrorCases
       { fun ctx -> ($1 ctx) :: ($3 ctx) }
 
 ErrorCase :
     LCID LCID DDARROW Term
       { fun ctx -> 
-            (($1.v, $2.v), $4 ctx) }
+            let ctx1 = addname ctx $2.v in
+            ((exceptionname2index $3 ctx $1.v), $4 ctx1) }
 
 /* Atomic terms are ones that never require extra parentheses */
 ATerm :
@@ -202,10 +208,10 @@ ATerm :
         then 
             TmVarB($1.i, name2index $1.i ctx $1.v)
         else
-            error $1 "Undefined variable"
+            error $1.i "Undefined variable"
       }
   | INTV
-      { fun ctx -> TmNat($1, $1.v) }
+      { fun ctx -> TmNat($1.i, $1.v) }
 
 
 /*   */

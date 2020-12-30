@@ -1,1 +1,1 @@
-fix (lambda fct . (lambda n . if (eq n 1) then 1 else (mul n (fct (sub n 1))))) 6;
+exception e1 of TNum in ((lambda x : TNum . (if (eq x 3) then (throw e1 42 as TBool) else (eq x 4))) 7);

@@ -3,6 +3,13 @@ open Support.Error
 open Support.Pervasive
 
 exception NoRuleApplies
+
+
+type etype = 
+    | TyArrow of etype * etype
+    | TyNum 
+    | TyBool
+
 type term =
     | TmVarB of info * int
     | TmBool of info * bool
@@ -19,11 +26,12 @@ type term =
     | TmThrow of info * int * term *etype
     | TmTry of info * term * (int * term) list
 
-type etype = 
-    | TyArrow of etype * etype
-    | TyNum 
-    | TyBool
-
+type result = 
+    | RVar of int
+    | RBool of bool
+    | RLambda of term
+    | RNat of int
+    | RException of int * result
 
 
 (* Datatypes *)
@@ -31,37 +39,55 @@ type etype =
 type binding =
     NameBind 
 
-type context = (string * binding) list
+type context = ((string * binding) list)*((string * binding) list)
 
 (* ---------------------------------------------------------------------- *)
 (* Context management *)
 
-let emptycontext = []
+let emptycontext = ([], [])
 
 let addbinding ctx x bind = (x,bind)::ctx
 
-let addname ctx x = addbinding ctx x NameBind
+let addname ctx x : context= 
+  let c, ectx = ctx in 
+  ((addbinding c x NameBind), ectx)
 
-let rec isnamebound ctx x =
+let addexception ctx x : context= 
+  let c, ectx = ctx in 
+  (c, (addbinding ectx x NameBind))
+
+let rec findname ctx x = 
   match ctx with
-      [] -> false
+    |  [] -> false
     | (y,_)::rest ->
         if y=x then true
-        else isnamebound rest x
+        else findname rest x
+
+let isnamebound ctx x =
+  let c, ectx =  ctx in findname c x
+
+let isexceptionbound ctx x =
+    let c, ectx =  ctx in findname ectx x
 
 let rec pickfreshname ctx x =
   if isnamebound ctx x then pickfreshname ctx (x^"'")
-  else ((x,NameBind)::ctx), x
+  else addname ctx x
 
-
-let rec name2index fi ctx x =
+let rec get_index fi ctx x = 
   match ctx with
-      [] -> error fi ("Identifier " ^ x ^ " is unbound")
-    | (y,_)::rest ->
-        if y=x then 0
-        else 1 + (name2index fi rest x)
+  [] -> error fi ("Identifier " ^ x ^ " is unbound")
+  | (y,_)::rest ->
+      if y=x then 0
+      else 1 + (get_index fi rest x)
 
-let rec print_type (ty : etype) : tring = 
+let name2index fi ctx x =
+  let c, ectx =  ctx in get_index fi c x
+
+let exceptionname2index fi ctx x =
+  let c, ectx =  ctx in get_index fi ectx x
+
+
+let rec print_type (ty : etype) : string = 
   match ty with 
   | TyArrow (ty1, ty2) -> 
     String.concat "" ["["; (print_type ty1);"->"; (print_type ty2); "]"]
@@ -71,9 +97,8 @@ let rec print_type (ty : etype) : tring =
 let rec print_clauses (clauses : (int*term)list) : string  = 
 match clauses with 
 | [] -> ""
-| (i, ti) -> String.concat "" ["(";string_of_int i ; "=>" ; (print t);");"]
-
-let rec print (e : term)  : string= 
+| (i, ti) :: tail -> String.concat "" ["(";string_of_int i ; "=>" ; (print ti);");"; print_clauses tail]
+and  print (e : term)  : string= 
     match e with 
         | TmLambda (_,t, e1) -> String.concat "" ["λ "; (print_type t);".("; (print e1); ")"]
         | TmApp (_, e1, e2) -> String.concat "" [(print e1); (print e2)]
@@ -89,11 +114,20 @@ let rec print (e : term)  : string=
         | TmException (_, str, ty, t) -> String.concat "" ["Exception(";str; " of " ; print_type(ty); " in "; (print t);")"]
         | TmThrow (_, i, t, ty) -> String.concat "" ["Trow(";string_of_int i ; " " ; (print t); " as "; print_type(ty);")"]
         | TmTry(_, t, clauses) -> String.concat "" ["Try("; (print t); " with {"; print_clauses(clauses);"})"]
-        (* ---------------------------------------------------------------------- *)*)
+
+let rec print_result (e:result) : string = 
+  match e with 
+        | RLambda ( e1) -> String.concat "" ["λ.("; (print e1); ")"]
+        | RVar (i) -> String.concat "" ["v"; string_of_int i ]
+        | RBool  (b)-> if b then "true" else "false"
+        | RNat  (e1) -> string_of_int e1       
+        | RException (i, t) -> 
+          String.concat "" ["Exception(";string_of_int i; " of " ; (print_result t);")"]
+(* ---------------------------------------------------------------------- *)
 (* Extracting file info *)
 
 let tmInfo e = match e with
-  | TmLambda (fi,_) -> fi
+  | TmLambda (fi,_, _) -> fi
   | TmApp (fi,_,_) -> fi
   | TmVarB (fi,_) -> fi
   | TmBool (fi, _) -> fi
@@ -104,3 +138,6 @@ let tmInfo e = match e with
   | TmEq (fi,_,_) -> fi
   | TmIf (fi,_,_,_) -> fi
   | TmFix (fi,_) -> fi
+  | TmException (fi, _, _, _) -> fi
+  | TmThrow (fi, _, _, _ ) -> fi
+  | TmTry (fi, _, _ ) -> fi

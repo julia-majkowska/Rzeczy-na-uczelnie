@@ -4,55 +4,51 @@ open Support.Pervasive
 open Support.Error
 
 (* Data type definitions *)
+type etype = 
+    | TyArrow of etype * etype
+    | TyNum 
+    | TyBool
+
 type term =
-    | TmVarF of info * string
     | TmVarB of info * int
-    | TmTrue of info
-    | TmFalse of info
-    | TmLambda of info * term
+    | TmBool of info * bool
+    | TmLambda of info * etype * term
     | TmApp of info * term * term
-    | TmSucc of info * term
-    | TmZero of info
+    | TmNat of info * int
     | TmAdd of info * term * term
     | TmMul of info * term * term
     | TmSub of info * term * term
     | TmEq of info * term * term
     | TmIf of info * term * term * term
     | TmFix of info * term
-    | TmPair of info * term * term
-    | TmFst of info * term
-    | TmSnd of info * term 
-    | TmNill of info
-    | TmCons of info * term * term
-    | TmHead of info * term
-    | TmTail of info * term
-    | TmIsNill of info * term
+    | TmException of info * string * etype * term
+    | TmThrow of info * int * term *etype
+    | TmTry of info * term * (int * term) list
 
-type expr =
-    | TsVarF of string
-    | TsVarB of int
-    | TsLambda of expr
-    | TsApp of expr * expr
-
-type res_exp = 
-    | RsLambda of string * res_exp
-    | RsApp of res_exp * res_exp
-    | RsVar of string
+type result = 
+    | RVar of int
+    | RBool of bool
+    | RLambda of term
+    | RNat of int
+    | RException of int * result
 
 type binding =
     NameBind 
 
 
 (* Contexts *)
-type context
+
+type context = ((string * binding) list)*((string * binding) list)
 val emptycontext : context 
 val addname: context -> string -> context
+val addexception: context -> string -> context
 val name2index : info -> context -> string -> int
+val exceptionname2index : info -> context -> string -> int
 val isnamebound : context -> string -> bool
+val isexceptionbound : context -> string -> bool
 val print: term->string
-val print_e: expr->string
-val print_r: res_exp->string
-val translate : term -> expr
+val print_result: result->string
+val print_type: etype->string
 
 (* Misc *)
 val tmInfo: term -> info

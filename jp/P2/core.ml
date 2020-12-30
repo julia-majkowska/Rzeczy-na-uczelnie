@@ -7,319 +7,211 @@ open Support.Pervasive
 
 exception NoRuleApplies
 
-let rec isnumericval ctx t = match t with
-    TmZero(_) -> true
-  | TmSucc(_,t1) -> isnumericval ctx t1
-  | _ -> false
 
-let rec isval ctx t = match t with
-    TmTrue(_)  -> true
-  | TmFalse(_) -> true
-  | TmTag(_,l,t1,_) -> isval ctx t1
-  | TmString _  -> true
-  | TmUnit(_)  -> true
-  | TmFloat _  -> true
-  | t when isnumericval ctx t  -> true
-  | TmAbs(_,_,_,_) -> true
-  | TmRecord(_,fields) -> List.for_all (fun (l,ti) -> isval ctx ti) fields
-  | _ -> false
+exception NoRuleApplies
 
-let rec eval1 ctx t = match t with
-    TmIf(_,TmTrue(_),t2,t3) ->
-      t2
-  | TmIf(_,TmFalse(_),t2,t3) ->
-      t3
-  | TmIf(fi,t1,t2,t3) ->
-      let t1' = eval1 ctx t1 in
-      TmIf(fi, t1', t2, t3)
-  | TmTag(fi,l,t1,tyT) ->
-      let t1' = eval1 ctx t1 in
-      TmTag(fi, l, t1',tyT)
-  | TmCase(fi,TmTag(_,li,v11,_),branches) when isval ctx v11->
-      (try 
-         let (x,body) = List.assoc li branches in
-         termSubstTop v11 body
-       with Not_found -> raise NoRuleApplies)
-  | TmCase(fi,t1,branches) ->
-      let t1' = eval1 ctx t1 in
-      TmCase(fi, t1', branches)
-  | TmApp(fi,TmAbs(_,x,tyT11,t12),v2) when isval ctx v2 ->
-      termSubstTop v2 t12
-  | TmApp(fi,v1,t2) when isval ctx v1 ->
-      let t2' = eval1 ctx t2 in
-      TmApp(fi, v1, t2')
-  | TmApp(fi,t1,t2) ->
-      let t1' = eval1 ctx t1 in
-      TmApp(fi, t1', t2)
-  | TmLet(fi,x,v1,t2) when isval ctx v1 ->
-      termSubstTop v1 t2 
-  | TmLet(fi,x,t1,t2) ->
-      let t1' = eval1 ctx t1 in
-      TmLet(fi, x, t1', t2) 
-  | TmFix(fi,v1) as t when isval ctx v1 ->
-      (match v1 with
-         TmAbs(_,_,_,t12) -> termSubstTop t t12
-       | _ -> raise NoRuleApplies)
-  | TmFix(fi,t1) ->
-      let t1' = eval1 ctx t1
-      in TmFix(fi,t1')
-  | TmVar(fi,n,_) ->
-      (match getbinding fi ctx n with
-          TmAbbBind(t,_) -> t 
-        | _ -> raise NoRuleApplies)
-  | TmAscribe(fi,v1,tyT) when isval ctx v1 ->
-      v1
-  | TmAscribe(fi,t1,tyT) ->
-      let t1' = eval1 ctx t1 in
-      TmAscribe(fi,t1',tyT)
-  | TmRecord(fi,fields) ->
-      let rec evalafield l = match l with 
-        [] -> raise NoRuleApplies
-      | (l,vi)::rest when isval ctx vi -> 
-          let rest' = evalafield rest in
-          (l,vi)::rest'
-      | (l,ti)::rest -> 
-          let ti' = eval1 ctx ti in
-          (l, ti')::rest
-      in let fields' = evalafield fields in
-      TmRecord(fi, fields')
-  | TmProj(fi, (TmRecord(_, fields) as v1), l) when isval ctx v1 ->
-      (try List.assoc l fields
-       with Not_found -> raise NoRuleApplies)
-  | TmProj(fi, t1, l) ->
-      let t1' = eval1 ctx t1 in
-      TmProj(fi, t1', l)
-  | TmTimesfloat(fi,TmFloat(_,f1),TmFloat(_,f2)) ->
-      TmFloat(fi, f1 *. f2)
-  | TmTimesfloat(fi,(TmFloat(_,f1) as t1),t2) ->
-      let t2' = eval1 ctx t2 in
-      TmTimesfloat(fi,t1,t2') 
-  | TmTimesfloat(fi,t1,t2) ->
-      let t1' = eval1 ctx t1 in
-      TmTimesfloat(fi,t1',t2) 
-  | TmSucc(fi,t1) ->
-      let t1' = eval1 ctx t1 in
-      TmSucc(fi, t1')
-  | TmPred(_,TmZero(_)) ->
-      TmZero(dummyinfo)
-  | TmPred(_,TmSucc(_,nv1)) when (isnumericval ctx nv1) ->
-      nv1
-  | TmPred(fi,t1) ->
-      let t1' = eval1 ctx t1 in
-      TmPred(fi, t1')
-  | TmIsZero(_,TmZero(_)) ->
-      TmTrue(dummyinfo)
-  | TmIsZero(_,TmSucc(_,nv1)) when (isnumericval ctx nv1) ->
-      TmFalse(dummyinfo)
-  | TmIsZero(fi,t1) ->
-      let t1' = eval1 ctx t1 in
-      TmIsZero(fi, t1')
-  | _ -> 
-      raise NoRuleApplies
+let rec var_lookup (inf : info) (num:int) (env:term list) : term= 
+  match env with 
+  | [] -> error info "undefined variable"
+  | t :: tail -> 
+      match num with
+      | 0 -> t
+      | n -> var_lookup inf (num-1) tail
 
-let rec eval ctx t =
-  try let t' = eval1 ctx t
-      in eval ctx t'
-  with NoRuleApplies -> t
+let rec exception_lookup (inf : info) (num:int) (env:string list) : term= 
+  match env with 
+  | [] -> error info "undefined variable"
+  | t :: tail -> 
+      match num with
+      | 0 -> t
+      | n -> var_lookup inf (num-1) tail
+        
 
-let evalbinding ctx b = match b with
-    TmAbbBind(t,tyT) ->
-      let t' = eval ctx t in 
-      TmAbbBind(t',tyT)
-  | bind -> bind
 
-let istyabb ctx i = 
-  match getbinding dummyinfo ctx i with
-    TyAbbBind(tyT) -> true
-  | _ -> false
-
-let gettyabb ctx i = 
-  match getbinding dummyinfo ctx i with
-    TyAbbBind(tyT) -> tyT
-  | _ -> raise NoRuleApplies
-
-let rec computety ctx tyT = match tyT with
-    TyVar(i,_) when istyabb ctx i -> gettyabb ctx i
-  | _ -> raise NoRuleApplies
-
-let rec simplifyty ctx tyT =
-  try
-    let tyT' = computety ctx tyT in
-    simplifyty ctx tyT' 
-  with NoRuleApplies -> tyT
-
-let rec tyeqv ctx tyS tyT =
-  let tyS = simplifyty ctx tyS in
-  let tyT = simplifyty ctx tyT in
-  match (tyS,tyT) with
-    (TyString,TyString) -> true
-  | (TyUnit,TyUnit) -> true
-  | (TyId(b1),TyId(b2)) -> b1=b2
-  | (TyFloat,TyFloat) -> true
-  | (TyVar(i,_), _) when istyabb ctx i ->
-      tyeqv ctx (gettyabb ctx i) tyT
-  | (_, TyVar(i,_)) when istyabb ctx i ->
-      tyeqv ctx tyS (gettyabb ctx i)
-  | (TyVar(i,_),TyVar(j,_)) -> i=j
-  | (TyArr(tyS1,tyS2),TyArr(tyT1,tyT2)) ->
-       (tyeqv ctx tyS1 tyT1) && (tyeqv ctx tyS2 tyT2)
-  | (TyBool,TyBool) -> true
-  | (TyNat,TyNat) -> true
-  | (TyRecord(fields1),TyRecord(fields2)) -> 
-       List.length fields1 = List.length fields2
-       &&                                         
-       List.for_all 
-         (fun (li2,tyTi2) ->
-            try let (tyTi1) = List.assoc li2 fields1 in
-                tyeqv ctx tyTi1 tyTi2
-            with Not_found -> false)
-         fields2
-  | (TyVariant(fields1),TyVariant(fields2)) ->
-       (List.length fields1 = List.length fields2)
-       && List.for_all2
-            (fun (li1,tyTi1) (li2,tyTi2) ->
-               (li1=li2) && tyeqv ctx tyTi1 tyTi2)
-            fields1 fields2
-  | _ -> false
-
-(* ------------------------   TYPING  ------------------------ *)
-
-let rec typeof ctx ectx t =
-  match t with
-    TmInert(fi,tyT) ->
-      tyT
-  | TmTrue(fi) -> 
-      TyBool
-  | TmFalse(fi) -> 
-      TyBool
-  | TmIf(fi,t1,t2,t3) ->
-     if tyeqv ctx (typeof ctx ectx t1) TyBool then
-       let tyT2 = typeof ctx ectx t2 in
-       if tyeqv ctx tyT2 (typeof ctx t3) then tyT2
-       else error fi "arms of conditional have different types"
-     else error fi "guard of conditional not a boolean"
-  | TmCase(fi, t, cases) ->
-      (match simplifyty ctx (typeof ctx t) with
-         TyVariant(fieldtys) ->
-           List.iter
-             (fun (li,(xi,ti)) ->
-                try let _ = List.assoc li fieldtys in ()
-                with Not_found -> error fi ("label "^li^" not in type"))
-             cases;
-           let casetypes =
-             List.map (fun (li,(xi,ti)) ->
-                         let tyTi =
-                           try List.assoc li fieldtys
-                           with Not_found ->
-                             error fi ("label "^li^" not found") in
-                         let ctx' = addbinding ctx xi (VarBind(tyTi)) in
-                         typeShift (-1) (typeof ctx' ti))
-                      cases in
-           let tyT1 = List.hd casetypes in
-           let restTy = List.tl casetypes in
-           List.iter
-             (fun tyTi -> 
-                if not (tyeqv ctx tyTi tyT1)
-                then error fi "fields do not have the same type")
-             restTy;
-           tyT1
-        | _ -> error fi "Expected variant type")
-  | TmTag(fi, li, ti, tyT) ->
-      (match simplifyty ctx tyT with
-          TyVariant(fieldtys) ->
-            (try
-               let tyTiExpected = List.assoc li fieldtys in
-               let tyTi = typeof ctx ti in
-               if tyeqv ctx tyTi tyTiExpected
-                 then tyT
-                 else error fi "field does not have expected type"
-             with Not_found -> error fi ("label "^li^" not found"))
-        | _ -> error fi "Annotation is not a variant type")
-  | TmVar(fi,i,_) -> getTypeFromContext fi ctx i
-  | TmAbs(fi,x,tyT1,t2) ->
-      let ctx' = addbinding ctx x (VarBind(tyT1)) in
-      let tyT2 = typeof ctx' t2 in
-      TyArr(tyT1, typeShift (-1) tyT2)
-  | TmApp(fi,t1,t2) ->
-      let tyT1 = typeof ctx t1 in
-      let tyT2 = typeof ctx t2 in
-      (match simplifyty ctx tyT1 with
-          TyArr(tyT11,tyT12) ->
-            if tyeqv ctx tyT2 tyT11 then tyT12
-            else error fi "parameter type mismatch"
-        | _ -> error fi "arrow type expected")
-  | TmLet(fi,x,t1,t2) ->
-     let tyT1 = typeof ctx t1 in
-     let ctx' = addbinding ctx x (VarBind(tyT1)) in         
-     typeShift (-1) (typeof ctx' t2)
-  | TmFix(fi, t1) ->
-      let tyT1 = typeof ctx t1 in
-      (match simplifyty ctx tyT1 with
-           TyArr(tyT11,tyT12) ->
-             if tyeqv ctx tyT12 tyT11 then tyT12
-             else error fi "result of body not compatible with domain"
-         | _ -> error fi "arrow type expected")
-  | TmString _ -> TyString
-  | TmUnit(fi) -> TyUnit
-  | TmAscribe(fi,t1,tyT) ->
-     if tyeqv ctx (typeof ctx t1) tyT then
-       tyT
-     else
-       error fi "body of as-term does not have the expected type"
-  | TmRecord(fi, fields) ->
-      let fieldtys = 
-        List.map (fun (li,ti) -> (li, typeof ctx ti)) fields in
-      TyRecord(fieldtys)
-  | TmProj(fi, t1, l) ->
-      (match simplifyty ctx (typeof ctx t1) with
-          TyRecord(fieldtys) ->
-            (try List.assoc l fieldtys
-             with Not_found -> error fi ("label "^l^" not found"))
-        | _ -> error fi "Expected record type")
-  | TmFloat _ -> TyFloat
-  | TmTimesfloat(fi,t1,t2) ->
-      if tyeqv ctx (typeof ctx t1) TyFloat
-      && tyeqv ctx (typeof ctx t2) TyFloat then TyFloat
-      else error fi "argument of timesfloat is not a number"
-  | TmZero(fi) ->
-      TyNat
-  | TmSucc(fi,t1) ->
-      if tyeqv ctx (typeof ctx t1) TyNat then TyNat
-      else error fi "argument of succ is not a number"
-  | TmPred(fi,t1) ->
-      if tyeqv ctx (typeof ctx t1) TyNat then TyNat
-      else error fi "argument of pred is not a number"
-  | TmIsZero(fi,t1) ->
-      if tyeqv ctx (typeof ctx t1) TyNat then TyBool
-      else error fi "argument of iszero is not a number"
-  | TmException(fi, name, ty, t) -> 
-    typeof ctx ((name, ty) :: ectx) t
-  | TmThrow(fi, name, t, ty) -> (
-    let t1 = find_error fi ectx name in
-    let t2 = typeof ctx ectx t in
-    if tyeqv ctx ectx t1 t2 then
-      ty
-    else error fi "exception content does not match type"
-  )
-  | TmTry (fi, t, catches) -> (
-    let t1 = typeof ctx ectx t in
-    type_catches fi ctx ectx catches t1
-  )
-
- 
-let rec type_catches fi ctx ectx catches ty = 
-  match catches with 
-  | [] -> ty
-  | ((ename, vname), t) :: tail -> 
-    let t1 = find_error fi ectx name in
-    let ctx' = addbinding ctx x (VarBind(t1)) in
-    let tyT2 = typeof ctx' t in
-    if tyeqv ctx ty tyT2 then
-      type_catches fi ctx ectx tail ty
-    else error fi "catch clause body type does not match try clause type"
+let rec catch_exceptions inf1 i1 t1 ty1 clauses : term = 
+  match clauses with 
+  | [] -> TmException(inf1, i1, t1, ty1)
+  | (i, ti) :: tail -> 
+    if i == i1 then ti
+    else catch_exceptions inf1 i1 t1 ty1 tail
   
-let rec find_error fi ectx name = 
-  match ectx with 
-  | (n, ty) :: t -> 
-    if n == name then ty else find_error t name
-  | [] -> error fi "undefined exception"
+let rec reduce_head (e:term) (env:term list * string list)) : term = 
+     
+      match e with 
+      | TmApp (inf, e1, e2) -> 
+        let rt1 = reduce_head e1 env in
+        let rt2 = reduce_head e2 env in 
+        match rt1 with 
+        | TmLambda (inf1, _ , t) -> 
+            reduce_head t (rt1 ::env.0, env.1)
+        | _ -> error inf1 "runetime attempting to apply to non abstraction"
+      | TmVarB (inf, n)-> (
+        let e' = var_lookup n env.0 in 
+        reduce_head e' env'
+      )
+      | TmAdd (inf, t1, t2) -> (
+        let rt1 = reduce_head t1 [] env in
+        let rt2 = reduce_head t2 [] env in 
+        match (rt1, rt2) with 
+        | TmNat n1, TmNat n2 -> TmNat (inf, n1 + n2)
+        | _ -> error inf "runetime illegal additon"
+      )
+      | TmMul (inf, t1, t2) -> (
+        let rt1 = reduce_head t1 [] env in
+        let rt2 = reduce_head t2 [] env in 
+        match (rt1, rt2) with 
+        | TmNat n1, TmNat n2 -> TmNat (inf, n1 * n2)
+        | _ -> error inf "runetime illegal multiplication"
+      )
+      | TmSub (inf, t1, t2) -> (
+        let rt1 = reduce_head t1 env in
+        let rt2 = reduce_head t2 env in 
+        match (rt1, rt2) with 
+        | TmNat n1, TmNat n2 -> 
+          if n2 >= n1 then 
+            TmNat 0 
+          else TmNat (inf, n1 - n2)
+        | _ -> error inf "runetime illegal substraction"
+      )
+      | TmEq (inf, t1, t2) -> (
+        let rt1 = reduce_head t1 env in
+        let rt2 = reduce_head t2 env in 
+        match (rt1, rt2) with 
+        | TmNat n1, TmNat n2 -> TmBool (inf, n1 == n2)
+        | _ -> error inf "runetime illegal numeric comparison"
+      )
+      | TmIf (inf, t1, t2, t3) -> (
+        match reduce_head t1 env with
+        | TmBool (inf1, b) -> (
+          if b then 
+            reduce_head t2 env
+          else
+            reduce_head t3 env
+        )
+      )
+      | TmException (inf, name, ty, t) -> (
+        reduce_head t (env.0, name :: env.1)
+      )
+      | TmThrow (inf, i, t, ty) -> 
+        let tt = reduce_head t env in
+        TmException (inf, lookup_exception i env.1, ty, tt)
+      | TmCatch (inf, t, clauses) -> 
+        match reduce_head t env with
+        | TmException (inf1, i1, t1, ty1) -> 
+          catch_exceptions inf1 i1 t1 ty1 clauses
+        | rt -> rt
+        
+      | _ -> e
+
+
+let rec get_fresh_name (used_names : string list) (name : string) : string = 
+  if List.mem name used_names 
+  then    
+    get_fresh_name used_names (String.concat "" [name;"'"])
+  else
+    name
+            
+
+let rec compare_type (ty1 : etype) (ty2 : etype) : bool = 
+  match (ty1, ty2) with 
+  | TyNum, TyNum -> true
+  | TyBool, TyBool -> true
+  | TyArrow (ty11, ty12) , TyArrow (ty21, ty22) -> 
+    (compare_type ty11 ty21) & (compare_type ty12 ty22)
+  | _ -> false
+
+let rec lookup_type info ctx i = 
+  match ctx with 
+  | [] -> error info "undefined variable"
+  | h :: t -> (
+    match i with = 
+    | 0 -> h
+    | n -> lookup_type info t i-1
+  )
+
+let rec lookup_exception_type info ectx i = 
+  match ctx with 
+  | [] -> error info "undefined exception"
+  | (hty, hname) :: t -> (
+    match i with = 
+    | 0 -> hty
+    | n -> lookup_type info t i-1
+  )
+
+
+let rec get_type (e : term) (ctx : etype list) (ectx : (etype*string) list) : etype = 
+  match e with 
+  | TmVarB (info, i) -> lookup_type info ctx i
+  | TmBool (_, b) -> TyBool
+  | TmLambda (_, ty, t) -> TyArrow (ty, (get_type t (ty :: ctx) ectx))
+  | TmApp (inf,t1, t2) -> 
+    let ty1 = get_type t1 ctx ectx in
+    match ty1 with 
+    | TyArrow (ty11, ty12) -> 
+      let ty2 = get_type t2 ctx ectx in 
+        if compare_type ty2 ty11 then ty12 
+        else error inf "type of argument does not match the abstraction"
+  | TmAdd (inf, t1, t2) -> 
+    let ty1 = get_type t1 ctx ectx in
+    let ty2 = get_type t2 ctx ectx in
+    if (compare_type ty1 TyNum) & (compare_type ty2 TyNum)
+      then TyNum
+    else error inf "attempting to add non numerical values"
+  | TmMul (inf, t1, t2) -> 
+    let ty1 = get_type t1 ctx ectx in
+    let ty2 = get_type t2 ctx ectx in
+    if (compare_type ty1 TyNum) & (compare_type ty2 TyNum)
+      then TyNum
+    else error inf "attempting to multiply non numerical values"
+  | TmSub (inf, t1, t2) -> 
+    let ty1 = get_type t1 ctx ectx in
+    let ty2 = get_type t2 ctx ectx in
+    if (compare_type ty1 TyNum) & (compare_type ty2 TyNum)
+      then TyNum
+    else error inf "attempting to substract non numerical values"
+  | TmEq (inf, t1, t2) -> 
+    let ty1 = get_type t1 ctx ectx in
+    let ty2 = get_type t2 ctx ectx in
+    if (compare_type ty1 TyNum) & (compare_type ty2 TyNum)
+      then TyBool
+    else error inf "attempting to add non numerical values"
+  | TmIf (inf, t1, t2, t3) -> (
+    let ty1 = get_type t1 ctx ectx in
+    match ty1 with 
+    | TyBool -> (
+      let ty2 = get_type t2 ctx ectx in
+      let ty3 = get_type t3 ctx ectx in 
+      if compare_type ty2 t3
+        then ty2
+      else error inf "if branches have different types"
+    )
+    | _ -> error inf "if clause is not a boolean expression"
+  )
+    | TmFix (inf, t) -> 
+      let ty1 = get_type t1 ctx ectx in
+      match ty1 with 
+      | TyArrow (t1, t2) -> 
+        if compare_type t1 t2 then t1 
+        else error inf "function aplied to fix has different argument and result types"
+      | _ -> error inf "try to apply non function to fix"
+    | TmException (inf, name, ety, t ) ->(
+      get_type t ctx ((ety, name)::ectx)
+    ) 
+    | TmThrow (inf, i, t, resty) -> 
+      let ty = get_type t ctx ectx in
+      let ety = lookup_exception_type info ectx i in
+      if compare_type ty ety then resty
+      else error inf "applied expression and exception typed don't match"
+    | TmTry (inf, t, cls) -> (
+      let rec check_clauses clauses ty = 
+        match clauses with 
+        | [] -> ty
+        | (i, ti) :: tl -> 
+          let ety = lookup_exception_type info ectx i in
+          let titype = get_type ti (ety :: ctx) ectx in
+          if compare_type ty titype then check_clauses tl ty
+          else error inf "catch clause type does not match expession"
+        in
+      let exprty = get_type t ctx ectx in
+      check_clauses cls exprty
+    )

@@ -12,23 +12,26 @@ open Syntax
 open Core
 
 let searchpath = ref [""]
-
+let outFile = ref ""
+let inFile = ref (None : string option)
 let argDefs = [
-  "-I",
-      Arg.String (fun f -> searchpath := f::!searchpath),
-      "Append a directory to the search path"]
+  ("-i",
+      Arg.String (fun f -> searchpath := f::!searchpath; inFile := Some(f)),
+      "Append a directory to the search path"); 
+  ("-o",
+      Arg.String (fun s -> outFile := s ),
+      "Append a directory to the search path")    ]
 
 let parseArgs () =
-  let inFile = ref (None : string option) in
   Arg.parse argDefs
-     (fun s ->
-       match !inFile with
-         Some(_) -> err "You must specify exactly one input file"
-       | None -> inFile := Some(s))
+     (fun s ->())
      "";
   match !inFile with
       None -> err "You must specify an input file"
-    | Some(s) -> s
+    | Some(s) -> (
+        if !outFile = "" 
+          then err "You must specify an output file"
+        else s, !outFile)
 
 let openfile infile = 
   let rec trynext l = match l with
@@ -50,57 +53,48 @@ in
 
 let alreadyImported = ref ([] : string list)
 
-let checkbinding fi ctx b = match b with
-    NameBind -> NameBind
-  | VarBind(tyT) -> VarBind(tyT)
-  | TmAbbBind(t,None) -> TmAbbBind(t, Some(typeof ctx t))
-  | TmAbbBind(t,Some(tyT)) ->
-     let tyT' = typeof ctx t in
-     if tyeqv ctx tyT' tyT then TmAbbBind(t,Some(tyT))
-     else error fi "Type of binding does not match declared type"
-  | TyVarBind -> TyVarBind
-  | TyAbbBind(tyT) -> TyAbbBind(tyT)
-
-let prbindingty ctx b = match b with
-    NameBind -> ()
-  | TyVarBind -> ()
-  | VarBind(tyT) -> pr ": "; printty ctx tyT 
-  | TmAbbBind(t, tyT_opt) -> pr ": ";
-     (match tyT_opt with
-         None -> printty ctx (typeof ctx t)
-       | Some(tyT) -> printty ctx tyT)
-  | TyAbbBind(tyT) -> pr ":: *"
-
-let rec process_command ctx cmd = match cmd with
-  | Eval(fi,t) -> 
-      let tyT = typeof ctx t in
-      let t' = eval ctx t in
-      printtm_ATerm true ctx t'; 
-      print_break 1 2;
-      pr ": ";
-      printty ctx tyT;
-      force_newline();
-      ctx
-  | Bind(fi,x,bind) -> 
-      let bind = checkbinding fi ctx bind in
-      let bind' = evalbinding ctx bind in
-      pr x; pr " "; prbindingty ctx bind'; force_newline();
-      addbinding ctx x bind'
+let print_to_file file message= 
+  let oc = open_out file in
+  Printf.fprintf oc "%s\n" message; 
+  close_out oc;
+  ();;  
   
-let process_file f ctx =
+let process_input f f_out ctx =
   alreadyImported := f :: !alreadyImported;
-  let cmds,_ = parseFile f ctx in
-  let g ctx c =  
-    open_hvbox 0;
-    let results = process_command ctx c in
-    print_flush();
-    results
-  in
-    List.fold_left g ctx cmds
+  (*let cmds = parseFile f ctx in
+  match cmds with 
+  | [] -> 
+      Printf.printf "Brak wyrażeń na wejściu\n";
+      ()
+  | e1::e2::t -> 
+    Printf.printf "Porównuje dwa pierwsze wyrażenia\n";
+    (*let _ = Printf.printf "%s\n%s\n" (print e1) (print e2) in*)
+    let t1 = translate e1 in 
+    let t2 = translate e2 in 
+    Printf.printf "Odcukrzone wyrażenia:\n%s\n%s\n" (print_e t1) (print_e t2);
+    let same, _, _ = compare t1 [] t2 [] [] [] in 
+    if same 
+      then (
+        Printf.printf "Termy są równoważne";
+        print_to_file f_out "true")
+      else( 
+        Printf.printf "Termy nie są równoważne\n %s \n %s\n" (print_r(reduce t1 [] (get_free_var_names t1))) (print_r(reduce t2 [] (get_free_var_names t2)));
+        print_to_file f_out "false")
+       
+  | e1::t ->
+    Printf.printf "Redukuję wyrażenie\n"; 
+    (*let _ = Printf.printf "%s\n" (print e1) in*)
+    let t = translate e1 in
+    Printf.printf "Odcukrzone wyrażenie :\n %s\n" (print_e t);
+    let reduced = reduce t [] (get_free_var_names t) in
+    Printf.printf "Zredukowane wyrażenie :\n %s\n" (print_r reduced);*)
+    
+    print_to_file f_out (print_r reduced);;
 
+    
 let main () = 
-  let inFile = parseArgs() in
-  let _ = process_file inFile emptycontext in
+  let (inFile, outFile) = parseArgs() in
+  let _ = process_input inFile outFile emptycontext in
   ()
 
 let () = set_max_boxes 1000

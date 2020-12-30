@@ -11,34 +11,36 @@ open Support.Error
 
 let reservedWords = [
   (* Keywords *)
+  ("type", fun i -> Parser.TYPE i);
+  ("inert", fun i -> Parser.INERT i);
   ("if", fun i -> Parser.IF i);
   ("then", fun i -> Parser.THEN i);
   ("else", fun i -> Parser.ELSE i);
   ("true", fun i -> Parser.TRUE i);
   ("false", fun i -> Parser.FALSE i);
+  ("Bool", fun i -> Parser.BOOL i);
+  ("case", fun i -> Parser.CASE i);
+  ("of", fun i -> Parser.OF i);
+  ("as", fun i -> Parser.AS i);
   ("lambda", fun i -> Parser.LAMBDA i);
-  ("Nat", fun i -> Parser.NAT i);
-  ("add", fun i -> Parser.ADD i);
-  ("sub", fun i -> Parser.SUB i);
-  ("mul", fun i -> Parser.MUL i);
-  ("eq", fun i -> Parser.EQ i);
+  ("let", fun i -> Parser.LET i);
+  ("in", fun i -> Parser.IN i);
   ("fix", fun i -> Parser.FIX i);
-  ("pair", fun i -> Parser.PAIR i);
-  ("fst", fun i -> Parser.FST i);
-  ("snd", fun i -> Parser.SND i);
-  ("nill", fun i -> Parser.NILL i);
-  ("cons", fun i -> Parser.CONS i);
-  ("head", fun i -> Parser.HEAD i);
-  ("tail", fun i -> Parser.TAIL i);
-  ("isnill", fun i -> Parser.ISNILL i);
+  ("letrec", fun i -> Parser.LETREC i);
+  ("String", fun i -> Parser.USTRING i);
+  ("unit", fun i -> Parser.UNIT i);
+  ("Unit", fun i -> Parser.UUNIT i);
+  ("timesfloat", fun i -> Parser.TIMESFLOAT i);
+  ("Float", fun i -> Parser.UFLOAT i);
+  ("succ", fun i -> Parser.SUCC i);
+  ("pred", fun i -> Parser.PRED i);
+  ("iszero", fun i -> Parser.ISZERO i);
+  ("Nat", fun i -> Parser.NAT i);
   ("exception", fun i -> Parser.EXCEPTION i);
   ("throw", fun i -> Parser.THROW i);
   ("try", fun i -> Parser.TRY i);
   ("catch", fun i -> Parser.CATCH i);
-  ("TNum", fun i -> Parser.TNUM i);
-  ("TBool", fun i -> Parser.TBOOL i);
-  ("TArrow", fun i -> Parser.TARROW i);
-
+  
   (* Symbols *)
   ("_", fun i -> Parser.USCORE i);
   ("'", fun i -> Parser.APOSTROPHE i);
@@ -162,9 +164,9 @@ rule main = parse
 | ['0'-'9']+
     { Parser.INTV{i=info lexbuf; v=int_of_string (text lexbuf)} }
 
-(*| ['0'-'9']+ '.' ['0'-'9']+
+| ['0'-'9']+ '.' ['0'-'9']+
     { Parser.FLOATV{i=info lexbuf; v=float_of_string (text lexbuf)} }
-*)
+
 | ['A'-'Z' 'a'-'z' '_']
   ['A'-'Z' 'a'-'z' '_' '0'-'9' '\'']*
     { createID (info lexbuf) (text lexbuf) }

@@ -1,0 +1,826 @@
+   0  $accept : %entry% $end
+
+   1  toplevel : EOF
+   2           | Term SEMI toplevel
+
+   3  Type : TARROW AtomicType AtomicType
+   4       | AtomicType
+
+   5  AtomicType : TBOOL
+   6             | TNUM
+   7             | LPAREN Type RPAREN
+
+   8  Term : AppTerm
+   9       | IF Term THEN Term ELSE Term
+  10       | LAMBDA LCID COLON Type DOT Term
+
+  11  AppTerm : ATerm
+  12          | AppTerm ATerm
+  13          | ADD ATerm ATerm
+  14          | SUB ATerm ATerm
+  15          | MUL ATerm ATerm
+  16          | EQ ATerm ATerm
+  17          | FIX ATerm
+  18          | EXCEPTION LCID OF Type IN ATerm
+  19          | THROW LCID ATerm AS Type
+  20          | TRY ATerm CATCH LCURLY ErrorCases RCURLY
+
+  21  ErrorCases : ErrorCase
+  22             | ErrorCase VBAR ErrorCases
+
+  23  ErrorCase : LCID LCID DDARROW Term
+
+  24  ATerm : LPAREN Term RPAREN
+  25        | TRUE
+  26        | FALSE
+  27        | LCID
+  28        | INTV
+
+  29  %entry% : '\001' toplevel
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . toplevel  (29)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	EOF  shift 17
+	LPAREN  shift 18
+	.  error
+
+	toplevel  goto 19
+	Term  goto 20
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	Term : IF . Term THEN Term ELSE Term  (9)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 23
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 4
+	ATerm : TRUE .  (25)
+
+	.  reduce 25
+
+
+state 5
+	ATerm : FALSE .  (26)
+
+	.  reduce 26
+
+
+state 6
+	Term : LAMBDA . LCID COLON Type DOT Term  (10)
+
+	LCID  shift 24
+	.  error
+
+
+state 7
+	AppTerm : ADD . ATerm ATerm  (13)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 25
+
+
+state 8
+	AppTerm : SUB . ATerm ATerm  (14)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 26
+
+
+state 9
+	AppTerm : MUL . ATerm ATerm  (15)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 27
+
+
+state 10
+	AppTerm : EQ . ATerm ATerm  (16)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 28
+
+
+state 11
+	AppTerm : FIX . ATerm  (17)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 29
+
+
+state 12
+	AppTerm : EXCEPTION . LCID OF Type IN ATerm  (18)
+
+	LCID  shift 30
+	.  error
+
+
+state 13
+	AppTerm : THROW . LCID ATerm AS Type  (19)
+
+	LCID  shift 31
+	.  error
+
+
+state 14
+	AppTerm : TRY . ATerm CATCH LCURLY ErrorCases RCURLY  (20)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 32
+
+
+state 15
+	ATerm : LCID .  (27)
+
+	.  reduce 27
+
+
+state 16
+	ATerm : INTV .  (28)
+
+	.  reduce 28
+
+
+state 17
+	toplevel : EOF .  (1)
+
+	.  reduce 1
+
+
+state 18
+	ATerm : LPAREN . Term RPAREN  (24)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 33
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 19
+	%entry% : '\001' toplevel .  (29)
+
+	.  reduce 29
+
+
+state 20
+	toplevel : Term . SEMI toplevel  (2)
+
+	SEMI  shift 34
+	.  error
+
+
+state 21
+	Term : AppTerm .  (8)
+	AppTerm : AppTerm . ATerm  (12)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	THEN  reduce 8
+	ELSE  reduce 8
+	RCURLY  reduce 8
+	RPAREN  reduce 8
+	SEMI  reduce 8
+	VBAR  reduce 8
+
+	ATerm  goto 35
+
+
+state 22
+	AppTerm : ATerm .  (11)
+
+	.  reduce 11
+
+
+state 23
+	Term : IF Term . THEN Term ELSE Term  (9)
+
+	THEN  shift 36
+	.  error
+
+
+state 24
+	Term : LAMBDA LCID . COLON Type DOT Term  (10)
+
+	COLON  shift 37
+	.  error
+
+
+state 25
+	AppTerm : ADD ATerm . ATerm  (13)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 38
+
+
+state 26
+	AppTerm : SUB ATerm . ATerm  (14)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 39
+
+
+state 27
+	AppTerm : MUL ATerm . ATerm  (15)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 40
+
+
+state 28
+	AppTerm : EQ ATerm . ATerm  (16)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 41
+
+
+state 29
+	AppTerm : FIX ATerm .  (17)
+
+	.  reduce 17
+
+
+state 30
+	AppTerm : EXCEPTION LCID . OF Type IN ATerm  (18)
+
+	OF  shift 42
+	.  error
+
+
+state 31
+	AppTerm : THROW LCID . ATerm AS Type  (19)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 43
+
+
+state 32
+	AppTerm : TRY ATerm . CATCH LCURLY ErrorCases RCURLY  (20)
+
+	CATCH  shift 44
+	.  error
+
+
+state 33
+	ATerm : LPAREN Term . RPAREN  (24)
+
+	RPAREN  shift 45
+	.  error
+
+
+state 34
+	toplevel : Term SEMI . toplevel  (2)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	EOF  shift 17
+	LPAREN  shift 18
+	.  error
+
+	toplevel  goto 46
+	Term  goto 20
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 35
+	AppTerm : AppTerm ATerm .  (12)
+
+	.  reduce 12
+
+
+state 36
+	Term : IF Term THEN . Term ELSE Term  (9)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 47
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 37
+	Term : LAMBDA LCID COLON . Type DOT Term  (10)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	TARROW  shift 50
+	LPAREN  shift 51
+	.  error
+
+	Type  goto 52
+	AtomicType  goto 53
+
+
+state 38
+	AppTerm : ADD ATerm ATerm .  (13)
+
+	.  reduce 13
+
+
+state 39
+	AppTerm : SUB ATerm ATerm .  (14)
+
+	.  reduce 14
+
+
+state 40
+	AppTerm : MUL ATerm ATerm .  (15)
+
+	.  reduce 15
+
+
+state 41
+	AppTerm : EQ ATerm ATerm .  (16)
+
+	.  reduce 16
+
+
+state 42
+	AppTerm : EXCEPTION LCID OF . Type IN ATerm  (18)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	TARROW  shift 50
+	LPAREN  shift 51
+	.  error
+
+	Type  goto 54
+	AtomicType  goto 53
+
+
+state 43
+	AppTerm : THROW LCID ATerm . AS Type  (19)
+
+	AS  shift 55
+	.  error
+
+
+state 44
+	AppTerm : TRY ATerm CATCH . LCURLY ErrorCases RCURLY  (20)
+
+	LCURLY  shift 56
+	.  error
+
+
+state 45
+	ATerm : LPAREN Term RPAREN .  (24)
+
+	.  reduce 24
+
+
+state 46
+	toplevel : Term SEMI toplevel .  (2)
+
+	.  reduce 2
+
+
+state 47
+	Term : IF Term THEN Term . ELSE Term  (9)
+
+	ELSE  shift 57
+	.  error
+
+
+state 48
+	AtomicType : TNUM .  (6)
+
+	.  reduce 6
+
+
+state 49
+	AtomicType : TBOOL .  (5)
+
+	.  reduce 5
+
+
+state 50
+	Type : TARROW . AtomicType AtomicType  (3)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	LPAREN  shift 51
+	.  error
+
+	AtomicType  goto 58
+
+
+state 51
+	AtomicType : LPAREN . Type RPAREN  (7)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	TARROW  shift 50
+	LPAREN  shift 51
+	.  error
+
+	Type  goto 59
+	AtomicType  goto 53
+
+
+state 52
+	Term : LAMBDA LCID COLON Type . DOT Term  (10)
+
+	DOT  shift 60
+	.  error
+
+
+state 53
+	Type : AtomicType .  (4)
+
+	.  reduce 4
+
+
+state 54
+	AppTerm : EXCEPTION LCID OF Type . IN ATerm  (18)
+
+	IN  shift 61
+	.  error
+
+
+state 55
+	AppTerm : THROW LCID ATerm AS . Type  (19)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	TARROW  shift 50
+	LPAREN  shift 51
+	.  error
+
+	Type  goto 62
+	AtomicType  goto 53
+
+
+state 56
+	AppTerm : TRY ATerm CATCH LCURLY . ErrorCases RCURLY  (20)
+
+	LCID  shift 63
+	.  error
+
+	ErrorCases  goto 64
+	ErrorCase  goto 65
+
+
+state 57
+	Term : IF Term THEN Term ELSE . Term  (9)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 66
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 58
+	Type : TARROW AtomicType . AtomicType  (3)
+
+	TNUM  shift 48
+	TBOOL  shift 49
+	LPAREN  shift 51
+	.  error
+
+	AtomicType  goto 67
+
+
+state 59
+	AtomicType : LPAREN Type . RPAREN  (7)
+
+	RPAREN  shift 68
+	.  error
+
+
+state 60
+	Term : LAMBDA LCID COLON Type DOT . Term  (10)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 69
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 61
+	AppTerm : EXCEPTION LCID OF Type IN . ATerm  (18)
+
+	TRUE  shift 4
+	FALSE  shift 5
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	ATerm  goto 70
+
+
+state 62
+	AppTerm : THROW LCID ATerm AS Type .  (19)
+
+	.  reduce 19
+
+
+state 63
+	ErrorCase : LCID . LCID DDARROW Term  (23)
+
+	LCID  shift 71
+	.  error
+
+
+state 64
+	AppTerm : TRY ATerm CATCH LCURLY ErrorCases . RCURLY  (20)
+
+	RCURLY  shift 72
+	.  error
+
+
+state 65
+	ErrorCases : ErrorCase .  (21)
+	ErrorCases : ErrorCase . VBAR ErrorCases  (22)
+
+	VBAR  shift 73
+	RCURLY  reduce 21
+
+
+state 66
+	Term : IF Term THEN Term ELSE Term .  (9)
+
+	.  reduce 9
+
+
+state 67
+	Type : TARROW AtomicType AtomicType .  (3)
+
+	.  reduce 3
+
+
+state 68
+	AtomicType : LPAREN Type RPAREN .  (7)
+
+	.  reduce 7
+
+
+state 69
+	Term : LAMBDA LCID COLON Type DOT Term .  (10)
+
+	.  reduce 10
+
+
+state 70
+	AppTerm : EXCEPTION LCID OF Type IN ATerm .  (18)
+
+	.  reduce 18
+
+
+state 71
+	ErrorCase : LCID LCID . DDARROW Term  (23)
+
+	DDARROW  shift 74
+	.  error
+
+
+state 72
+	AppTerm : TRY ATerm CATCH LCURLY ErrorCases RCURLY .  (20)
+
+	.  reduce 20
+
+
+state 73
+	ErrorCases : ErrorCase VBAR . ErrorCases  (22)
+
+	LCID  shift 63
+	.  error
+
+	ErrorCases  goto 75
+	ErrorCase  goto 65
+
+
+state 74
+	ErrorCase : LCID LCID DDARROW . Term  (23)
+
+	IF  shift 3
+	TRUE  shift 4
+	FALSE  shift 5
+	LAMBDA  shift 6
+	ADD  shift 7
+	SUB  shift 8
+	MUL  shift 9
+	EQ  shift 10
+	FIX  shift 11
+	EXCEPTION  shift 12
+	THROW  shift 13
+	TRY  shift 14
+	LCID  shift 15
+	INTV  shift 16
+	LPAREN  shift 18
+	.  error
+
+	Term  goto 76
+	AppTerm  goto 21
+	ATerm  goto 22
+
+
+state 75
+	ErrorCases : ErrorCase VBAR ErrorCases .  (22)
+
+	.  reduce 22
+
+
+state 76
+	ErrorCase : LCID LCID DDARROW Term .  (23)
+
+	.  reduce 23
+
+
+65 terminals, 10 nonterminals
+30 grammar rules, 77 states

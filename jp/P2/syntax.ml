@@ -30,6 +30,7 @@ type result =
     | RVar of int
     | RBool of bool
     | RLambda of term
+    | RFix of result * (result list)
     | RNat of int
     | RException of int * result
 
@@ -123,6 +124,9 @@ let rec print_result (e:result) : string =
         | RNat  (e1) -> string_of_int e1       
         | RException (i, t) -> 
           String.concat "" ["Exception(";string_of_int i; " of " ; (print_result t);")"]
+        | RFix (t, _) -> 
+          String.concat "" ["Fix(";(print_result t);")"]
+
 (* ---------------------------------------------------------------------- *)
 (* Extracting file info *)
 

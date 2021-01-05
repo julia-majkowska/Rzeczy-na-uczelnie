@@ -29,6 +29,7 @@ type result =
     | RVar of int
     | RBool of bool
     | RLambda of term
+    | RFix of result * (result list)
     | RNat of int
     | RException of int * result
 

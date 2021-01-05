@@ -20,7 +20,7 @@ let rec var_lookup (inf : info) (num:int) (env:result list) : result=
 
 let rec exception_lookup (inf : info) (num:int) (env:string list) : string= 
   match env with 
-  | [] -> error inf "undefined variable"
+  | [] -> error inf "undefined exception"
   | t :: tail -> 
       match num with
       | 0 -> t
@@ -36,52 +36,81 @@ let rec catch_exceptions i clauses : term option =
     if i  == ei then Some ti
     else catch_exceptions i tail
   
-let rec reduce_head (e:term) (env:((result list) * (string list))) : result = 
+let rec print_env (env : result list) = 
+  match env with 
+  | [] -> ""
+  | a :: b -> String.concat "" [(print_result a); ","; print_env b]
+let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * ((result list) * (string list))) =
+  let _ = Printf.printf "Currently reducing: %s\n" (print e) in
+  let _ = Printf.printf "Current environment: %s\n" (print_env (get_1_2 env)) in
      (*Dorzucic obsługe wyjatków*)
       match e with 
       | TmApp (inf, e1, e2) -> (
-        let rt1 = reduce_head e1 env in
-        let rt2 = reduce_head e2 env in 
+        let rt1, env1 = reduce_head e1 env in
+        let rt2, env2 = reduce_head e2 env in 
         match rt1 with 
+        | RException (i, t) -> RException(i, t), env1
         | RLambda (t) -> 
-            reduce_head t (rt2 ::(get_1_2(env)), get_2_2(env))
-        | _ -> error inf "runtime attempting to apply to non abstraction"
+            reduce_head t (rt2 ::(get_1_2(env1)), get_2_2(env2))
+        (* | RFix(arg) -> (
+            match arg with
+          | RLambda (ty,t) -> (
+            match ty with
+            | TyArrow (_, _) -> 
+            | _ -> error inf "runtime aplying a non finctional fix expression"
+          )
+          | _ -> error inf "runtime non function as fix argument"*)
+        | _ -> 
+          error inf (Printf.sprintf "runtime attempting to apply to non abstraction  %s" (print_result rt1))
       )
-      | TmVarB (inf, n)-> var_lookup inf n (get_1_2 env)
+      | TmVarB (inf, n)-> (
+         match var_lookup inf n (get_1_2 env) with 
+         | RFix (arg, env1) -> (
+          match arg  with
+            | RLambda t -> (
+              (*jeśli wyrażenie pod spodem jest lambdą to zwróce tą lambdę jako wynik i będzie czekał na argument*)
+                reduce_head t (RFix(RLambda(t), env1)::(get_1_2 env), get_2_2(env))
+            )
+            | _ -> error inf "runtime non function as fix argument"
+          )
+         | var -> (var, env)
+      )
+
       | TmAdd (inf, t1, t2) -> (
-        let rt1 = reduce_head t1 env in
-        let rt2 = reduce_head t2 env in 
+        let rt1, _ = reduce_head t1 env in
+        let rt2, _ = reduce_head t2 env in 
         match (rt1, rt2) with 
-        | RNat (n1), RNat (n2) -> RNat (n1 + n2)
+        | RNat (n1), RNat (n2) -> (RNat (n1 + n2), env)
         | _ -> error inf "runtime illegal additon"
       )
       | TmMul (inf, t1, t2) -> (
-        let rt1 = reduce_head t1 env in
-        let rt2 = reduce_head t2 env in 
+        let rt1, _ = reduce_head t1 env in
+        let rt2, _ = reduce_head t2 env in 
         match (rt1, rt2) with 
-        | RNat (n1), RNat (n2) -> RNat (n1 * n2)
+        | RNat (n1), RNat (n2) -> (RNat (n1 * n2), env)
         | _ -> error inf "runtime illegal multiplication"
       )
       | TmSub (inf, t1, t2) -> (
-        let rt1 = reduce_head t1 env in
-        let rt2 = reduce_head t2 env in 
+        let rt1, _ = reduce_head t1 env in
+        let rt2, _ = reduce_head t2 env in 
         match (rt1, rt2) with 
         | RNat (n1), RNat (n2) -> 
           if n2 >= n1 then 
-            RNat 0
-          else RNat (n1 - n2)
-        | _ -> error inf "runtime illegal substraction"
+            (RNat 0, env)
+          else (RNat (n1 - n2), env)
+        | _ -> 
+          error inf (Printf.sprintf "illegal substraction  %s - %s" (print_result rt1) (print_result rt2))
       )
       | TmEq (inf, t1, t2) -> (
-        let rt1 = reduce_head t1 env in
-        let rt2 = reduce_head t2 env in 
+        let rt1, _ = reduce_head t1 env in
+        let rt2, _ = reduce_head t2 env in 
         match (rt1, rt2) with 
-        | RNat (n1), RNat (n2) -> RBool (n1 == n2)
+        | RNat (n1), RNat (n2) -> (RBool (n1 == n2), env)
         | _ -> error inf "runtime illegal numeric comparison"
       )
       | TmIf (inf, t1, t2, t3) -> (
         match reduce_head t1 env with
-        | RBool (b) -> (
+        | RBool (b), _ -> (
           if b then 
             reduce_head t2 env
           else
@@ -94,22 +123,29 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : result =
         reduce_head t (get_1_2(env), name :: get_2_2(env))
       )
       | TmThrow (inf, i, t, ty) -> 
-        let tt = reduce_head t env in
-        RException (i, tt)
+        let tt, _ = reduce_head t env in
+        (RException (i, tt), env)
       | TmTry (inf, t, clauses) -> (
         match reduce_head t env with
-        | RException (i, tt) -> (
+        | RException (i, tt), _ -> (
           match catch_exceptions i clauses with
           | Some catcht -> reduce_head catcht env
-          | None -> RException (i, tt)
+          | None -> (RException (i, tt), env)
         )
         | rt -> rt
       )
       (*Dodać fix*)
-      | TmBool (_, b) -> RBool(b)
-      | TmNat (_, n) -> RNat(n)
-      | TmLambda(_, _, t) -> RLambda(t)
-      | TmFix (inf, _) -> error inf "Fix unimplemented"
+      | TmBool (_, b) -> (RBool(b), env)
+      | TmNat (_, n) -> (RNat(n), env)
+      | TmLambda(_, ty, t) -> (RLambda(t), env)
+      | TmFix (inf, arg) -> (
+        match reduce_head arg env with
+        | RLambda(t), env1 -> (
+          (*jeśli wyrażenie pod spodem jest lambdą to zwróce tą lambdę jako wynik i będzie czekał na argument*)
+            reduce_head t (RFix(RLambda(t), get_1_2 env1)::get_1_2(env1), get_2_2(env1))
+        )
+        | _ -> error inf "runtime non function as fix argument"
+      )
 
 
 let rec get_fresh_name (used_names : string list) (name : string) : string = 
@@ -130,7 +166,7 @@ let rec compare_type (ty1 : etype) (ty2 : etype) : bool =
 
 let rec lookup_type info (ctx : etype list) (i:int) : etype = 
   match ctx with 
-  | [] -> error info "undefined variable"
+  | [] -> error info "undefined variable for type"
   | h :: t -> (
     match i with 
     | 0 -> h
@@ -139,7 +175,7 @@ let rec lookup_type info (ctx : etype list) (i:int) : etype =
 
 let rec lookup_exception_type info (ectx : etype list) (i:int) : etype = 
   match ectx with 
-  | [] -> error info "undefined exception"
+  | [] -> error info "undefined exception for type"
   | (hty) :: t -> (
     match i with 
     | 0 -> hty

@@ -50,16 +50,11 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
         let rt2, env2 = reduce_head e2 env in 
         match rt1 with 
         | RException (i, t) -> RException(i, t), env1
-        | RLambda (t) -> 
-            reduce_head t (rt2 ::(get_1_2(env1)), get_2_2(env2))
-        (* | RFix(arg) -> (
-            match arg with
-          | RLambda (ty,t) -> (
-            match ty with
-            | TyArrow (_, _) -> 
-            | _ -> error inf "runtime aplying a non finctional fix expression"
-          )
-          | _ -> error inf "runtime non function as fix argument"*)
+        | RLambda (t) -> (
+          match rt2 with 
+          | RException(i, t2)-> RException(i, t2), env2
+          | _ -> reduce_head t (rt2 ::(get_1_2(env1)), get_2_2(env2))
+        )
         | _ -> 
           error inf (Printf.sprintf "runtime attempting to apply to non abstraction  %s" (print_result rt1))
       )
@@ -77,23 +72,29 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
       )
 
       | TmAdd (inf, t1, t2) -> (
-        let rt1, _ = reduce_head t1 env in
-        let rt2, _ = reduce_head t2 env in 
+        let rt1, env1 = reduce_head t1 env in
+        let rt2, env2 = reduce_head t2 env in 
         match (rt1, rt2) with 
+        | RException (i1, t1 ), _ -> RException (i1, t1), env1
+        | _ , RException (i2, t2) -> RException (i2, t2), env2
         | RNat (n1), RNat (n2) -> (RNat (n1 + n2), env)
         | _ -> error inf "runtime illegal additon"
       )
       | TmMul (inf, t1, t2) -> (
-        let rt1, _ = reduce_head t1 env in
-        let rt2, _ = reduce_head t2 env in 
+        let rt1, env1 = reduce_head t1 env in
+        let rt2, env2 = reduce_head t2 env in 
         match (rt1, rt2) with 
+        | RException (i1, t1 ), _ -> RException (i1, t1), env1
+        | _ , RException (i2, t2) -> RException (i2, t2), env2
         | RNat (n1), RNat (n2) -> (RNat (n1 * n2), env)
         | _ -> error inf "runtime illegal multiplication"
       )
       | TmSub (inf, t1, t2) -> (
-        let rt1, _ = reduce_head t1 env in
-        let rt2, _ = reduce_head t2 env in 
+        let rt1, env1 = reduce_head t1 env in
+        let rt2, env2 = reduce_head t2 env in 
         match (rt1, rt2) with 
+        | RException (i1, t1 ), _ -> RException (i1, t1), env1
+        | _ , RException (i2, t2) -> RException (i2, t2), env2
         | RNat (n1), RNat (n2) -> 
           if n2 >= n1 then 
             (RNat 0, env)
@@ -102,9 +103,11 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
           error inf (Printf.sprintf "illegal substraction  %s - %s" (print_result rt1) (print_result rt2))
       )
       | TmEq (inf, t1, t2) -> (
-        let rt1, _ = reduce_head t1 env in
-        let rt2, _ = reduce_head t2 env in 
+        let rt1, env1 = reduce_head t1 env in
+        let rt2, env2 = reduce_head t2 env in 
         match (rt1, rt2) with 
+        | RException (i1, t1 ), _ -> RException (i1, t1), env1
+        | _ , RException (i2, t2) -> RException (i2, t2), env2
         | RNat (n1), RNat (n2) -> (RBool (n1 == n2), env)
         | _ -> error inf "runtime illegal numeric comparison"
       )
@@ -116,6 +119,7 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
           else
             reduce_head t3 env
         )
+        | RException(i, t), env1 -> RException(i, t), env1
         | _ -> error inf "runtime non bolean in if clause" 
         
       )
@@ -127,10 +131,10 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
         (RException (i, tt), env)
       | TmTry (inf, t, clauses) -> (
         match reduce_head t env with
-        | RException (i, tt), _ -> (
+        | RException (i, tt), env1 -> (
           match catch_exceptions i clauses with
-          | Some catcht -> reduce_head catcht env
-          | None -> (RException (i, tt), env)
+          | Some catcht -> reduce_head catcht (tt::get_1_2(env), get_2_2(env))
+          | None -> (RException (i, tt), env1)
         )
         | rt -> rt
       )
@@ -144,6 +148,8 @@ let rec reduce_head (e:term) (env:((result list) * (string list))) : (result * (
           (*jeśli wyrażenie pod spodem jest lambdą to zwróce tą lambdę jako wynik i będzie czekał na argument*)
             reduce_head t (RFix(RLambda(t), get_1_2 env1)::get_1_2(env1), get_2_2(env1))
         )
+        | RException(i, t), env1 -> RException(i, t), env1
+        
         | _ -> error inf "runtime non function as fix argument"
       )
 
@@ -263,3 +269,4 @@ let rec get_type (e : term) (ctx : etype list) (ectx : (etype) list) : etype =
       let exprty = get_type t ctx ectx in
       check_clauses cls exprty
     )
+

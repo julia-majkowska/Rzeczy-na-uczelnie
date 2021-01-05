@@ -71,9 +71,9 @@ let process_input f f_out ctx =
     let _ = Printf.printf "%s\n" (print e1) in
     let t = get_type e1 [] [] in
     Printf.printf "Expression of type :\n %s\n" (print_type t);
-    let reduced, _ = reduce_head e1 ([], []) in
-    Printf.printf "Result :\n %s\n" (print_result reduced);
-    print_to_file f_out (print_result reduced);;
+    let reduced, env = reduce_head e1 ([], []) in
+    Printf.printf "Result :\n %s\n" (print_result_final reduced env);
+    print_to_file f_out (print_result_final reduced env);;
 
     
 let main () = 

@@ -26,7 +26,6 @@ type term =
     | TmTry of info * term * (int * term) list
 
 type result = 
-    | RVar of int
     | RBool of bool
     | RLambda of term
     | RFix of result * (result list)
@@ -49,6 +48,7 @@ val isnamebound : context -> string -> bool
 val isexceptionbound : context -> string -> bool
 val print: term->string
 val print_result: result->string
+val print_result_final: result-> (result list * string list)->string
 val print_type: etype->string
 
 (* Misc *)

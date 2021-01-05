@@ -27,7 +27,6 @@ type term =
     | TmTry of info * term * (int * term) list
 
 type result = 
-    | RVar of int
     | RBool of bool
     | RLambda of term
     | RFix of result * (result list)
@@ -119,11 +118,30 @@ and  print (e : term)  : string=
 let rec print_result (e:result) : string = 
   match e with 
         | RLambda ( e1) -> String.concat "" ["λ.("; (print e1); ")"]
-        | RVar (i) -> String.concat "" ["v"; string_of_int i ]
         | RBool  (b)-> if b then "true" else "false"
         | RNat  (e1) -> string_of_int e1       
         | RException (i, t) -> 
           String.concat "" ["Exception(";string_of_int i; " of " ; (print_result t);")"]
+        | RFix (t, _) -> 
+          String.concat "" ["Fix(";(print_result t);")"]
+
+
+let rec exception_lookup (num:int) (env:string list) : string= 
+match env with 
+| [] -> "undefined exception"
+| t :: tail -> 
+    match num with
+    | 0 -> t
+    | n -> exception_lookup (num-1) tail
+
+let rec print_result_final (e:result) (env : (result list * string list)): string = 
+  match e with 
+        | RLambda ( e1) -> String.concat "" ["λ.("; (print e1); ")"]
+        | RBool  (b)-> if b then "true" else "false"
+        | RNat  (e1) -> string_of_int e1       
+        | RException (i, t) -> 
+          let _ , exenv = env in 
+          String.concat "" ["Exception(";(exception_lookup i exenv) ; " of " ; (print_result t);")"]
         | RFix (t, _) -> 
           String.concat "" ["Fix(";(print_result t);")"]
 

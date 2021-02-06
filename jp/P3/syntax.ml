@@ -6,7 +6,7 @@ exception NoRuleApplies
 
 
 type etype =
-    | TyVar of string
+    | TyVar of int
     | TyArrow of etype * etype
     | TyUnit
     | TyProd of etype * etype
@@ -80,7 +80,7 @@ let exceptionname2index fi ctx x =
 
 let rec print_type (ty : etype) : string = 
   match ty with 
-  | TyVar str -> str
+  | TyVar i -> string_of_int i
   | TyArrow (ty1, ty2) -> 
     String.concat "" ["["; (print_type ty1);"->"; (print_type ty2); "]"]
   | TyProd (ty1, ty2) -> 

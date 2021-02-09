@@ -5,7 +5,7 @@ open Support.Error
 
 (* Data type definitions *)
 type etype =
-    | TyVar of string
+    | TyVar of int
     | TyArrow of etype * etype
     | TyUnit
     | TyProd of etype * etype
@@ -39,6 +39,7 @@ val isnamebound : context -> string -> bool
 val isexceptionbound : context -> string -> bool
 val print: term->string
 val print_type: etype->string
+val print_constraints:(etype * etype) list -> string
 
 (* Misc *)
 val tmInfo: term -> info

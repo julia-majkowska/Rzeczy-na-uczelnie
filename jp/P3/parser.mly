@@ -187,11 +187,11 @@ AppTerm :
         { fun ctx -> TmIn($1, $2 ctx, 1) }
     | IN2 ATerm
         { fun ctx -> TmIn($1, $2 ctx, 2) }
-    | CASE ATerm OF IN1 LCID DARROW ATerm VBAR LCID DARROW ATerm
+    | CASE ATerm OF IN1 LCID DARROW ATerm VBAR IN2 LCID DARROW ATerm
         { fun ctx -> 
           let ctx1 = addname ctx $5.v in
-          let ctx2 = addname ctx $9.v in
-          TmCase($1, $2 ctx, $7 ctx1, $11 ctx2) }
+          let ctx2 = addname ctx $10.v in
+          TmCase($1, $2 ctx, $7 ctx1, $12 ctx2) }
     
 
 /* Atomic terms are ones that never require extra parentheses */

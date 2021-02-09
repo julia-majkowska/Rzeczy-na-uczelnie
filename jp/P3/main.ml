@@ -69,10 +69,18 @@ let process_input f f_out ctx =
   | e1::t ->
     Printf.printf "Type checking\n"; 
     let _ = Printf.printf "%s\n" (print e1) in
-    let t, _ , _ = get_type e1 [] [] [] in
+    let t, constrs , last_var = get_type e1 [] [] 0 in
     Printf.printf "Expression of type :\n %s\n" (print_type t);
-    print_to_file f_out (Printf.sprintf ("%s\n") (print_type t));;
-
+    Printf.printf "constarints :\n %s\n" (print_constraints constrs);
+    let is_ok, var_class = resolve_binds constrs last_var t in 
+    if is_ok 
+      then
+      let new_type = convert_type t var_class in 
+      Printf.printf "Expression of type :\n %s\n" (print_type new_type);
+      print_to_file f_out (Printf.sprintf ("%s\n") (print_type t))
+    else
+      Printf.printf "Term not finately typed\n"
+      print_to_file f_out "Term not finately typed\n"
     
 let main () = 
   let (inFile, outFile) = parseArgs() in

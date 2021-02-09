@@ -80,7 +80,7 @@ let exceptionname2index fi ctx x =
 
 let rec print_type (ty : etype) : string = 
   match ty with 
-  | TyVar i -> string_of_int i
+  | TyVar i -> String.concat "" ["T_";string_of_int i]
   | TyArrow (ty1, ty2) -> 
     String.concat "" ["["; (print_type ty1);"->"; (print_type ty2); "]"]
   | TyProd (ty1, ty2) -> 
@@ -106,7 +106,10 @@ and  print (e : term)  : string=
         | TmAbort (_,e1) -> String.concat "" ["abort("; (print e1);")"]
         | TmCase (_, e1, e2, e3) -> String.concat "" ["case ";print e1; " of " ; print e2; " | "; print e3;")"]
        
-
+let rec print_constraints (constrs : (etype * etype) list ) : string = 
+  match constrs with 
+  | [] -> ""
+  | (a, b) :: t -> String.concat " " [" ( "; print_type a ; ", "; print_type b; ") "; print_constraints t ] ;;
 
 (* ---------------------------------------------------------------------- *)
 (* Extracting file info *)
